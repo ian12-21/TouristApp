@@ -17,6 +17,12 @@ class AppPreferences(context: Context) {
         prefs.edit().putString("apartment_id", id).apply()
     }
 
+    fun getApartmentName(): String? = prefs.getString("apartment_name", null)
+
+    fun setApartmentName(name: String) {
+        prefs.edit().putString("apartment_name", name).apply()
+    }
+
     fun clear() {
         prefs.edit().clear().apply()
     }
