@@ -7,12 +7,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-/**
- * Explore nearby places screen.
- * TODO: Fetch places from Firestore and display by category.
- */
 @Composable
-fun PlacesScreen(apartmentId: String) {
+fun PlacesSlide() {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -21,7 +17,7 @@ fun PlacesScreen(apartmentId: String) {
     ) {
         Text(
             text = "Explore nearby places",
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }

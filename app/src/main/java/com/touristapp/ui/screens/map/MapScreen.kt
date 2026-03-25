@@ -7,12 +7,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-/**
- * Map screen with apartment location.
- * TODO: Integrate Google Maps SDK.
- */
 @Composable
-fun MapScreen(apartmentId: String) {
+fun MapSlide() {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -21,7 +17,7 @@ fun MapScreen(apartmentId: String) {
     ) {
         Text(
             text = "Map view coming soon",
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }

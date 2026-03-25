@@ -1,38 +1,44 @@
 package com.touristapp.ui.navigation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import androidx.navigation.compose.*
+import com.touristapp.data.model.Apartment
+import com.touristapp.data.model.Stay
 import com.touristapp.ui.components.AdminDialog
-import com.touristapp.ui.screens.home.HomeScreen
-import com.touristapp.ui.screens.map.MapScreen
-import com.touristapp.ui.screens.places.PlacesScreen
-
-sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
-    data object Home : Screen("home", "Home", Icons.Default.Home)
-    data object Places : Screen("places", "Explore", Icons.Default.Place)
-    data object Map : Screen("map", "Map", Icons.Default.LocationOn)
-}
+import com.touristapp.ui.screens.home.HomeSlide
+import com.touristapp.ui.screens.map.MapSlide
+import com.touristapp.ui.screens.places.PlacesSlide
+import com.touristapp.ui.screens.reviews.ReviewsSlide
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppNavigation(apartmentId: String, apartmentName: String, onReconfigure: () -> Unit) {
-    val navController = rememberNavController()
+fun AppNavigation(
+    apartmentId: String,
+    apartmentName: String,
+    apartment: Apartment?,
+    currentStay: Stay?,
+    onReconfigure: () -> Unit
+) {
     var showAdminDialog by remember { mutableStateOf(false) }
     var cooldownUntil by remember { mutableLongStateOf(0L) }
+
+    val pageCount = 4
+    val pagerState = rememberPagerState(pageCount = { pageCount })
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -50,9 +56,8 @@ fun AppNavigation(apartmentId: String, apartmentName: String, onReconfigure: () 
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onTap = {
-                                        navController.navigate(Screen.Home.route) {
-                                            popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                            launchSingleTop = true
+                                        coroutineScope.launch {
+                                            pagerState.animateScrollToPage(0)
                                         }
                                     },
                                     onPress = {
@@ -81,19 +86,44 @@ fun AppNavigation(apartmentId: String, apartmentName: String, onReconfigure: () 
             )
         }
     ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = Screen.Home.route,
-            modifier = Modifier.padding(innerPadding)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
         ) {
-            composable(Screen.Home.route) {
-                HomeScreen(apartmentId = apartmentId)
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.weight(1f)
+            ) { page ->
+                when (page) {
+                    0 -> HomeSlide(apartment = apartment, currentStay = currentStay)
+                    1 -> MapSlide()
+                    2 -> PlacesSlide()
+                    3 -> ReviewsSlide()
+                }
             }
-            composable(Screen.Places.route) {
-                PlacesScreen(apartmentId = apartmentId)
-            }
-            composable(Screen.Map.route) {
-                MapScreen(apartmentId = apartmentId)
+
+            // Page indicator dots
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                repeat(pageCount) { index ->
+                    val isSelected = pagerState.currentPage == index
+                    Box(
+                        modifier = Modifier
+                            .padding(horizontal = 4.dp)
+                            .size(if (isSelected) 10.dp else 8.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                            )
+                    )
+                }
             }
         }
     }

@@ -8,6 +8,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.touristapp.data.local.AppPreferences
+import com.touristapp.data.model.Apartment
+import com.touristapp.data.model.Stay
 import com.touristapp.data.repository.TouristRepository
 import com.touristapp.ui.navigation.AppNavigation
 import com.touristapp.ui.screens.setup.SetupScreen
@@ -26,19 +28,24 @@ class MainActivity : ComponentActivity() {
             TouristAppTheme {
                 val apartmentId = remember { mutableStateOf(prefs.getApartmentId()) }
                 val apartmentName = remember { mutableStateOf(prefs.getApartmentName() ?: "") }
+                val apartment = remember { mutableStateOf<Apartment?>(null) }
+                val currentStay = remember { mutableStateOf<Stay?>(null) }
 
                 LaunchedEffect(apartmentId.value) {
                     apartmentId.value?.let { id ->
-                        val apartment = repository.getApartment(id)
-                        apartment?.name?.let { name ->
+                        val fetchedApartment = repository.getApartment(id)
+                        apartment.value = fetchedApartment
+                        fetchedApartment?.name?.let { name ->
                             prefs.setApartmentName(name)
                             apartmentName.value = name
+                        }
+                        fetchedApartment?.currentStayId?.let { stayId ->
+                            currentStay.value = repository.getCurrentStay(stayId)
                         }
                     }
                 }
 
                 if (apartmentId.value == null) {
-                    // First launch — owner sets up which apartment this tablet displays
                     SetupScreen(
                         onApartmentSelected = { id ->
                             prefs.setApartmentId(id)
@@ -46,14 +53,17 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                 } else {
-                    // Normal launch — guest-facing kiosk mode
                     AppNavigation(
                         apartmentId = apartmentId.value!!,
                         apartmentName = apartmentName.value,
+                        apartment = apartment.value,
+                        currentStay = currentStay.value,
                         onReconfigure = {
                             prefs.clear()
                             apartmentId.value = null
                             apartmentName.value = ""
+                            apartment.value = null
+                            currentStay.value = null
                         }
                     )
                 }
