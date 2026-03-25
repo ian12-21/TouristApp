@@ -1,5 +1,21 @@
 package com.touristapp.data.model
 
+import com.google.firebase.Timestamp
+
+// ── Shared / Nested ──
+
+data class Amenity(
+    val name: String = "",
+    val icon: String = "",
+    val description: String = ""
+)
+
+data class EmergencyContact(
+    val name: String = "",
+    val phone: String = "",
+    val type: String = "" // 'police' | 'hospital' | 'fire' | 'owner' | 'other'
+)
+
 /**
  * Maps to Firestore collection: apartments
  */
@@ -7,15 +23,23 @@ data class Apartment(
     val id: String = "",
     val name: String = "",
     val address: String = "",
+    val description: String = "",
     val coordinates: Map<String, Double> = emptyMap(),
-    val wifi: Map<String, String> = emptyMap(),
-    val amenities: List<String> = emptyList(),
-    val houseRules: List<String> = emptyList(),
+    val photos: List<String> = emptyList(),
+    val size: String = "",
+    val capacity: Int = 0,
+    val renovationYear: Int = 0,
+    val wifiName: String = "",
+    val wifiPassword: String = "",
+    val checkoutTime: String = "",
     val checkoutInstructions: String = "",
-    val emergencyContacts: List<Map<String, String>> = emptyList(),
+    val houseRules: List<String> = emptyList(),
+    val amenities: List<Amenity> = emptyList(),
+    val emergencyContacts: List<EmergencyContact> = emptyList(),
     val transportTips: String = "",
     val currentStayId: String? = null,
-    val placeIds: List<String> = emptyList()
+    val placeIds: List<String> = emptyList(),
+    val updatedAt: Timestamp? = null
 )
 
 /**
@@ -23,12 +47,14 @@ data class Apartment(
  */
 data class Stay(
     val id: String = "",
-    val guestId: String = "",
+    val guestIds: List<String> = emptyList(),
     val apartmentId: String = "",
-    val checkIn: String = "",
-    val checkOut: String = "",
+    val checkIn: Timestamp? = null,
+    val checkOut: Timestamp? = null,
+    val welcomeMessage: String = "",
+    val notes: String = "",
     val status: String = "",
-    val welcomeMessage: String = ""
+    val createdAt: Timestamp? = null
 )
 
 /**
@@ -39,7 +65,8 @@ data class Guest(
     val name: String = "",
     val email: String = "",
     val phone: String = "",
-    val language: String = "en"
+    val language: String = "en",
+    val createdAt: Timestamp? = null
 )
 
 /**
@@ -49,18 +76,37 @@ data class Place(
     val id: String = "",
     val name: String = "",
     val category: String = "",
-    val coordinates: Map<String, Double> = emptyMap(),
     val description: String = "",
+    val coordinates: Map<String, Double> = emptyMap(),
+    val address: String = "",
+    val photoUrl: String = "",
+    val rating: Double = 0.0,
     val tips: String = "",
-    val contact: String = "",
+    val website: String = "",
+    val phone: String = "",
+    val isActive: Boolean = true,
+    val createdAt: Timestamp? = null
+)
+
+/**
+ * Maps to Firestore collection: customSections
+ */
+data class CustomSection(
+    val id: String = "",
+    val title: String = "",
+    val icon: String = "",
+    val content: String = "",
+    val order: Int = 0,
     val isActive: Boolean = true
 )
 
 /**
  * Maps to Firestore collection: admins
- * Used only during setup to fetch apartment list.
  */
 data class Admin(
     val id: String = "",
-    val apartmentIds: List<String> = emptyList()
+    val email: String = "",
+    val displayName: String = "",
+    val apartmentIds: List<String> = emptyList(),
+    val createdAt: Timestamp? = null
 )
