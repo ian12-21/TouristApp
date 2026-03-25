@@ -91,10 +91,8 @@ fun AdminLoginFlow(
                             auth.signInWithEmailAndPassword(email, password).await()
                             val uid = auth.currentUser?.uid ?: throw Exception("No user")
 
-                            // Fetch admin's apartments
-                            val ids = repository.getAdminApartmentIds(uid)
-                            val names = repository.getApartmentNames(ids)
-                            apartments = names
+                            // Fetch all apartments
+                            apartments = repository.getAllApartments()
                         } catch (e: Exception) {
                             failedAttempts++
                             if (failedAttempts >= 3) {

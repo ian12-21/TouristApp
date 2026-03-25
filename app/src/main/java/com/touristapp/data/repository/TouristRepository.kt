@@ -59,24 +59,26 @@ class TouristRepository {
         }
     }
 
-    suspend fun getAdminApartmentIds(adminUid: String): List<String> {
-        return try {
-            val doc = db.collection("admins").document(adminUid).get().await()
-            doc.toObject(Admin::class.java)?.apartmentIds ?: emptyList()
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
+    // suspend fun getAdminApartmentIds(adminUid: String): List<String> {
+    //     return try {
+    //         val doc = db.collection("admins").document(adminUid).get().await()
+    //         doc.toObject(Admin::class.java)?.apartmentIds ?: emptyList()
+    //     } catch (e: Exception) {
+    //         emptyList()
+    //     }
+    // }
 
-    suspend fun getApartmentNames(apartmentIds: List<String>): List<Pair<String, String>> {
-        if (apartmentIds.isEmpty()) return emptyList()
+    suspend fun getAllApartments(): List<Pair<String, String>> {
         return try {
-            apartmentIds.mapNotNull { id ->
-                val doc = db.collection("apartments").document(id).get().await()
-                val name = doc.getString("name") ?: return@mapNotNull null
-                val address = doc.getString("address") ?: ""
-                id to "$name — $address"
-            }
+            db.collection("apartments")
+                .get()
+                .await()
+                .documents
+                .mapNotNull { doc ->
+                    val name = doc.getString("name") ?: return@mapNotNull null
+                    val address = doc.getString("address") ?: ""
+                    doc.id to "$name — $address"
+                }
         } catch (e: Exception) {
             emptyList()
         }
