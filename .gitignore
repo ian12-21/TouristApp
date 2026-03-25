@@ -1,0 +1,20 @@
+# Built files
+*.iml
+.gradle/
+build/
+local.properties
+
+# IDE
+.idea/
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Firebase config contains API keys — keep out of public repos
+app/google-services.json
+
+# Java heap dumps
+*.hprof
