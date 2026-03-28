@@ -35,6 +35,7 @@ data class Apartment(
     val houseRules: List<String> = emptyList(),
     val amenities: List<Amenity> = emptyList(),
     val contacts: List<Contact> = emptyList(),
+    val welcomeMessage: String = "",
     val transportTips: String = "",
     val currentStayId: String? = null,
     val placeIds: List<String> = emptyList(),

@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.touristapp.data.model.Apartment as ApartmentModel
 import com.touristapp.data.model.Contact
 import com.touristapp.data.model.Stay
@@ -55,9 +56,19 @@ fun HomeSlide(apartment: ApartmentModel?, currentStay: Stay?, emergencyContacts:
         ) {
             Text(
                 text = welcomeText,
-                style = MaterialTheme.typography.headlineLarge,
+                style = MaterialTheme.typography.headlineLarge.copy(fontSize = 34.sp),
                 color = MaterialTheme.colorScheme.onBackground
             )
+
+            // Apartment welcome message
+            apartment?.welcomeMessage?.takeIf { it.isNotBlank() }?.let { msg ->
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = msg,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -155,7 +166,7 @@ fun HomeSlide(apartment: ApartmentModel?, currentStay: Stay?, emergencyContacts:
                             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
                         ) {
                             Column(
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                                modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(

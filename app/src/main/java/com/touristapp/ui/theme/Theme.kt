@@ -10,20 +10,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF4ADE80),
-    onPrimary = Color(0xFF1C1E2A),
-    primaryContainer = Color(0xFF2A4D3A),
-    onPrimaryContainer = Color(0xFFA7F3D0),
-    secondary = Color(0xFF8BBFA0),
+    primary = Color(0xFFFF6B5A),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFF4A2A2A),
+    onPrimaryContainer = Color(0xFFFFB4AA),
+    secondary = Color(0xFF9DA3B0),
     onSecondary = Color(0xFF1C1E2A),
-    secondaryContainer = Color(0xFF334A3D),
+    secondaryContainer = Color(0xFF2F3545),
     background = Color(0xFF1C1E2A),
     surface = Color(0xFF262C3A),
-    onBackground = Color(0xFFE2E4E8),
-    onSurface = Color(0xFFE2E4E8),
+    onBackground = Color(0xFFE8E9ED),
+    onSurface = Color(0xFFE8E9ED),
     surfaceVariant = Color(0xFF2F3545),
-    onSurfaceVariant = Color(0xFFB0B6C3),
-    outlineVariant = Color(0xFF3D4455),
+    onSurfaceVariant = Color(0xFF8A91A0),
+    outlineVariant = Color(0xFF3A4155),
 )
 
 private val AppTypography = Typography(
