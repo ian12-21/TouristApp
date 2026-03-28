@@ -4,14 +4,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.touristapp.data.model.EmergencyContact
 
 @Composable
 fun EmergencyContactsDialog(
-    contacts: List<EmergencyContact>,
+    contacts: List<String>,
     onDismiss: () -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss) {
@@ -43,19 +41,8 @@ fun EmergencyContactsDialog(
                         }
 
                         Text(
-                            text = contact.type.replaceFirstChar { it.uppercase() },
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = contact.name,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Text(
-                            text = contact.phone,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = contact,
+                            style = MaterialTheme.typography.bodyLarge
                         )
                     }
                 }
