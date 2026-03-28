@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.touristapp.data.model.Apartment
+import com.touristapp.data.model.Contact
 import com.touristapp.data.model.Stay
 import com.touristapp.data.model.WeatherInfo
 import com.touristapp.ui.components.AdminDialog
@@ -36,6 +37,7 @@ fun AppNavigation(
     apartment: Apartment?,
     currentStay: Stay?,
     weatherInfo: WeatherInfo?,
+    emergencyContacts: List<Contact>,
     onReconfigure: () -> Unit
 ) {
     var showAdminDialog by remember { mutableStateOf(false) }
@@ -120,7 +122,7 @@ fun AppNavigation(
                 modifier = Modifier.weight(1f)
             ) { page ->
                 when (page) {
-                    0 -> HomeSlide(apartment = apartment, currentStay = currentStay)
+                    0 -> HomeSlide(apartment = apartment, currentStay = currentStay, emergencyContacts = emergencyContacts)
                     1 -> MapSlide()
                     2 -> PlacesSlide()
                     3 -> ReviewsSlide()

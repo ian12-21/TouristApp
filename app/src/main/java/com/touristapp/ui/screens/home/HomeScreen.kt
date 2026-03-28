@@ -18,12 +18,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.touristapp.data.model.Apartment
+import com.touristapp.data.model.Contact
 import com.touristapp.data.model.Stay
+import com.touristapp.ui.components.ContactsDialog
 import com.touristapp.ui.components.WifiDialog
 
 @Composable
-fun HomeSlide(apartment: Apartment?, currentStay: Stay?) {
+fun HomeSlide(apartment: Apartment?, currentStay: Stay?, emergencyContacts: List<Contact> = emptyList()) {
     var showWifiDialog by remember { mutableStateOf(false) }
+    var showContactsDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -78,9 +81,9 @@ fun HomeSlide(apartment: Apartment?, currentStay: Stay?) {
             )
             QuickActionCard(
                 icon = Icons.Default.Phone,
-                label = "SOS",
+                label = "Contacts",
                 modifier = Modifier.weight(1f),
-                onClick = { /* TODO */ }
+                onClick = { showContactsDialog = true }
             )
             QuickActionCard(
                 icon = Icons.Default.Star,
@@ -108,6 +111,14 @@ fun HomeSlide(apartment: Apartment?, currentStay: Stay?) {
             wifiName = apartment?.wifiName ?: "",
             wifiPassword = apartment?.wifiPassword ?: "",
             onDismiss = { showWifiDialog = false }
+        )
+    }
+
+    if (showContactsDialog) {
+        ContactsDialog(
+            contacts = apartment?.contacts ?: emptyList(),
+            emergencyContacts = emergencyContacts,
+            onDismiss = { showContactsDialog = false }
         )
     }
 }

@@ -10,6 +10,11 @@ data class Amenity(
     val description: String = ""
 )
 
+data class Contact(
+    val name: String = "",
+    val phone: String = ""
+)
+
 /**
  * Maps to Firestore collection: apartments
  */
@@ -29,7 +34,7 @@ data class Apartment(
     val checkoutInstructions: String = "",
     val houseRules: List<String> = emptyList(),
     val amenities: List<Amenity> = emptyList(),
-    val emergencyContacts: List<String> = emptyList(),
+    val contacts: List<Contact> = emptyList(),
     val transportTips: String = "",
     val currentStayId: String? = null,
     val placeIds: List<String> = emptyList(),

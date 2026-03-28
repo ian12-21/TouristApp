@@ -68,6 +68,27 @@ class TouristRepository {
     //     }
     // }
 
+    @Suppress("UNCHECKED_CAST")
+    suspend fun getEmergencyContactsCroatia(): List<Contact> {
+        return try {
+            db.collection("emergency_contacts_croatia")
+                .get()
+                .await()
+                .documents
+                .flatMap { doc ->
+                    val contactsList = doc.get("contacts") as? List<Map<String, String>> ?: emptyList()
+                    contactsList.map { map ->
+                        Contact(
+                            name = map["name"] ?: "",
+                            phone = map["phone"] ?: map["number"] ?: ""
+                        )
+                    }
+                }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
     suspend fun getAllApartments(): List<Pair<String, String>> {
         return try {
             db.collection("apartments")

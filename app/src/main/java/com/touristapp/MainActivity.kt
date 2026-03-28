@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.touristapp.data.local.AppPreferences
 import com.touristapp.data.model.Apartment
+import com.touristapp.data.model.Contact
 import com.touristapp.data.model.Stay
 import com.touristapp.data.model.WeatherInfo
 import com.touristapp.data.repository.TouristRepository
@@ -35,6 +36,7 @@ class MainActivity : ComponentActivity() {
                 val apartment = remember { mutableStateOf<Apartment?>(null) }
                 val currentStay = remember { mutableStateOf<Stay?>(null) }
                 val weatherInfo = remember { mutableStateOf<WeatherInfo?>(null) }
+                val emergencyContacts = remember { mutableStateOf<List<Contact>>(emptyList()) }
 
                 LaunchedEffect(apartmentId.value) {
                     apartmentId.value?.let { id ->
@@ -47,6 +49,8 @@ class MainActivity : ComponentActivity() {
                         fetchedApartment?.currentStayId?.let { stayId ->
                             currentStay.value = repository.getCurrentStay(stayId)
                         }
+
+                        emergencyContacts.value = repository.getEmergencyContactsCroatia()
 
                         // Fetch weather using apartment coordinates, refresh every 30 min
                         fetchedApartment?.coordinates?.let { coords ->
@@ -76,6 +80,7 @@ class MainActivity : ComponentActivity() {
                         apartment = apartment.value,
                         currentStay = currentStay.value,
                         weatherInfo = weatherInfo.value,
+                        emergencyContacts = emergencyContacts.value,
                         onReconfigure = {
                             prefs.clear()
                             apartmentId.value = null
