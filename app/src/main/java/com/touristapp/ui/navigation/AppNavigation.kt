@@ -17,7 +17,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.touristapp.data.model.Apartment
 import com.touristapp.data.model.Stay
+import com.touristapp.data.model.WeatherInfo
 import com.touristapp.ui.components.AdminDialog
+import com.touristapp.ui.components.WeatherDialog
+import com.touristapp.ui.components.weatherIconFor
+import kotlin.math.roundToInt
 import com.touristapp.ui.screens.home.HomeSlide
 import com.touristapp.ui.screens.map.MapSlide
 import com.touristapp.ui.screens.places.PlacesSlide
@@ -31,9 +35,11 @@ fun AppNavigation(
     apartmentName: String,
     apartment: Apartment?,
     currentStay: Stay?,
+    weatherInfo: WeatherInfo?,
     onReconfigure: () -> Unit
 ) {
     var showAdminDialog by remember { mutableStateOf(false) }
+    var showWeatherDialog by remember { mutableStateOf(false) }
     var cooldownUntil by remember { mutableLongStateOf(0L) }
 
     val pageCount = 4
@@ -79,6 +85,24 @@ fun AppNavigation(
                     }
                 },
                 actions = {
+                    weatherInfo?.let { weather ->
+                        IconButton(onClick = { showWeatherDialog = true }) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                Icon(
+                                    imageVector = weatherIconFor(weather.iconCode),
+                                    contentDescription = "Weather",
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Text(
+                                    text = "${weather.tempCelsius.roundToInt()}°",
+                                    style = MaterialTheme.typography.labelLarge
+                                )
+                            }
+                        }
+                    }
                     IconButton(onClick = { /* future: language picker */ }) {
                         Text("\uD83C\uDDEC\uD83C\uDDE7", style = MaterialTheme.typography.titleLarge)
                     }
@@ -126,6 +150,13 @@ fun AppNavigation(
                 }
             }
         }
+    }
+
+    if (showWeatherDialog && weatherInfo != null) {
+        WeatherDialog(
+            weatherInfo = weatherInfo,
+            onDismiss = { showWeatherDialog = false }
+        )
     }
 
     if (showAdminDialog) {

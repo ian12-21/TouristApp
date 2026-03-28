@@ -10,7 +10,10 @@ import androidx.compose.runtime.remember
 import com.touristapp.data.local.AppPreferences
 import com.touristapp.data.model.Apartment
 import com.touristapp.data.model.Stay
+import com.touristapp.data.model.WeatherInfo
 import com.touristapp.data.repository.TouristRepository
+import com.touristapp.data.repository.WeatherRepository
+import kotlinx.coroutines.delay
 import com.touristapp.ui.navigation.AppNavigation
 import com.touristapp.ui.screens.setup.SetupScreen
 import com.touristapp.ui.theme.TouristAppTheme
@@ -23,6 +26,7 @@ class MainActivity : ComponentActivity() {
 
         val prefs = AppPreferences(this)
         val repository = TouristRepository()
+        val weatherRepository = WeatherRepository()
 
         setContent {
             TouristAppTheme {
@@ -30,6 +34,7 @@ class MainActivity : ComponentActivity() {
                 val apartmentName = remember { mutableStateOf(prefs.getApartmentName() ?: "") }
                 val apartment = remember { mutableStateOf<Apartment?>(null) }
                 val currentStay = remember { mutableStateOf<Stay?>(null) }
+                val weatherInfo = remember { mutableStateOf<WeatherInfo?>(null) }
 
                 LaunchedEffect(apartmentId.value) {
                     apartmentId.value?.let { id ->
@@ -41,6 +46,18 @@ class MainActivity : ComponentActivity() {
                         }
                         fetchedApartment?.currentStayId?.let { stayId ->
                             currentStay.value = repository.getCurrentStay(stayId)
+                        }
+
+                        // Fetch weather using apartment coordinates, refresh every 30 min
+                        fetchedApartment?.coordinates?.let { coords ->
+                            val lat = coords["lat"] ?: return@let
+                            val lon = coords["lng"] ?: return@let
+                            Log.d("DEBUG", "Fetching weather for ${fetchedApartment.coordinates}")
+                            weatherInfo.value = weatherRepository.getCurrentWeather(lat, lon)
+                            while (true) {
+                                delay(30 * 60 * 1000L)
+                                weatherInfo.value = weatherRepository.getCurrentWeather(lat, lon)
+                            }
                         }
                     }
                 }
@@ -58,6 +75,7 @@ class MainActivity : ComponentActivity() {
                         apartmentName = apartmentName.value,
                         apartment = apartment.value,
                         currentStay = currentStay.value,
+                        weatherInfo = weatherInfo.value,
                         onReconfigure = {
                             prefs.clear()
                             apartmentId.value = null
