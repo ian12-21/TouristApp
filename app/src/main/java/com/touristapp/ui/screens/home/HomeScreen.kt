@@ -34,7 +34,12 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 @Composable
-fun HomeSlide(apartment: ApartmentModel?, currentStay: Stay?, emergencyContacts: List<Contact> = emptyList()) {
+fun HomeSlide(
+    apartment: ApartmentModel?,
+    currentStay: Stay?,
+    emergencyContacts: List<Contact> = emptyList(),
+    onNavigateToReviews: () -> Unit = {}
+) {
     var showApartmentDialog by remember { mutableStateOf(false) }
     var showContactsDialog by remember { mutableStateOf(false) }
 
@@ -223,7 +228,7 @@ fun HomeSlide(apartment: ApartmentModel?, currentStay: Stay?, emergencyContacts:
                 icon = Icons.Default.RateReview,
                 label = "Review",
                 modifier = Modifier.weight(1f),
-                onClick = { /* TODO */ }
+                onClick = onNavigateToReviews
             )
             QuickActionCard(
                 icon = Icons.Default.Phone,

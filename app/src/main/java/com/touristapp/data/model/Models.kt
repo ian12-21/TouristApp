@@ -110,3 +110,25 @@ data class Admin(
     val apartmentIds: List<String> = emptyList(),
     val createdAt: Timestamp? = null
 )
+
+/**
+ * Maps to Firestore collection: reviews
+ */
+data class Review(
+    val id: String = "",
+    val apartmentId: String = "",
+    val stayId: String = "",
+    val guestId: String = "",
+    val guestName: String = "",
+    val cleanliness: Int = 5,
+    val location: Int = 5,
+    val comfort: Int = 5,
+    val valueForMoney: Int = 5,
+    val facilities: Int = 5,
+    val communication: Int = 5,
+    val wifi: Int = 5,
+    val overallScore: Double = 5.0,
+    val comment: String = "",
+    val createdAt: Timestamp? = null,
+    val updatedAt: Timestamp? = null
+)

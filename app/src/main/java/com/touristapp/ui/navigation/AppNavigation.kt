@@ -15,17 +15,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.border
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.touristapp.data.model.Apartment
 import com.touristapp.data.model.Contact
+import com.touristapp.data.model.Guest
 import com.touristapp.data.model.Stay
-import com.touristapp.data.model.WeatherInfo
+import com.touristapp.data.repository.TouristRepository
+// import com.touristapp.data.model.WeatherInfo
 import com.touristapp.ui.components.AdminDialog
-import com.touristapp.ui.components.WeatherDialog
-import com.touristapp.ui.components.weatherIconFor
-import kotlin.math.roundToInt
+// import com.touristapp.ui.components.WeatherDialog
+// import com.touristapp.ui.components.weatherIconFor
+// import kotlin.math.roundToInt
 import com.touristapp.ui.screens.home.HomeSlide
 import com.touristapp.ui.screens.map.MapSlide
 import com.touristapp.ui.screens.places.PlacesSlide
@@ -39,12 +42,14 @@ fun AppNavigation(
     apartmentName: String,
     apartment: Apartment?,
     currentStay: Stay?,
-    weatherInfo: WeatherInfo?,
+    guests: List<Guest>,
+    repository: TouristRepository,
+    // weatherInfo: WeatherInfo?,
     emergencyContacts: List<Contact>,
     onReconfigure: () -> Unit
 ) {
     var showAdminDialog by remember { mutableStateOf(false) }
-    var showWeatherDialog by remember { mutableStateOf(false) }
+    // var showWeatherDialog by remember { mutableStateOf(false) }
     var cooldownUntil by remember { mutableLongStateOf(0L) }
 
     val pageCount = 4
@@ -70,7 +75,11 @@ fun AppNavigation(
                 navigationIcon = {
                     Box(
                         modifier = Modifier
-                            .size(48.dp)
+                            .padding(start = 8.dp)
+                            .size(40.dp)
+                            .clip(MaterialTheme.shapes.small)
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.small)
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onTap = {
@@ -97,26 +106,37 @@ fun AppNavigation(
                     }
                 },
                 actions = {
-                    weatherInfo?.let { weather ->
-                        IconButton(onClick = { showWeatherDialog = true }) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(2.dp)
-                            ) {
-                                Icon(
-                                    imageVector = weatherIconFor(weather.iconCode),
-                                    contentDescription = "Weather",
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Text(
-                                    text = "${weather.tempCelsius.roundToInt()}°",
-                                    style = MaterialTheme.typography.labelLarge
-                                )
-                            }
-                        }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                        modifier = Modifier
+                            .padding(end = 4.dp)
+                            .height(40.dp)
+                            .clip(MaterialTheme.shapes.small)
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.small)
+                            .padding(horizontal = 10.dp)
+                    ) {
+                        Text(
+                            text = "25°",
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                        Text(
+                            text = "☀\uFE0F",
+                            style = MaterialTheme.typography.titleMedium
+                        )
                     }
-                    IconButton(onClick = { /* future: language picker */ }) {
-                        Text("\uD83C\uDDEC\uD83C\uDDE7", style = MaterialTheme.typography.titleLarge)
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Box(
+                        modifier = Modifier
+                            .padding(end = 8.dp)
+                            .size(40.dp)
+                            .clip(MaterialTheme.shapes.small)
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.small),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("\uD83C\uDDEC\uD83C\uDDE7", style = MaterialTheme.typography.titleMedium)
                     }
                 }
             )
@@ -137,10 +157,24 @@ fun AppNavigation(
                 modifier = Modifier.weight(1f)
             ) { page ->
                 when (page) {
-                    0 -> HomeSlide(apartment = apartment, currentStay = currentStay, emergencyContacts = emergencyContacts)
+                    0 -> HomeSlide(
+                        apartment = apartment,
+                        currentStay = currentStay,
+                        emergencyContacts = emergencyContacts,
+                        onNavigateToReviews = {
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(3)
+                            }
+                        }
+                    )
                     1 -> MapSlide()
                     2 -> PlacesSlide()
-                    3 -> ReviewsSlide()
+                    3 -> ReviewsSlide(
+                        apartmentId = apartmentId,
+                        currentStay = currentStay,
+                        guests = guests,
+                        repository = repository
+                    )
                 }
             }
 
@@ -181,12 +215,12 @@ fun AppNavigation(
         }
     }
 
-    if (showWeatherDialog && weatherInfo != null) {
-        WeatherDialog(
-            weatherInfo = weatherInfo,
-            onDismiss = { showWeatherDialog = false }
-        )
-    }
+    // if (showWeatherDialog && weatherInfo != null) {
+    //     WeatherDialog(
+    //         weatherInfo = weatherInfo,
+    //         onDismiss = { showWeatherDialog = false }
+    //     )
+    // }
 
     if (showAdminDialog) {
         AdminDialog(

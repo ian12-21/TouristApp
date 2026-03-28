@@ -1,6 +1,7 @@
 package com.touristapp
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -10,6 +11,7 @@ import androidx.compose.runtime.remember
 import com.touristapp.data.local.AppPreferences
 import com.touristapp.data.model.Apartment
 import com.touristapp.data.model.Contact
+import com.touristapp.data.model.Guest
 import com.touristapp.data.model.Stay
 import com.touristapp.data.model.WeatherInfo
 import com.touristapp.data.repository.TouristRepository
@@ -35,8 +37,14 @@ class MainActivity : ComponentActivity() {
                 val apartmentName = remember { mutableStateOf(prefs.getApartmentName() ?: "") }
                 val apartment = remember { mutableStateOf<Apartment?>(null) }
                 val currentStay = remember { mutableStateOf<Stay?>(null) }
+                val guests = remember { mutableStateOf<List<Guest>>(emptyList()) }
                 val weatherInfo = remember { mutableStateOf<WeatherInfo?>(null) }
                 val emergencyContacts = remember { mutableStateOf<List<Contact>>(emptyList()) }
+
+                // Silent anonymous auth for review writes
+                LaunchedEffect(Unit) {
+                    repository.ensureAnonymousAuth()
+                }
 
                 LaunchedEffect(apartmentId.value) {
                     apartmentId.value?.let { id ->
@@ -47,7 +55,13 @@ class MainActivity : ComponentActivity() {
                             apartmentName.value = name
                         }
                         fetchedApartment?.currentStayId?.let { stayId ->
-                            currentStay.value = repository.getCurrentStay(stayId)
+                            val stay = repository.getCurrentStay(stayId)
+                            currentStay.value = stay
+                            stay?.guestIds?.let { guestIds ->
+                                guests.value = guestIds.mapNotNull { guestId ->
+                                    repository.getGuest(guestId)
+                                }
+                            }
                         }
 
                         emergencyContacts.value = repository.getEmergencyContactsCroatia()
@@ -58,6 +72,7 @@ class MainActivity : ComponentActivity() {
                             val lon = coords["lng"] ?: return@let
                             Log.d("DEBUG", "Fetching weather for ${fetchedApartment.coordinates}")
                             weatherInfo.value = weatherRepository.getCurrentWeather(lat, lon)
+                            Log.d("DEBUG", "Weather: ${weatherInfo.value}")
                             while (true) {
                                 delay(30 * 60 * 1000L)
                                 weatherInfo.value = weatherRepository.getCurrentWeather(lat, lon)
@@ -79,7 +94,9 @@ class MainActivity : ComponentActivity() {
                         apartmentName = apartmentName.value,
                         apartment = apartment.value,
                         currentStay = currentStay.value,
-                        weatherInfo = weatherInfo.value,
+                        guests = guests.value,
+                        repository = repository,
+                        // weatherInfo = weatherInfo.value,
                         emergencyContacts = emergencyContacts.value,
                         onReconfigure = {
                             prefs.clear()
