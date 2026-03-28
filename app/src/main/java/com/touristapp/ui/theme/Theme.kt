@@ -1,28 +1,95 @@
 package com.touristapp.ui.theme
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
-private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF1B6B4A),
-    onPrimary = Color.White,
-    primaryContainer = Color(0xFFA7F3D0),
-    onPrimaryContainer = Color(0xFF002114),
-    secondary = Color(0xFF4F6354),
-    onSecondary = Color.White,
-    secondaryContainer = Color(0xFFD1E8D5),
-    background = Color(0xFFFBFDF8),
-    surface = Color(0xFFFBFDF8),
-    onBackground = Color(0xFF1A1C1A),
-    onSurface = Color(0xFF1A1C1A),
+private val DarkColorScheme = darkColorScheme(
+    primary = Color(0xFF4ADE80),
+    onPrimary = Color(0xFF1C1E2A),
+    primaryContainer = Color(0xFF2A4D3A),
+    onPrimaryContainer = Color(0xFFA7F3D0),
+    secondary = Color(0xFF8BBFA0),
+    onSecondary = Color(0xFF1C1E2A),
+    secondaryContainer = Color(0xFF334A3D),
+    background = Color(0xFF1C1E2A),
+    surface = Color(0xFF262C3A),
+    onBackground = Color(0xFFE2E4E8),
+    onSurface = Color(0xFFE2E4E8),
+    surfaceVariant = Color(0xFF2F3545),
+    onSurfaceVariant = Color(0xFFB0B6C3),
+    outlineVariant = Color(0xFF3D4455),
+)
+
+private val AppTypography = Typography(
+    headlineLarge = TextStyle(
+        fontWeight = FontWeight.Bold,
+        fontSize = 30.sp,
+        lineHeight = 36.sp,
+        letterSpacing = (-0.5).sp
+    ),
+    titleMedium = TextStyle(
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 18.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.sp
+    ),
+    titleLarge = TextStyle(
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 22.sp,
+        lineHeight = 28.sp,
+        letterSpacing = 0.sp
+    ),
+    bodyMedium = TextStyle(
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.1.sp
+    ),
+    bodySmall = TextStyle(
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.2.sp
+    ),
+    labelLarge = TextStyle(
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 13.sp,
+        lineHeight = 18.sp,
+        letterSpacing = 0.1.sp
+    ),
+    labelMedium = TextStyle(
+        fontWeight = FontWeight.Medium,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.3.sp
+    ),
+    labelSmall = TextStyle(
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp,
+        lineHeight = 14.sp,
+        letterSpacing = 0.3.sp
+    )
+)
+
+private val AppShapes = Shapes(
+    small = RoundedCornerShape(8.dp),
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(24.dp),
+    extraLarge = RoundedCornerShape(28.dp)
 )
 
 @Composable
 fun TouristAppTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = LightColorScheme,
-        typography = Typography(),
+        colorScheme = DarkColorScheme,
+        typography = AppTypography,
+        shapes = AppShapes,
         content = content
     )
 }

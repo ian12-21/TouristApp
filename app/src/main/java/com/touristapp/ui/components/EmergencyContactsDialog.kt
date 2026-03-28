@@ -12,13 +12,9 @@ import com.touristapp.data.model.Contact
 
 @Composable
 fun ContactsDialog(
-    contacts: List<Contact>,
     emergencyContacts: List<Contact>,
     onDismiss: () -> Unit
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Contacts", "Emergency")
-
     Dialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier
@@ -29,39 +25,25 @@ fun ContactsDialog(
                 modifier = Modifier.padding(24.dp)
             ) {
                 Text(
-                    text = "Contacts",
+                    text = "Emergency Contacts",
                     style = MaterialTheme.typography.headlineSmall
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
-
-                TabRow(selectedTabIndex = selectedTab) {
-                    tabs.forEachIndexed { index, title ->
-                        Tab(
-                            selected = selectedTab == index,
-                            onClick = { selectedTab = index },
-                            text = { Text(title) }
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                val currentList = if (selectedTab == 0) contacts else emergencyContacts
 
                 Column(
                     modifier = Modifier
                         .weight(1f, fill = false)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    if (currentList.isEmpty()) {
+                    if (emergencyContacts.isEmpty()) {
                         Text(
-                            text = "No information has been provided for this section yet.",
+                            text = "No emergency contacts have been provided yet.",
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     } else {
-                        currentList.forEachIndexed { index, contact ->
+                        emergencyContacts.forEachIndexed { index, contact ->
                             if (index > 0) {
                                 HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
                             }
