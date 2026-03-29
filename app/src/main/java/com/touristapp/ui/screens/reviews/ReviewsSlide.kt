@@ -200,7 +200,7 @@ private fun AggregateScoreCard(reviews: List<Review>) {
                 "Cleanliness" to avgCleanliness,
                 "Location" to avgLocation,
                 "Comfort" to avgComfort,
-                "Value" to avgValue,
+                "Value for Money" to avgValue,
                 "Facilities" to avgFacilities,
                 "Communication" to avgCommunication,
                 "Wi-Fi" to avgWifi
@@ -224,7 +224,7 @@ private fun CategoryBar(name: String, score: Double) {
             text = name,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(110.dp)
+            modifier = Modifier.width(140.dp)
         )
         Box(
             modifier = Modifier
