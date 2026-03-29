@@ -1,6 +1,5 @@
 package com.touristapp.ui.screens.reviews
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -41,7 +40,6 @@ fun ReviewsSlide(
     var selectedGuestForEdit by remember { mutableStateOf<Guest?>(null) }
 
     val currentGuestIds = currentStay?.guestIds ?: emptyList()
-    Log.d("ReviewsSlide", "Render — apartmentId=$apartmentId, currentStay=${currentStay?.id}, guests=${guests.size}, guestIds=$currentGuestIds, showCreateSheet=$showCreateSheet")
 
     fun refreshReviews() {
         coroutineScope.launch {
@@ -122,11 +120,9 @@ fun ReviewsSlide(
         }
 
         // Add Review FAB
-        Log.d("ReviewsSlide", "FAB check — currentStay=${currentStay != null}, guests.isNotEmpty=${guests.isNotEmpty()}")
         if (currentStay != null && guests.isNotEmpty()) {
             FloatingActionButton(
                 onClick = {
-                    Log.d("ReviewsSlide", "FAB clicked!")
                     editingReview = null
                     selectedGuestForEdit = null
                     showCreateSheet = true

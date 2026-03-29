@@ -17,7 +17,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import android.util.Log
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.touristapp.data.model.Guest
@@ -59,14 +58,10 @@ fun CreateReviewSheet(
         .average()
         .let { Math.round(it * 10) / 10.0 }
 
-    Log.d("ReviewSheet", "Render — guests=${guests.size}, selectedGuest=${selectedGuest?.name}, checkingExisting=$checkingExisting, currentStay=${currentStay?.id}, guestIds=${currentStay?.guestIds}")
-
     // Auto-select if only one guest
     LaunchedEffect(guests) {
-        Log.d("ReviewSheet", "LaunchedEffect guests — size=${guests.size}, names=${guests.map { it.name }}")
         if (guests.size == 1 && selectedGuest == null) {
             selectedGuest = guests.first()
-            Log.d("ReviewSheet", "Auto-selected guest: ${selectedGuest?.name}")
         }
     }
 
@@ -312,10 +307,6 @@ fun CreateReviewSheet(
                     Button(
                         onClick = {
                             isSaving = true
-                            Log.d("ReviewSubmit", "Submit clicked — guest=${selectedGuest!!.name}, guestId=${selectedGuest!!.id}, apartmentId=$apartmentId, stayId=${currentStay?.id}")
-                            Log.d("ReviewSubmit", "Scores: clean=$cleanliness loc=$location comfort=$comfort value=$valueForMoney fac=$facilities comm=$communication wifi=$wifi overall=$overallScore")
-                            Log.d("ReviewSubmit", "Comment: '${comment.trim()}'")
-                            Log.d("ReviewSubmit", "Existing review id: ${foundExistingReview?.id ?: existingReview?.id ?: "none (will create)"}")
                             coroutineScope.launch {
                                 try {
                                     val review = Review(
@@ -336,18 +327,14 @@ fun CreateReviewSheet(
 
                                     val existingId = foundExistingReview?.id ?: existingReview?.id
                                     val success = if (existingId != null) {
-                                        Log.d("ReviewSubmit", "Updating existing review: $existingId")
                                         repository.updateReview(existingId, review)
                                     } else {
-                                        Log.d("ReviewSubmit", "Creating new review")
                                         repository.createReview(review)
                                     }
 
-                                    Log.d("ReviewSubmit", "Result: success=$success")
                                     isSaving = false
-                                    if (success) onSaved() else Log.e("ReviewSubmit", "Save returned false")
+                                    if (success) onSaved()
                                 } catch (e: Exception) {
-                                    Log.e("ReviewSubmit", "Exception during save", e)
                                     isSaving = false
                                 }
                             }

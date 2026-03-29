@@ -6,7 +6,6 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.Timestamp
 import com.touristapp.data.model.*
 import kotlinx.coroutines.tasks.await
-import android.util.Log
 
 class TouristRepository {
 
@@ -17,12 +16,9 @@ class TouristRepository {
         if (auth.currentUser == null) {
             try {
                 auth.signInAnonymously().await()
-                Log.d("ReviewAuth", "Anonymous auth success, uid=${auth.currentUser?.uid}")
             } catch (e: Exception) {
-                Log.e("ReviewAuth", "Anonymous auth failed", e)
+                // Auth failed silently
             }
-        } else {
-            Log.d("ReviewAuth", "Already authenticated, uid=${auth.currentUser?.uid}")
         }
     }
 
@@ -131,7 +127,6 @@ class TouristRepository {
                     doc.toObject(Review::class.java)?.copy(id = doc.id)
                 }
         } catch (e: Exception) {
-            Log.e("TouristRepository", "Failed to fetch reviews", e)
             emptyList()
         }
     }
@@ -148,13 +143,11 @@ class TouristRepository {
                 doc.toObject(Review::class.java)?.copy(id = doc.id)
             }
         } catch (e: Exception) {
-            Log.e("TouristRepository", "Failed to check existing review", e)
             null
         }
     }
 
     suspend fun createReview(review: Review): Boolean {
-        Log.d("ReviewRepo", "createReview called — auth.currentUser=${auth.currentUser?.uid}")
         return try {
             val data = hashMapOf(
                 "apartmentId" to review.apartmentId,
@@ -173,17 +166,14 @@ class TouristRepository {
                 "createdAt" to Timestamp.now(),
                 "updatedAt" to Timestamp.now()
             )
-            val docRef = db.collection("reviews").add(data).await()
-            Log.d("ReviewRepo", "Review created successfully, docId=${docRef.id}")
+            db.collection("reviews").add(data).await()
             true
         } catch (e: Exception) {
-            Log.e("ReviewRepo", "Failed to create review", e)
             false
         }
     }
 
     suspend fun updateReview(reviewId: String, review: Review): Boolean {
-        Log.d("ReviewRepo", "updateReview called — reviewId=$reviewId, auth.currentUser=${auth.currentUser?.uid}")
         return try {
             val data = mapOf(
                 "cleanliness" to review.cleanliness,
@@ -198,10 +188,8 @@ class TouristRepository {
                 "updatedAt" to Timestamp.now()
             )
             db.collection("reviews").document(reviewId).update(data).await()
-            Log.d("ReviewRepo", "Review updated successfully")
             true
         } catch (e: Exception) {
-            Log.e("ReviewRepo", "Failed to update review", e)
             false
         }
     }
