@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.sp
 import com.touristapp.data.model.Apartment as ApartmentModel
 import com.touristapp.data.model.Contact
 import com.touristapp.data.model.Stay
-import com.touristapp.ui.components.ApartmentInfoDialog
 import com.touristapp.ui.components.ContactsDialog
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -38,9 +37,9 @@ fun HomeSlide(
     apartment: ApartmentModel?,
     currentStay: Stay?,
     emergencyContacts: List<Contact> = emptyList(),
-    onNavigateToReviews: () -> Unit = {}
+    onNavigateToReviews: () -> Unit = {},
+    onNavigateToApartment: () -> Unit = {}
 ) {
-    var showApartmentDialog by remember { mutableStateOf(false) }
     var showContactsDialog by remember { mutableStateOf(false) }
 
     Column(
@@ -204,7 +203,7 @@ fun HomeSlide(
                 icon = Icons.Default.Apartment,
                 label = "Apartment",
                 modifier = Modifier.weight(1f),
-                onClick = { showApartmentDialog = true }
+                onClick = onNavigateToApartment
             )
             QuickActionCard(
                 icon = Icons.Default.ShoppingCart,
@@ -237,13 +236,6 @@ fun HomeSlide(
                 onClick = { showContactsDialog = true }
             )
         }
-    }
-
-    if (showApartmentDialog && apartment != null) {
-        ApartmentInfoDialog(
-            apartment = apartment,
-            onDismiss = { showApartmentDialog = false }
-        )
     }
 
     if (showContactsDialog) {

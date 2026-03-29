@@ -29,6 +29,7 @@ import com.touristapp.ui.components.AdminDialog
 // import com.touristapp.ui.components.WeatherDialog
 // import com.touristapp.ui.components.weatherIconFor
 // import kotlin.math.roundToInt
+import com.touristapp.ui.screens.apartment.ApartmentScreen
 import com.touristapp.ui.screens.home.HomeSlide
 import com.touristapp.ui.screens.map.MapSlide
 import com.touristapp.ui.screens.places.PlacesSlide
@@ -51,10 +52,20 @@ fun AppNavigation(
     var showAdminDialog by remember { mutableStateOf(false) }
     // var showWeatherDialog by remember { mutableStateOf(false) }
     var cooldownUntil by remember { mutableLongStateOf(0L) }
+    var showApartmentScreen by remember { mutableStateOf(false) }
 
     val pageCount = 4
     val pagerState = rememberPagerState(pageCount = { pageCount })
     val coroutineScope = rememberCoroutineScope()
+
+    if (showApartmentScreen) {
+        ApartmentScreen(
+            apartment = apartment,
+            apartmentName = apartmentName,
+            onBack = { showApartmentScreen = false }
+        )
+        return
+    }
 
     Scaffold(
         topBar = {
@@ -165,7 +176,8 @@ fun AppNavigation(
                             coroutineScope.launch {
                                 pagerState.animateScrollToPage(3)
                             }
-                        }
+                        },
+                        onNavigateToApartment = { showApartmentScreen = true }
                     )
                     1 -> MapSlide()
                     2 -> PlacesSlide()

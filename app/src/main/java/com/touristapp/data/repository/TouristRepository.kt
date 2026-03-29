@@ -173,6 +173,24 @@ class TouristRepository {
         }
     }
 
+    // suspend fun getCustomSections(apartmentId: String): List<CustomSection> {
+    //     return try {
+    //         db.collection("apartments")
+    //             .document(apartmentId)
+    //             .collection("customSections")
+    //             .whereEqualTo("isActive", true)
+    //             .orderBy("order")
+    //             .get()
+    //             .await()
+    //             .documents
+    //             .mapNotNull { doc ->
+    //                 doc.toObject(CustomSection::class.java)?.copy(id = doc.id)
+    //             }
+    //     } catch (e: Exception) {
+    //         emptyList()
+    //     }
+    // }
+
     suspend fun updateReview(reviewId: String, review: Review): Boolean {
         return try {
             val data = mapOf(
