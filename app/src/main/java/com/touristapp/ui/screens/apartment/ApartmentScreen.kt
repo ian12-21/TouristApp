@@ -209,7 +209,7 @@ private fun OverviewContent(apartment: Apartment) {
             color = MaterialTheme.colorScheme.onSurface
         )
         Text(
-            text = apartment.address,
+            text = "Street: ${apartment.address}",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -232,7 +232,7 @@ private fun OverviewContent(apartment: Apartment) {
         // Details grid
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (apartment.size.isNotBlank()) {
-                DetailRow(label = "Size", value = apartment.size)
+                DetailRow(label = "Size", value = "${apartment.size} m²")
             }
             if (apartment.capacity > 0) {
                 DetailRow(label = "Capacity", value = "${apartment.capacity} guests")

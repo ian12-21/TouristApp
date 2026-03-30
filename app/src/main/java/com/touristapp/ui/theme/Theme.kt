@@ -10,10 +10,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFFFF6B5A),
+    primary = Color(0xFF6CA0DC),
     onPrimary = Color(0xFFFFFFFF),
-    primaryContainer = Color(0xFF4A2A2A),
-    onPrimaryContainer = Color(0xFFFFB4AA),
+    primaryContainer = Color(0xFF253A52),    // dark muted blu
+    onPrimaryContainer = Color(0xFFB8D4F0), // light blue text on it
     secondary = Color(0xFF9DA3B0),
     onSecondary = Color(0xFF1C1E2A),
     secondaryContainer = Color(0xFF2F3545),
@@ -24,6 +24,12 @@ private val DarkColorScheme = darkColorScheme(
     surfaceVariant = Color(0xFF2F3545),
     onSurfaceVariant = Color(0xFF8A91A0),
     outlineVariant = Color(0xFF3A4155),
+    outline = Color(0xFF3A4155),        // for borders on cards/buttons
+    error = Color(0xFFFF6B6B),          // for emergency contacts slide, warnings
+    onError = Color(0xFFFFFFFF),
+    errorContainer = Color(0xFF3D2020), // subtle error background
+    tertiary = Color(0xFF4ECDC4),       // a teal accent for variety
+    onTertiary = Color(0xFF1C1E2A),
 )
 
 private val AppTypography = Typography(
