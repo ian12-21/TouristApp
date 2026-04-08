@@ -4,10 +4,9 @@ import com.google.firebase.Timestamp
 
 // ── Shared / Nested ──
 
-data class Amenity(
-    val name: String = "",
-    val icon: String = "",
-    val description: String = ""
+data class Room(
+    val id: String = "",
+    val appliances: Map<String, String> = emptyMap()
 )
 
 data class Contact(
@@ -33,7 +32,6 @@ data class Apartment(
     val checkoutTime: String = "",
     val checkoutInstructions: String = "",
     val houseRules: List<String> = emptyList(),
-    val amenities: List<Amenity> = emptyList(),
     val contacts: List<Contact> = emptyList(),
     val welcomeMessage: String = "",
     val transportTips: String = "",

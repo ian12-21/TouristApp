@@ -10,10 +10,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.touristapp.data.model.Apartment
+import com.touristapp.data.model.Room
 
 @Composable
 fun ApartmentInfoDialog(
     apartment: Apartment,
+    rooms: List<Room> = emptyList(),
     onDismiss: () -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss) {
@@ -63,25 +65,31 @@ fun ApartmentInfoDialog(
                     )
                 }
 
-                // Amenities
-                if (apartment.amenities.isNotEmpty()) {
+                // Rooms & Appliances
+                if (rooms.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(16.dp))
                     HorizontalDivider()
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text = "Amenities",
+                        text = "Rooms & Appliances",
                         style = MaterialTheme.typography.titleMedium
                     )
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    apartment.amenities.forEach { amenity ->
+                    rooms.forEach { room ->
                         Text(
-                            text = "• ${amenity.name}" +
-                                    if (amenity.description.isNotBlank()) " — ${amenity.description}" else "",
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(bottom = 4.dp)
+                            text = room.id,
+                            style = MaterialTheme.typography.labelLarge,
+                            modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
                         )
+                        room.appliances.forEach { (name, description) ->
+                            Text(
+                                text = "• $name — $description",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(bottom = 4.dp)
+                            )
+                        }
                     }
                 }
 

@@ -5,9 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,11 +21,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.touristapp.data.model.Apartment
+import com.touristapp.data.model.Room
 // import com.touristapp.data.model.CustomSection
 
 sealed class ApartmentSection(val title: String, val icon: ImageVector) {
     data object Overview : ApartmentSection("Overview", Icons.Default.Home)
-    data object Amenities : ApartmentSection("Amenities", Icons.Default.Star)
+    data object Rooms : ApartmentSection("Rooms & Appliances", Icons.Default.Star)
     data object HouseRules : ApartmentSection("House Rules", Icons.Default.Info)
     data object Checkout : ApartmentSection("Checkout", Icons.Default.ExitToApp)
     data object Transport : ApartmentSection("Transport", Icons.Default.DirectionsBus)
@@ -37,7 +35,7 @@ sealed class ApartmentSection(val title: String, val icon: ImageVector) {
 
 private val fixedSections = listOf(
     ApartmentSection.Overview,
-    ApartmentSection.Amenities,
+    ApartmentSection.Rooms,
     ApartmentSection.HouseRules,
     ApartmentSection.Checkout,
     ApartmentSection.Transport
@@ -47,6 +45,7 @@ private val fixedSections = listOf(
 @Composable
 fun ApartmentScreen(
     apartment: Apartment?,
+    rooms: List<Room> = emptyList(),
     apartmentName: String,
     onBack: () -> Unit
     // customSections: List<CustomSection> = emptyList()
@@ -140,7 +139,7 @@ fun ApartmentScreen(
             ) {
                 when (val current = selectedSection) {
                     is ApartmentSection.Overview -> OverviewContent(apartment)
-                    is ApartmentSection.Amenities -> AmenitiesContent(apartment)
+                    is ApartmentSection.Rooms -> RoomsContent(rooms)
                     is ApartmentSection.HouseRules -> HouseRulesContent(apartment)
                     is ApartmentSection.Checkout -> CheckoutContent(apartment)
                     is ApartmentSection.Transport -> TransportContent(apartment)
@@ -265,31 +264,29 @@ private fun DetailRow(label: String, value: String) {
 }
 
 @Composable
-private fun AmenitiesContent(apartment: Apartment) {
+private fun RoomsContent(rooms: List<Room>) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "Amenities",
+            text = "Rooms & Appliances",
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
 
-        if (apartment.amenities.isEmpty()) {
+        if (rooms.isEmpty()) {
             Text(
-                text = "No amenities listed.",
+                text = "No rooms listed.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         } else {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(apartment.amenities) { amenity ->
+                items(rooms) { room ->
                     Card(
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
@@ -298,25 +295,29 @@ private fun AmenitiesContent(apartment: Apartment) {
                     ) {
                         Column(
                             modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            if (amenity.icon.isNotBlank()) {
-                                Text(
-                                    text = amenity.icon,
-                                    style = MaterialTheme.typography.headlineMedium
-                                )
-                            }
                             Text(
-                                text = amenity.name,
-                                style = MaterialTheme.typography.titleMedium,
+                                text = room.id,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
-                            if (amenity.description.isNotBlank()) {
-                                Text(
-                                    text = amenity.description,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                            room.appliances.forEach { (name, description) ->
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    Text(
+                                        text = name,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = description,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             }
                         }
                     }

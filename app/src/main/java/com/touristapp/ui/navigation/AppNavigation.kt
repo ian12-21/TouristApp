@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.touristapp.data.model.Apartment
 import com.touristapp.data.model.Contact
 import com.touristapp.data.model.Guest
+import com.touristapp.data.model.Room
 import com.touristapp.data.model.Stay
 import com.touristapp.data.repository.TouristRepository
 // import com.touristapp.data.model.WeatherInfo
@@ -42,6 +43,7 @@ fun AppNavigation(
     apartmentId: String,
     apartmentName: String,
     apartment: Apartment?,
+    rooms: List<Room>,
     currentStay: Stay?,
     guests: List<Guest>,
     repository: TouristRepository,
@@ -61,6 +63,7 @@ fun AppNavigation(
     if (showApartmentScreen) {
         ApartmentScreen(
             apartment = apartment,
+            rooms = rooms,
             apartmentName = apartmentName,
             onBack = { showApartmentScreen = false }
         )

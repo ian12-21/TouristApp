@@ -191,6 +191,28 @@ class TouristRepository {
     //     }
     // }
 
+    suspend fun getRooms(apartmentId: String): List<Room> {
+        return try {
+            db.collection("apartments")
+                .document(apartmentId)
+                .collection("rooms")
+                .get()
+                .await()
+                .documents
+                .map { doc ->
+                    Room(
+                        id = doc.id,
+                        appliances = doc.data
+                            ?.filterValues { it is String }
+                            ?.mapValues { it.value as String }
+                            ?: emptyMap()
+                    )
+                }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
     suspend fun updateReview(reviewId: String, review: Review): Boolean {
         return try {
             val data = mapOf(

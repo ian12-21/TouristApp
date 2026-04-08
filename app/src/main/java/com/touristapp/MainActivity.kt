@@ -12,6 +12,7 @@ import com.touristapp.data.local.AppPreferences
 import com.touristapp.data.model.Apartment
 import com.touristapp.data.model.Contact
 import com.touristapp.data.model.Guest
+import com.touristapp.data.model.Room
 import com.touristapp.data.model.Stay
 import com.touristapp.data.model.WeatherInfo
 import com.touristapp.data.repository.TouristRepository
@@ -39,6 +40,7 @@ class MainActivity : ComponentActivity() {
                 val currentStay = remember { mutableStateOf<Stay?>(null) }
                 val guests = remember { mutableStateOf<List<Guest>>(emptyList()) }
                 val weatherInfo = remember { mutableStateOf<WeatherInfo?>(null) }
+                val rooms = remember { mutableStateOf<List<Room>>(emptyList()) }
                 val emergencyContacts = remember { mutableStateOf<List<Contact>>(emptyList()) }
 
                 // Silent anonymous auth for review writes
@@ -64,6 +66,7 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
+                        rooms.value = repository.getRooms(id)
                         emergencyContacts.value = repository.getEmergencyContactsCroatia()
 
                         // Fetch weather using apartment coordinates, refresh every 30 min
@@ -95,6 +98,7 @@ class MainActivity : ComponentActivity() {
                         apartment = apartment.value,
                         currentStay = currentStay.value,
                         guests = guests.value,
+                        rooms = rooms.value,
                         repository = repository,
                         // weatherInfo = weatherInfo.value,
                         emergencyContacts = emergencyContacts.value,
