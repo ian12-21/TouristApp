@@ -203,8 +203,14 @@ class TouristRepository {
                     Room(
                         id = doc.id,
                         appliances = doc.data
-                            ?.filterValues { it is String }
-                            ?.mapValues { it.value as String }
+                            ?.filterValues { it is Map<*, *> }
+                            ?.mapValues { (_, value) ->
+                                val map = value as Map<*, *>
+                                Appliance(
+                                    description = map["description"] as? String ?: "",
+                                    instructions = map["instructions"] as? String ?: ""
+                                )
+                            }
                             ?: emptyMap()
                     )
                 }

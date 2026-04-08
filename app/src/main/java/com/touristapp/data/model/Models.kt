@@ -4,9 +4,14 @@ import com.google.firebase.Timestamp
 
 // ── Shared / Nested ──
 
+data class Appliance(
+    val description: String = "",
+    val instructions: String = ""
+)
+
 data class Room(
     val id: String = "",
-    val appliances: Map<String, String> = emptyMap()
+    val appliances: Map<String, Appliance> = emptyMap()
 )
 
 data class Contact(
@@ -89,6 +94,7 @@ data class Place(
 /**
  * Maps to Firestore collection: customSections
  */
+/*
 data class CustomSection(
     val id: String = "",
     val title: String = "",
@@ -97,10 +103,11 @@ data class CustomSection(
     val order: Int = 0,
     val isActive: Boolean = true
 )
-
+*/
 /**
  * Maps to Firestore collection: admins
  */
+/*
 data class Admin(
     val id: String = "",
     val email: String = "",
@@ -108,7 +115,7 @@ data class Admin(
     val apartmentIds: List<String> = emptyList(),
     val createdAt: Timestamp? = null
 )
-
+*/
 /**
  * Maps to Firestore collection: reviews
  */

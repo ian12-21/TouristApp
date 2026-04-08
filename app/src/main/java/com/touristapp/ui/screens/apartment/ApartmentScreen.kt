@@ -303,7 +303,7 @@ private fun RoomsContent(rooms: List<Room>) {
                                 fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
-                            room.appliances.forEach { (name, description) ->
+                            room.appliances.forEach { (name, appliance) ->
                                 Column(
                                     verticalArrangement = Arrangement.spacedBy(2.dp)
                                 ) {
@@ -313,10 +313,17 @@ private fun RoomsContent(rooms: List<Room>) {
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
-                                        text = description,
+                                        text = appliance.description,
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
+                                    if (appliance.instructions.isNotEmpty()) {
+                                        Text(
+                                            text = appliance.instructions,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
                                 }
                             }
                         }

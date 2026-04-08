@@ -73,9 +73,9 @@ class MainActivity : ComponentActivity() {
                         fetchedApartment?.coordinates?.let { coords ->
                             val lat = coords["lat"] ?: return@let
                             val lon = coords["lng"] ?: return@let
-                            Log.d("DEBUG", "Fetching weather for ${fetchedApartment.coordinates}")
+                            //Log.d("DEBUG", "Fetching weather for ${fetchedApartment.coordinates}")
                             weatherInfo.value = weatherRepository.getCurrentWeather(lat, lon)
-                            Log.d("DEBUG", "Weather: ${weatherInfo.value}")
+                            //Log.d("DEBUG", "Weather: ${weatherInfo.value}")
                             while (true) {
                                 delay(30 * 60 * 1000L)
                                 weatherInfo.value = weatherRepository.getCurrentWeather(lat, lon)
