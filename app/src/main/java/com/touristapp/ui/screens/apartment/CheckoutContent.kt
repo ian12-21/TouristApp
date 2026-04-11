@@ -25,9 +25,7 @@ internal fun CheckoutContent(apartment: Apartment, currentStay: Stay?) {
     val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         Text(
@@ -36,6 +34,12 @@ internal fun CheckoutContent(apartment: Apartment, currentStay: Stay?) {
             color = MaterialTheme.colorScheme.onSurface
         )
 
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
         // Checkout date & time hero card
         if (currentStay?.checkOut != null || apartment.checkoutTime.isNotBlank()) {
             Surface(
@@ -254,6 +258,7 @@ internal fun CheckoutContent(apartment: Apartment, currentStay: Stay?) {
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
         }
     }
 }

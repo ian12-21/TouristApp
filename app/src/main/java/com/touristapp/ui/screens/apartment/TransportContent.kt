@@ -26,9 +26,7 @@ internal fun TransportContent(
     val infoItems = apartment.transportation.filter { it.type == "info" }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         Text(
@@ -37,6 +35,12 @@ internal fun TransportContent(
             color = MaterialTheme.colorScheme.onSurface
         )
 
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
         // Public transport section
         if (publicItems.isNotEmpty()) {
             Surface(
@@ -226,6 +230,7 @@ internal fun TransportContent(
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
         }
     }
 }

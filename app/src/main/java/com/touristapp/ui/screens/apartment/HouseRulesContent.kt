@@ -91,9 +91,7 @@ private fun HouseRuleGroupCard(group: HouseRuleGroup) {
 @Composable
 internal fun HouseRulesContent(apartment: Apartment) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
@@ -102,15 +100,22 @@ internal fun HouseRulesContent(apartment: Apartment) {
             color = MaterialTheme.colorScheme.onSurface
         )
 
-        if (apartment.houseRules.isEmpty()) {
-            Text(
-                text = "No house rules listed.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        } else {
-            apartment.houseRules.forEach { group ->
-                HouseRuleGroupCard(group)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            if (apartment.houseRules.isEmpty()) {
+                Text(
+                    text = "No house rules listed.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                apartment.houseRules.forEach { group ->
+                    HouseRuleGroupCard(group)
+                }
             }
         }
     }

@@ -21,9 +21,7 @@ import com.touristapp.data.model.Apartment
 @Composable
 internal fun OverviewContent(apartment: Apartment) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
@@ -32,6 +30,12 @@ internal fun OverviewContent(apartment: Apartment) {
             color = MaterialTheme.colorScheme.onSurface
         )
 
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
         // Address card
         if (apartment.address.isNotBlank()) {
             Surface(
@@ -101,6 +105,7 @@ internal fun OverviewContent(apartment: Apartment) {
                     value = apartment.renovationYear.toString()
                 )
             }
+        }
         }
     }
 }
