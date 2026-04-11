@@ -28,7 +28,9 @@ import androidx.compose.ui.unit.sp
 import com.touristapp.data.model.Apartment as ApartmentModel
 import com.touristapp.data.model.Contact
 import com.touristapp.data.model.Stay
+import com.touristapp.data.repository.TouristRepository
 import com.touristapp.ui.components.ContactsDialog
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -36,11 +38,13 @@ import java.util.Locale
 fun HomeSlide(
     apartment: ApartmentModel?,
     currentStay: Stay?,
-    emergencyContacts: List<Contact> = emptyList(),
+    repository: TouristRepository,
     onNavigateToReviews: () -> Unit = {},
     onNavigateToApartment: () -> Unit = {}
 ) {
     var showContactsDialog by remember { mutableStateOf(false) }
+    var emergencyContacts by remember { mutableStateOf<List<Contact>?>(null) }
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -233,14 +237,21 @@ fun HomeSlide(
                 icon = Icons.Default.Phone,
                 label = "Emergency",
                 modifier = Modifier.weight(1f),
-                onClick = { showContactsDialog = true }
+                onClick = {
+                    showContactsDialog = true
+                    if (emergencyContacts == null) {
+                        coroutineScope.launch {
+                            emergencyContacts = repository.getEmergencyContactsCroatia()
+                        }
+                    }
+                }
             )
         }
     }
 
     if (showContactsDialog) {
         ContactsDialog(
-            emergencyContacts = emergencyContacts,
+            emergencyContacts = emergencyContacts ?: emptyList(),
             onDismiss = { showContactsDialog = false }
         )
     }

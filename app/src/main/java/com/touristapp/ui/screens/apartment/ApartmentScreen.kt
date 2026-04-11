@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.dp
 import com.touristapp.data.model.Apartment
 import com.touristapp.data.model.Room
 import com.touristapp.data.model.Stay
+import com.touristapp.data.model.TransportationService
+import com.touristapp.data.repository.TouristRepository
 
 sealed class ApartmentSection(val title: String, val icon: ImageVector) {
     data object Overview : ApartmentSection("Overview", Icons.Default.Home)
@@ -40,12 +42,26 @@ private val fixedSections = listOf(
 @Composable
 fun ApartmentScreen(
     apartment: Apartment?,
-    rooms: List<Room> = emptyList(),
     apartmentName: String,
     currentStay: Stay? = null,
+    repository: TouristRepository,
     onBack: () -> Unit
 ) {
     var selectedSection by remember { mutableStateOf<ApartmentSection>(ApartmentSection.Overview) }
+
+    // Lazy-loaded data: fetched once when ApartmentScreen is first composed
+    var rooms by remember { mutableStateOf<List<Room>>(emptyList()) }
+    var transportationServices by remember { mutableStateOf<List<TransportationService>>(emptyList()) }
+
+    LaunchedEffect(apartment?.id) {
+        val id = apartment?.id ?: return@LaunchedEffect
+        rooms = repository.getRooms(id)
+
+        val privateIds = apartment.transportation
+            .filter { it.type == "private" && it.transportationId.isNotBlank() }
+            .map { it.transportationId }
+        transportationServices = repository.getTransportationServices(privateIds)
+    }
 
     val sections = fixedSections
 
@@ -134,7 +150,7 @@ fun ApartmentScreen(
                     is ApartmentSection.Rooms -> RoomsContent(rooms)
                     is ApartmentSection.HouseRules -> HouseRulesContent(apartment)
                     is ApartmentSection.Checkout -> CheckoutContent(apartment, currentStay)
-                    is ApartmentSection.Transport -> TransportContent(apartment)
+                    is ApartmentSection.Transport -> TransportContent(apartment, transportationServices)
                 }
             }
         }

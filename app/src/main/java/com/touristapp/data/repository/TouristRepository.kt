@@ -22,12 +22,47 @@ class TouristRepository {
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     suspend fun getApartment(apartmentId: String): Apartment? {
         return try {
             val doc = db.collection("apartments").document(apartmentId).get().await()
-            doc.toObject(Apartment::class.java)?.copy(id = doc.id)
+            val apartment = doc.toObject(Apartment::class.java)?.copy(id = doc.id) ?: return null
+
+            val rawTransport = doc.get("transportation") as? List<Map<String, Any>> ?: emptyList()
+            val transportItems = rawTransport.map { map ->
+                TransportationItem(
+                    type = map["type"] as? String ?: "",
+                    description = map["description"] as? String ?: "",
+                    transportationId = map["transportation_id"] as? String ?: ""
+                )
+            }
+            apartment.copy(transportation = transportItems)
         } catch (e: Exception) {
             null
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    suspend fun getTransportationServices(serviceIds: List<String>): List<TransportationService> {
+        if (serviceIds.isEmpty()) return emptyList()
+        return try {
+            serviceIds.mapNotNull { id ->
+                val doc = db.collection("transportation").document(id).get().await()
+                if (doc.exists()) {
+                    val data = doc.data ?: return@mapNotNull null
+                    val entry = data.entries.firstOrNull() ?: return@mapNotNull null
+                    val name = entry.key
+                    val details = entry.value as? Map<*, *> ?: return@mapNotNull null
+                    TransportationService(
+                        id = doc.id,
+                        name = name,
+                        phone = details["phone"] as? String ?: "",
+                        description = details["description"] as? String ?: ""
+                    )
+                } else null
+            }
+        } catch (e: Exception) {
+            emptyList()
         }
     }
 

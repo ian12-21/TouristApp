@@ -26,6 +26,19 @@ data class HouseRuleGroup(
     val rules: List<String> = emptyList()
 )
 
+data class TransportationItem(
+    val type: String = "",
+    val description: String = "",
+    val transportationId: String = ""
+)
+
+data class TransportationService(
+    val id: String = "",
+    val name: String = "",
+    val phone: String = "",
+    val description: String = ""
+)
+
 /**
  * Maps to Firestore collection: apartments
  */
@@ -46,7 +59,7 @@ data class Apartment(
     val houseRules: List<HouseRuleGroup> = emptyList(),
     val contacts: List<Contact> = emptyList(),
     val welcomeMessage: String = "",
-    val transportTips: String = "",
+    val transportation: List<TransportationItem> = emptyList(),
     val currentStayId: String? = null,
     val placeIds: List<String> = emptyList(),
     val updatedAt: Timestamp? = null
