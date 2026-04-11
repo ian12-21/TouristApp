@@ -7,6 +7,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.touristapp.data.model.Appliance
 import kotlin.math.absoluteValue
 
+// ── Shared palette ──
+
 val appliancePalette = listOf(
     Color(0xFF4ECDC4), // Teal
     Color(0xFF6CA0DC), // Blue
@@ -15,6 +17,8 @@ val appliancePalette = listOf(
     Color(0xFFB39DDB), // Purple
     Color(0xFF81C784)  // Green
 )
+
+// ── Appliance icons ──
 
 val materialIconMap: Map<String, ImageVector> = mapOf(
     "Tv" to Icons.Default.Tv,
@@ -84,4 +88,25 @@ fun resolveApplianceIcon(name: String, appliance: Appliance): Pair<ImageVector, 
     }
     val color = appliancePalette[name.hashCode().absoluteValue % appliancePalette.size]
     return icon to color
+}
+
+// ── House rule group icons ──
+
+fun ruleGroupIcon(title: String): ImageVector {
+    val lower = title.lowercase()
+    return when {
+        "check-in" in lower || "key" in lower -> Icons.Default.Key
+        "guest" in lower || "occupancy" in lower -> Icons.Default.Groups
+        "noise" in lower || "quiet" in lower -> Icons.Default.VolumeOff
+        "clean" in lower || "tidy" in lower -> Icons.Default.CleaningServices
+        "parking" in lower || "car" in lower -> Icons.Default.LocalParking
+        "pet" in lower || "animal" in lower -> Icons.Default.Pets
+        "smoke" in lower -> Icons.Default.SmokeFree
+        "pool" in lower || "swim" in lower -> Icons.Default.Pool
+        "trash" in lower || "waste" in lower || "recycle" in lower -> Icons.Default.Delete
+        "safety" in lower || "security" in lower || "emergency" in lower -> Icons.Default.Security
+        "kitchen" in lower || "cook" in lower -> Icons.Default.Kitchen
+        "laundry" in lower || "wash" in lower -> Icons.Default.LocalLaundryService
+        else -> Icons.Default.Gavel
+    }
 }

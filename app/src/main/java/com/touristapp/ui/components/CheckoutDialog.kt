@@ -53,7 +53,7 @@ fun CheckoutDialog(
                 )
                 Text(
                     text = checkoutDate?.let {
-                        SimpleDateFormat("EEEE, MMMM d, yyyy", Locale.getDefault())
+                        SimpleDateFormat("EEEE, d MMMM yyyy", Locale.getDefault())
                             .format(it.toDate())
                     } ?: "Not set",
                     style = MaterialTheme.typography.bodyLarge,

@@ -65,6 +65,7 @@ fun AppNavigation(
             apartment = apartment,
             rooms = rooms,
             apartmentName = apartmentName,
+            currentStay = currentStay,
             onBack = { showApartmentScreen = false }
         )
         return

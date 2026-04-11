@@ -21,6 +21,11 @@ data class Contact(
     val phone: String = ""
 )
 
+data class HouseRuleGroup(
+    val title: String = "",
+    val rules: List<String> = emptyList()
+)
+
 /**
  * Maps to Firestore collection: apartments
  */
@@ -38,7 +43,7 @@ data class Apartment(
     val wifiPassword: String = "",
     val checkoutTime: String = "",
     val checkoutInstructions: String = "",
-    val houseRules: List<String> = emptyList(),
+    val houseRules: List<HouseRuleGroup> = emptyList(),
     val contacts: List<Contact> = emptyList(),
     val welcomeMessage: String = "",
     val transportTips: String = "",

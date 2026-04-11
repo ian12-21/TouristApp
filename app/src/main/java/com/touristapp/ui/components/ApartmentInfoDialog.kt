@@ -105,12 +105,20 @@ fun ApartmentInfoDialog(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    apartment.houseRules.forEach { rule ->
+                    apartment.houseRules.forEach { group ->
                         Text(
-                            text = "• $rule",
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(bottom = 4.dp)
+                            text = group.title,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
                         )
+                        group.rules.forEach { rule ->
+                            Text(
+                                text = "\u2022 $rule",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(bottom = 4.dp)
+                            )
+                        }
                     }
                 }
 

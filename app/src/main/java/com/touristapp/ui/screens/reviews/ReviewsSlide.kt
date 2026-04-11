@@ -276,7 +276,7 @@ private fun ReviewCard(
                     )
                     review.createdAt?.let { ts ->
                         Text(
-                            text = SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(ts.toDate()),
+                            text = SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(ts.toDate()),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

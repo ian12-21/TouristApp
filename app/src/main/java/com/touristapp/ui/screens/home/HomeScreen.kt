@@ -132,7 +132,7 @@ fun HomeSlide(
                     Column {
                         val checkoutTime = apartment?.checkoutTime?.takeIf { it.isNotBlank() }
                         val checkoutDate = currentStay?.checkOut?.let {
-                            SimpleDateFormat("MMM d", Locale.getDefault()).format(it.toDate())
+                            SimpleDateFormat("d MMM", Locale.getDefault()).format(it.toDate())
                         }
                         Text(
                             text = when {
