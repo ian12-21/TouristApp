@@ -6,7 +6,9 @@ import com.google.firebase.Timestamp
 
 data class Appliance(
     val description: String = "",
-    val instructions: String = ""
+    val instructions: String = "",
+    val images: List<String> = emptyList(),
+    val icon: String = ""
 )
 
 data class Room(

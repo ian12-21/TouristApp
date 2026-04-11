@@ -208,7 +208,9 @@ class TouristRepository {
                                 val map = value as Map<*, *>
                                 Appliance(
                                     description = map["description"] as? String ?: "",
-                                    instructions = map["instructions"] as? String ?: ""
+                                    instructions = map["instructions"] as? String ?: "",
+                                    images = (map["images"] as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
+                                    icon = map["icon"] as? String ?: ""
                                 )
                             }
                             ?: emptyMap()
