@@ -4,15 +4,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.Apartment
-import androidx.compose.material.icons.filled.BeachAccess
+import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.RateReview
-import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -40,7 +39,9 @@ fun HomeSlide(
     currentStay: Stay?,
     repository: TouristRepository,
     onNavigateToReviews: () -> Unit = {},
-    onNavigateToApartment: () -> Unit = {}
+    onNavigateToApartment: () -> Unit = {},
+    onNavigateToExplore: () -> Unit = {},
+    onNavigateToCategory: (com.touristapp.ui.screens.places.PlaceCategory) -> Unit = {}
 ) {
     var showContactsDialog by remember { mutableStateOf(false) }
     var emergencyContacts by remember { mutableStateOf<List<Contact>?>(null) }
@@ -204,26 +205,26 @@ fun HomeSlide(
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             QuickActionCard(
-                icon = Icons.Default.Apartment,
+                icon = Icons.Default.Info,
                 label = "Apartment",
                 modifier = Modifier.weight(1f),
                 onClick = onNavigateToApartment
             )
             QuickActionCard(
-                icon = Icons.Default.ShoppingCart,
-                label = "Stores",
+                icon = Icons.Default.Explore,
+                label = "Explore",
+                modifier = Modifier.weight(1f),
+                onClick = onNavigateToExplore
+            )
+            QuickActionCard(
+                icon = Icons.Default.Schedule,
+                label = "Coming Soon",
                 modifier = Modifier.weight(1f),
                 onClick = { /* TODO */ }
             )
             QuickActionCard(
-                icon = Icons.Default.BeachAccess,
-                label = "Beaches",
-                modifier = Modifier.weight(1f),
-                onClick = { /* TODO */ }
-            )
-            QuickActionCard(
-                icon = Icons.Default.Restaurant,
-                label = "Restaurants",
+                icon = Icons.Default.Schedule,
+                label = "Coming Soon",
                 modifier = Modifier.weight(1f),
                 onClick = { /* TODO */ }
             )

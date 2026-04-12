@@ -28,8 +28,11 @@ import com.touristapp.ui.components.AdminDialog
 // import com.touristapp.ui.components.WeatherDialog
 // import com.touristapp.ui.components.weatherIconFor
 // import kotlin.math.roundToInt
+import com.touristapp.data.model.Place
 import com.touristapp.ui.screens.apartment.ApartmentScreen
 import com.touristapp.ui.screens.home.HomeSlide
+import com.touristapp.ui.screens.places.CategoryListingScreen
+import com.touristapp.ui.screens.places.PlaceCategory
 import com.touristapp.ui.screens.places.PlacesSlide
 import com.touristapp.ui.screens.reviews.ReviewsSlide
 import kotlinx.coroutines.launch
@@ -42,6 +45,7 @@ fun AppNavigation(
     apartment: Apartment?,
     currentStay: Stay?,
     guests: List<Guest>,
+    places: List<Place>,
     repository: TouristRepository,
     // weatherInfo: WeatherInfo?,
     onReconfigure: () -> Unit
@@ -50,6 +54,7 @@ fun AppNavigation(
     // var showWeatherDialog by remember { mutableStateOf(false) }
     var cooldownUntil by remember { mutableLongStateOf(0L) }
     var showApartmentScreen by remember { mutableStateOf(false) }
+    var showCategoryListing by remember { mutableStateOf<PlaceCategory?>(null) }
 
     val pageCount = 3
     val pagerState = rememberPagerState(pageCount = { pageCount })
@@ -62,6 +67,15 @@ fun AppNavigation(
             currentStay = currentStay,
             repository = repository,
             onBack = { showApartmentScreen = false }
+        )
+        return
+    }
+
+    showCategoryListing?.let { category ->
+        CategoryListingScreen(
+            category = category,
+            places = places,
+            onBack = { showCategoryListing = null }
         )
         return
     }
@@ -176,9 +190,20 @@ fun AppNavigation(
                                 pagerState.animateScrollToPage(2)
                             }
                         },
-                        onNavigateToApartment = { showApartmentScreen = true }
+                        onNavigateToApartment = { showApartmentScreen = true },
+                        onNavigateToExplore = {
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(1)
+                            }
+                        },
+                        onNavigateToCategory = { category ->
+                            showCategoryListing = category
+                        }
                     )
-                    1 -> PlacesSlide()
+                    1 -> PlacesSlide(
+                        places = places,
+                        onSeeAll = { category -> showCategoryListing = category }
+                    )
                     2 -> ReviewsSlide(
                         apartmentId = apartmentId,
                         currentStay = currentStay,
