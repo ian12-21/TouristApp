@@ -53,7 +53,8 @@ enum class PlaceCategory(
 @Composable
 fun PlacesSlide(
     places: List<Place>,
-    onSeeAll: (PlaceCategory) -> Unit = {}
+    onSeeAll: (PlaceCategory) -> Unit = {},
+    onPlaceClick: (Place) -> Unit = {}
 ) {
     val displayPlaces = places.ifEmpty { dummyPlaces }
     val grouped = displayPlaces.groupBy { PlaceCategory.fromKey(it.category) }
@@ -88,7 +89,8 @@ fun PlacesSlide(
                 CategoryRow(
                     category = category,
                     places = categoryPlaces.take(7),
-                    onSeeAll = { onSeeAll(category) }
+                    onSeeAll = { onSeeAll(category) },
+                    onPlaceClick = onPlaceClick
                 )
                 Spacer(modifier = Modifier.height(24.dp))
             }
@@ -115,7 +117,8 @@ fun PlacesSlide(
 private fun CategoryRow(
     category: PlaceCategory,
     places: List<Place>,
-    onSeeAll: () -> Unit
+    onSeeAll: () -> Unit,
+    onPlaceClick: (Place) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -166,15 +169,16 @@ private fun CategoryRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(places, key = { it.id }) { place ->
-            PlaceCard(place = place)
+            PlaceCard(place = place, onClick = { onPlaceClick(place) })
         }
     }
 }
 
 @Composable
-private fun PlaceCard(place: Place) {
+private fun PlaceCard(place: Place, onClick: () -> Unit = {}) {
     val cardShape = RoundedCornerShape(16.dp)
     Surface(
+        onClick = onClick,
         modifier = Modifier
             .width(160.dp)
             .height(200.dp),

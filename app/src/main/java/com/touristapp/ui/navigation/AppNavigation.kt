@@ -33,6 +33,7 @@ import com.touristapp.ui.screens.apartment.ApartmentScreen
 import com.touristapp.ui.screens.home.HomeSlide
 import com.touristapp.ui.screens.places.CategoryListingScreen
 import com.touristapp.ui.screens.places.PlaceCategory
+import com.touristapp.ui.screens.places.PlaceDetailScreen
 import com.touristapp.ui.screens.places.PlacesSlide
 import com.touristapp.ui.screens.reviews.ReviewsSlide
 import kotlinx.coroutines.launch
@@ -55,6 +56,7 @@ fun AppNavigation(
     var cooldownUntil by remember { mutableLongStateOf(0L) }
     var showApartmentScreen by remember { mutableStateOf(false) }
     var showCategoryListing by remember { mutableStateOf<PlaceCategory?>(null) }
+    var selectedPlace by remember { mutableStateOf<Place?>(null) }
 
     val pageCount = 3
     val pagerState = rememberPagerState(pageCount = { pageCount })
@@ -71,10 +73,19 @@ fun AppNavigation(
         return
     }
 
+    selectedPlace?.let { place ->
+        PlaceDetailScreen(
+            place = place,
+            onBack = { selectedPlace = null }
+        )
+        return
+    }
+
     showCategoryListing?.let { category ->
         CategoryListingScreen(
             category = category,
             places = places,
+            onPlaceClick = { place -> selectedPlace = place },
             onBack = { showCategoryListing = null }
         )
         return
@@ -202,7 +213,8 @@ fun AppNavigation(
                     )
                     1 -> PlacesSlide(
                         places = places,
-                        onSeeAll = { category -> showCategoryListing = category }
+                        onSeeAll = { category -> showCategoryListing = category },
+                        onPlaceClick = { place -> selectedPlace = place }
                     )
                     2 -> ReviewsSlide(
                         apartmentId = apartmentId,

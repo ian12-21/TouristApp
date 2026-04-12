@@ -29,6 +29,7 @@ import com.touristapp.data.model.Place
 fun CategoryListingScreen(
     category: PlaceCategory,
     places: List<Place>,
+    onPlaceClick: (Place) -> Unit = {},
     onBack: () -> Unit
 ) {
     val displayPlaces = places.ifEmpty { dummyPlaces }
@@ -102,7 +103,7 @@ fun CategoryListingScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(filtered, key = { it.id }) { place ->
-                    PlaceListingCard(place = place)
+                    PlaceListingCard(place = place, onClick = { onPlaceClick(place) })
                 }
             }
         }
@@ -110,9 +111,10 @@ fun CategoryListingScreen(
 }
 
 @Composable
-private fun PlaceListingCard(place: Place) {
+private fun PlaceListingCard(place: Place, onClick: () -> Unit = {}) {
     val cardShape = RoundedCornerShape(16.dp)
     Surface(
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .height(240.dp),
