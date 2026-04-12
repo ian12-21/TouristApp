@@ -21,6 +21,8 @@ import com.touristapp.data.model.Room
 import com.touristapp.data.model.Stay
 import com.touristapp.data.model.TransportationService
 import com.touristapp.data.repository.TouristRepository
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 sealed class ApartmentSection(val title: String, val icon: ImageVector) {
     data object Overview : ApartmentSection("Overview", Icons.Default.Home)
@@ -55,12 +57,15 @@ fun ApartmentScreen(
 
     LaunchedEffect(apartment?.id) {
         val id = apartment?.id ?: return@LaunchedEffect
-        rooms = repository.getRooms(id)
-
-        val privateIds = apartment.transportation
-            .filter { it.type == "private" && it.transportationId.isNotBlank() }
-            .map { it.transportationId }
-        transportationServices = repository.getTransportationServices(privateIds)
+        coroutineScope {
+            launch { rooms = repository.getRooms(id) }
+            launch {
+                val privateIds = apartment.transportation
+                    .filter { it.type == "private" && it.transportationId.isNotBlank() }
+                    .map { it.transportationId }
+                transportationServices = repository.getTransportationServices(privateIds)
+            }
+        }
     }
 
     val sections = fixedSections

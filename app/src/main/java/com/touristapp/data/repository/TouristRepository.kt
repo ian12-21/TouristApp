@@ -46,20 +46,28 @@ class TouristRepository {
     suspend fun getTransportationServices(serviceIds: List<String>): List<TransportationService> {
         if (serviceIds.isEmpty()) return emptyList()
         return try {
-            serviceIds.mapNotNull { id ->
-                val doc = db.collection("transportation").document(id).get().await()
-                if (doc.exists()) {
-                    val data = doc.data ?: return@mapNotNull null
-                    val entry = data.entries.firstOrNull() ?: return@mapNotNull null
-                    val name = entry.key
-                    val details = entry.value as? Map<*, *> ?: return@mapNotNull null
-                    TransportationService(
-                        id = doc.id,
-                        name = name,
-                        phone = details["phone"] as? String ?: "",
-                        description = details["description"] as? String ?: ""
-                    )
-                } else null
+            serviceIds.chunked(30).flatMap { chunk ->
+                chunk.map { id ->
+                    db.collection("transportation").document(id)
+                }.let { refs ->
+                    db.collection("transportation")
+                        .whereIn("__name__", refs)
+                        .get()
+                        .await()
+                        .documents
+                        .mapNotNull { doc ->
+                            val data = doc.data ?: return@mapNotNull null
+                            val entry = data.entries.firstOrNull() ?: return@mapNotNull null
+                            val name = entry.key
+                            val details = entry.value as? Map<*, *> ?: return@mapNotNull null
+                            TransportationService(
+                                id = doc.id,
+                                name = name,
+                                phone = details["phone"] as? String ?: "",
+                                description = details["description"] as? String ?: ""
+                            )
+                        }
+                }
             }
         } catch (e: Exception) {
             emptyList()
@@ -81,6 +89,24 @@ class TouristRepository {
             doc.toObject(Guest::class.java)?.copy(id = doc.id)
         } catch (e: Exception) {
             null
+        }
+    }
+
+    suspend fun getGuests(guestIds: List<String>): List<Guest> {
+        if (guestIds.isEmpty()) return emptyList()
+        return try {
+            guestIds.chunked(30).flatMap { chunk ->
+                db.collection("guests")
+                    .whereIn("__name__", chunk.map { db.collection("guests").document(it) })
+                    .get()
+                    .await()
+                    .documents
+                    .mapNotNull { doc ->
+                        doc.toObject(Guest::class.java)?.copy(id = doc.id)
+                    }
+            }
+        } catch (e: Exception) {
+            emptyList()
         }
     }
 

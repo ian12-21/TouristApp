@@ -346,6 +346,7 @@ fun CreateReviewSheet(
                             isSaving = true
                             coroutineScope.launch {
                                 try {
+                                    repository.ensureAnonymousAuth()
                                     val review = Review(
                                         apartmentId = apartmentId,
                                         stayId = currentStay?.id ?: "",

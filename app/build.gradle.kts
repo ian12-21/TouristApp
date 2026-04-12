@@ -1,9 +1,16 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.gms.google-services")
     id("org.jetbrains.kotlin.plugin.serialization")
+}
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) load(file.inputStream())
 }
 
 android {
@@ -20,7 +27,7 @@ android {
         buildConfigField(
             "String",
             "WEATHER_API_KEY",
-            "\"${project.findProperty("WEATHER_API_KEY") ?: ""}\""
+            "\"${localProperties.getProperty("WEATHER_API_KEY", "")}\""
         )
     }
 

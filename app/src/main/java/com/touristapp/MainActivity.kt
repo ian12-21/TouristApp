@@ -15,7 +15,9 @@ import com.touristapp.data.model.Stay
 import com.touristapp.data.model.WeatherInfo
 import com.touristapp.data.repository.TouristRepository
 import com.touristapp.data.repository.WeatherRepository
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import com.touristapp.ui.navigation.AppNavigation
 import com.touristapp.ui.screens.setup.SetupScreen
 import com.touristapp.ui.theme.TouristAppTheme
@@ -38,11 +40,6 @@ class MainActivity : ComponentActivity() {
                 val currentStay = remember { mutableStateOf<Stay?>(null) }
                 val guests = remember { mutableStateOf<List<Guest>>(emptyList()) }
                 val weatherInfo = remember { mutableStateOf<WeatherInfo?>(null) }
-                // Silent anonymous auth for review writes
-                LaunchedEffect(Unit) {
-                    repository.ensureAnonymousAuth()
-                }
-
                 LaunchedEffect(apartmentId.value) {
                     apartmentId.value?.let { id ->
                         val fetchedApartment = repository.getApartment(id)
@@ -51,26 +48,30 @@ class MainActivity : ComponentActivity() {
                             prefs.setApartmentName(name)
                             apartmentName.value = name
                         }
-                        fetchedApartment?.currentStayId?.let { stayId ->
-                            val stay = repository.getCurrentStay(stayId)
-                            currentStay.value = stay
-                            stay?.guestIds?.let { guestIds ->
-                                guests.value = guestIds.mapNotNull { guestId ->
-                                    repository.getGuest(guestId)
+
+                        coroutineScope {
+                            // Stay + guests
+                            launch {
+                                fetchedApartment?.currentStayId?.let { stayId ->
+                                    val stay = repository.getCurrentStay(stayId)
+                                    currentStay.value = stay
+                                    stay?.guestIds?.let { guestIds ->
+                                        guests.value = repository.getGuests(guestIds)
+                                    }
                                 }
                             }
-                        }
 
-                        // Fetch weather using apartment coordinates, refresh every 30 min
-                        fetchedApartment?.coordinates?.let { coords ->
-                            val lat = coords["lat"] ?: return@let
-                            val lon = coords["lng"] ?: return@let
-                            //Log.d("DEBUG", "Fetching weather for ${fetchedApartment.coordinates}")
-                            weatherInfo.value = weatherRepository.getCurrentWeather(lat, lon)
-                            //Log.d("DEBUG", "Weather: ${weatherInfo.value}")
-                            while (true) {
-                                delay(30 * 60 * 1000L)
-                                weatherInfo.value = weatherRepository.getCurrentWeather(lat, lon)
+                            // Weather fetch + refresh loop
+                            launch {
+                                fetchedApartment?.coordinates?.let { coords ->
+                                    val lat = coords["lat"] ?: return@let
+                                    val lon = coords["lng"] ?: return@let
+                                    weatherInfo.value = weatherRepository.getCurrentWeather(lat, lon)
+                                    while (true) {
+                                        delay(30 * 60 * 1000L)
+                                        weatherInfo.value = weatherRepository.getCurrentWeather(lat, lon)
+                                    }
+                                }
                             }
                         }
                     }

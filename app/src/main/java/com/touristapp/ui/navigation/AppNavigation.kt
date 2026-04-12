@@ -30,7 +30,6 @@ import com.touristapp.ui.components.AdminDialog
 // import kotlin.math.roundToInt
 import com.touristapp.ui.screens.apartment.ApartmentScreen
 import com.touristapp.ui.screens.home.HomeSlide
-import com.touristapp.ui.screens.map.MapSlide
 import com.touristapp.ui.screens.places.PlacesSlide
 import com.touristapp.ui.screens.reviews.ReviewsSlide
 import kotlinx.coroutines.launch
@@ -52,7 +51,7 @@ fun AppNavigation(
     var cooldownUntil by remember { mutableLongStateOf(0L) }
     var showApartmentScreen by remember { mutableStateOf(false) }
 
-    val pageCount = 4
+    val pageCount = 3
     val pagerState = rememberPagerState(pageCount = { pageCount })
     val coroutineScope = rememberCoroutineScope()
 
@@ -174,14 +173,13 @@ fun AppNavigation(
                         repository = repository,
                         onNavigateToReviews = {
                             coroutineScope.launch {
-                                pagerState.animateScrollToPage(3)
+                                pagerState.animateScrollToPage(2)
                             }
                         },
                         onNavigateToApartment = { showApartmentScreen = true }
                     )
-                    1 -> MapSlide()
-                    2 -> PlacesSlide()
-                    3 -> ReviewsSlide(
+                    1 -> PlacesSlide()
+                    2 -> ReviewsSlide(
                         apartmentId = apartmentId,
                         currentStay = currentStay,
                         guests = guests,
