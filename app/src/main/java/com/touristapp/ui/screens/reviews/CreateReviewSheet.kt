@@ -1,5 +1,9 @@
 package com.touristapp.ui.screens.reviews
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -8,16 +12,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -27,6 +32,14 @@ import com.touristapp.data.model.Review
 import com.touristapp.data.model.Stay
 import com.touristapp.data.repository.TouristRepository
 import kotlinx.coroutines.launch
+
+private fun scoreColor(score: Double): Color = when {
+    score <= 3.0 -> Color(0xFFFF6B6B)
+    score <= 5.0 -> Color(0xFFFF9F43)
+    score <= 7.0 -> Color(0xFFFFD93D)
+    score <= 8.5 -> Color(0xFF6BCB77)
+    else -> Color(0xFF4ECDC4)
+}
 
 @Composable
 fun CreateReviewSheet(
@@ -162,6 +175,7 @@ fun CreateReviewSheet(
                     modifier = Modifier
                         .weight(1f)
                         .verticalScroll(rememberScrollState())
+                        .animateContentSize()
                 ) {
                     // Guest selection (skip if editing or single guest)
                     if (!isEditMode && guests.size > 1) {
@@ -174,48 +188,24 @@ fun CreateReviewSheet(
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             guests.forEach { guest ->
                                 val isSelected = selectedGuest?.id == guest.id
-                                Surface(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(14.dp))
-                                        .clickable { selectedGuest = guest }
-                                        .then(
-                                            if (isSelected) Modifier.border(
-                                                1.dp,
-                                                MaterialTheme.colorScheme.primary,
-                                                RoundedCornerShape(14.dp)
-                                            ) else Modifier
-                                        ),
-                                    shape = RoundedCornerShape(14.dp),
-                                    color = if (isSelected)
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                                    else
-                                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                                ) {
-                                    Row(
-                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = { selectedGuest = guest },
+                                    label = { Text(guest.name) },
+                                    leadingIcon = {
                                         Icon(
-                                            Icons.Default.Person,
+                                            if (isSelected) Icons.Default.Check else Icons.Default.Person,
                                             contentDescription = null,
-                                            modifier = Modifier.size(20.dp),
-                                            tint = if (isSelected)
-                                                MaterialTheme.colorScheme.primary
-                                            else
-                                                MaterialTheme.colorScheme.onSurfaceVariant
+                                            modifier = Modifier.size(18.dp)
                                         )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = guest.name,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                                            color = if (isSelected)
-                                                MaterialTheme.colorScheme.primary
-                                            else
-                                                MaterialTheme.colorScheme.onBackground
-                                        )
-                                    }
-                                }
+                                    },
+                                    shape = RoundedCornerShape(14.dp),
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                        selectedLabelColor = MaterialTheme.colorScheme.primary,
+                                        selectedLeadingIconColor = MaterialTheme.colorScheme.primary
+                                    )
+                                )
                             }
                         }
                         Spacer(modifier = Modifier.height(20.dp))
@@ -257,6 +247,13 @@ fun CreateReviewSheet(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         // Overall score display
+                        val animatedScore by animateFloatAsState(
+                            targetValue = overallScore.toFloat(),
+                            animationSpec = spring(dampingRatio = 0.7f, stiffness = 300f),
+                            label = "overallScore"
+                        )
+                        val animatedScoreColor = scoreColor(animatedScore.toDouble())
+
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.Center,
@@ -268,10 +265,10 @@ fun CreateReviewSheet(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                text = String.format("%.1f", overallScore),
+                                text = String.format("%.1f", animatedScore),
                                 style = MaterialTheme.typography.headlineLarge.copy(fontSize = 36.sp),
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                                color = animatedScoreColor
                             )
                             Text(
                                 text = " / 10",
@@ -291,7 +288,7 @@ fun CreateReviewSheet(
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(
                             value = comment,
-                            onValueChange = { comment = it },
+                            onValueChange = { if (it.length <= 500) comment = it },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .heightIn(min = 100.dp),
@@ -306,6 +303,16 @@ fun CreateReviewSheet(
                                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                                 unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
                             )
+                        )
+                        Text(
+                            text = "${comment.length} / 500",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (comment.length > 450) MaterialTheme.colorScheme.error
+                                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 4.dp, end = 4.dp),
+                            textAlign = TextAlign.End
                         )
                     } else if (selectedGuest == null) {
                         Box(
@@ -405,6 +412,12 @@ private fun RatingSlider(
     value: Int,
     onValueChange: (Int) -> Unit
 ) {
+    val trackColor by animateColorAsState(
+        targetValue = scoreColor(value.toDouble()),
+        animationSpec = spring(),
+        label = "${label}TrackColor"
+    )
+
     Column(modifier = Modifier.padding(bottom = 14.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -419,7 +432,7 @@ private fun RatingSlider(
                 text = "$value",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = trackColor
             )
         }
         Spacer(modifier = Modifier.height(4.dp))
@@ -429,8 +442,8 @@ private fun RatingSlider(
             valueRange = 1f..10f,
             steps = 8,
             colors = SliderDefaults.colors(
-                thumbColor = MaterialTheme.colorScheme.primary,
-                activeTrackColor = MaterialTheme.colorScheme.primary,
+                thumbColor = trackColor,
+                activeTrackColor = trackColor,
                 inactiveTrackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
             )
         )

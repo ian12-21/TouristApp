@@ -1,9 +1,13 @@
 package com.touristapp.ui.screens.reviews
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -13,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,6 +28,23 @@ import com.touristapp.data.repository.TouristRepository
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
+
+private fun scoreColor(score: Double): Color = when {
+    score <= 3.0 -> Color(0xFFFF6B6B)
+    score <= 5.0 -> Color(0xFFFF9F43)
+    score <= 7.0 -> Color(0xFFFFD93D)
+    score <= 8.5 -> Color(0xFF6BCB77)
+    else -> Color(0xFF4ECDC4)
+}
+
+private fun qualitativeLabel(score: Double): String = when {
+    score >= 9.0 -> "Exceptional"
+    score >= 8.0 -> "Excellent"
+    score >= 7.0 -> "Very Good"
+    score >= 6.0 -> "Good"
+    score >= 5.0 -> "Average"
+    else -> "Below Average"
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,17 +126,19 @@ fun ReviewsSlide(
                 }
 
                 // Individual reviews
-                items(reviews) { review ->
-                    ReviewCard(
-                        review = review,
-                        isEditable = currentGuestIds.contains(review.guestId),
-                        onEdit = {
-                            editingReview = review
-                            selectedGuestForEdit = guests.find { it.id == review.guestId }
-                            showCreateSheet = true
-                        }
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
+                items(reviews, key = { it.id }) { review ->
+                    Column(modifier = Modifier.animateItem()) {
+                        ReviewCard(
+                            review = review,
+                            isEditable = currentGuestIds.contains(review.guestId),
+                            onEdit = {
+                                editingReview = review
+                                selectedGuestForEdit = guests.find { it.id == review.guestId }
+                                showCreateSheet = true
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
                 }
             }
         }
@@ -193,6 +217,11 @@ private fun AggregateScoreCard(reviews: List<Review>) {
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
             }
+            Text(
+                text = qualitativeLabel(avgScore),
+                style = MaterialTheme.typography.labelLarge,
+                color = scoreColor(avgScore)
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -216,6 +245,15 @@ private fun AggregateScoreCard(reviews: List<Review>) {
 
 @Composable
 private fun CategoryBar(name: String, score: Double) {
+    var appeared by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { appeared = true }
+    val animatedFraction by animateFloatAsState(
+        targetValue = if (appeared) (score / 10.0).toFloat() else 0f,
+        animationSpec = spring(dampingRatio = 0.7f, stiffness = 300f),
+        label = "barFill"
+    )
+    val barColor = scoreColor(score)
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -236,9 +274,9 @@ private fun CategoryBar(name: String, score: Double) {
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .fillMaxWidth(fraction = (score / 10.0).toFloat())
+                    .fillMaxWidth(fraction = animatedFraction)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(MaterialTheme.colorScheme.primary)
+                    .background(barColor)
             )
         }
         Spacer(modifier = Modifier.width(10.dp))
@@ -257,8 +295,12 @@ private fun ReviewCard(
     isEditable: Boolean,
     onEdit: () -> Unit
 ) {
+    val badgeColor = scoreColor(review.overallScore)
+
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
     ) {
@@ -268,31 +310,51 @@ private fun ReviewCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        text = review.guestName.ifBlank { "Guest" },
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    review.createdAt?.let { ts ->
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text(
-                            text = SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(ts.toDate()),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = review.guestName.firstOrNull()?.uppercase() ?: "?",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
                         )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = review.guestName.ifBlank { "Guest" },
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        review.createdAt?.let { ts ->
+                            Text(
+                                text = SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(ts.toDate()),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(
                         shape = RoundedCornerShape(10.dp),
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                        color = badgeColor.copy(alpha = 0.15f)
                     ) {
                         Text(
                             text = String.format("%.1f", review.overallScore),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = badgeColor,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                         )
                     }
