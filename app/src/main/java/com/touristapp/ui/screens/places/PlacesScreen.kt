@@ -10,15 +10,19 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.BeachAccess
+import androidx.compose.material.icons.filled.DirectionsBus
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.LocalCafe
+import androidx.compose.material.icons.filled.LocalPharmacy
 import androidx.compose.material.icons.filled.Nightlife
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.SportsHandball
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.ShoppingBag
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.SportsHandball
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -29,8 +33,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.touristapp.data.model.Place
+import com.touristapp.data.model.getDistanceFor
 
 enum class PlaceCategory(
     val key: String,
@@ -39,9 +45,10 @@ enum class PlaceCategory(
 ) {
     BEACH("beach", "Beaches", Icons.Default.BeachAccess),
     RESTAURANT("restaurant", "Restaurants", Icons.Default.Restaurant),
-    PLACE("place", "Places", Icons.Default.Place),
     CAFE("cafe", "Drinks & Coffee", Icons.Default.LocalCafe),
-    SHOP("shop", "Shops", Icons.Default.ShoppingBag),
+    STORE("store", "Stores", Icons.Default.ShoppingBag),
+    PHARMACY("pharmacy", "Pharmacies", Icons.Default.LocalPharmacy),
+    ATTRACTION("attraction", "Attractions", Icons.Default.Place),
     NIGHTLIFE("nightlife", "Nightlife", Icons.Default.Nightlife),
     ACTIVITY("activity", "Activities", Icons.Default.SportsHandball);
 
@@ -50,14 +57,29 @@ enum class PlaceCategory(
     }
 }
 
+fun distanceIcon(type: String): ImageVector = when (type) {
+    "car" -> Icons.Default.DirectionsCar
+    "bus" -> Icons.Default.DirectionsBus
+    else -> Icons.Default.DirectionsWalk
+}
+
 @Composable
 fun PlacesSlide(
-    places: List<Place>,
+    apartmentId: String,
+    viewModel: PlacesViewModel = viewModel(factory = PlacesViewModel.Factory(apartmentId)),
     onSeeAll: (PlaceCategory) -> Unit = {},
-    onPlaceClick: (Place) -> Unit = {}
+    onPlaceClick: (Place) -> Unit = {},
+    onPlacesLoaded: (List<Place>) -> Unit = {}
 ) {
-    val displayPlaces = places.ifEmpty { dummyPlaces }
-    val grouped = displayPlaces.groupBy { PlaceCategory.fromKey(it.category) }
+    val places = viewModel.places
+
+    // Notify parent when places are loaded
+    LaunchedEffect(places) {
+        if (places.isNotEmpty()) {
+            onPlacesLoaded(places)
+        }
+    }
+    val grouped = places.groupBy { PlaceCategory.fromKey(it.category) }
 
     Column(
         modifier = Modifier
@@ -83,31 +105,43 @@ fun PlacesSlide(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        PlaceCategory.entries.forEach { category ->
-            val categoryPlaces = grouped[category] ?: emptyList()
-            if (categoryPlaces.isNotEmpty()) {
-                CategoryRow(
-                    category = category,
-                    places = categoryPlaces.take(7),
-                    onSeeAll = { onSeeAll(category) },
-                    onPlaceClick = onPlaceClick
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-            }
-        }
-
-        if (displayPlaces.isEmpty()) {
+        if (viewModel.isLoading) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 80.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "No places to explore yet",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                CircularProgressIndicator()
+            }
+        } else {
+            PlaceCategory.entries.forEach { category ->
+                val categoryPlaces = grouped[category] ?: emptyList()
+                if (categoryPlaces.isNotEmpty()) {
+                    CategoryRow(
+                        category = category,
+                        places = categoryPlaces.take(7),
+                        apartmentId = apartmentId,
+                        onSeeAll = { onSeeAll(category) },
+                        onPlaceClick = onPlaceClick
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+            }
+
+            if (places.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 80.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No places to explore yet",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }
@@ -117,6 +151,7 @@ fun PlacesSlide(
 private fun CategoryRow(
     category: PlaceCategory,
     places: List<Place>,
+    apartmentId: String,
     onSeeAll: () -> Unit,
     onPlaceClick: (Place) -> Unit
 ) {
@@ -169,14 +204,20 @@ private fun CategoryRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(places, key = { it.id }) { place ->
-            PlaceCard(place = place, onClick = { onPlaceClick(place) })
+            PlaceCard(
+                place = place,
+                apartmentId = apartmentId,
+                onClick = { onPlaceClick(place) }
+            )
         }
     }
 }
 
 @Composable
-private fun PlaceCard(place: Place, onClick: () -> Unit = {}) {
+private fun PlaceCard(place: Place, apartmentId: String, onClick: () -> Unit = {}) {
     val cardShape = RoundedCornerShape(16.dp)
+    val link = place.getDistanceFor(apartmentId)
+
     Surface(
         onClick = onClick,
         modifier = Modifier
@@ -186,10 +227,10 @@ private fun PlaceCard(place: Place, onClick: () -> Unit = {}) {
         color = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Photo background
-            if (place.photoUrl.isNotBlank()) {
+            val imageUrl = place.thumbImageUrl.ifBlank { place.images.firstOrNull() }
+            if (imageUrl != null && imageUrl.isNotBlank()) {
                 AsyncImage(
-                    model = place.photoUrl,
+                    model = imageUrl,
                     contentDescription = place.name,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
@@ -211,8 +252,8 @@ private fun PlaceCard(place: Place, onClick: () -> Unit = {}) {
                     )
             )
 
-            // Rating badge
-            if (place.rating > 0) {
+            // Distance badge
+            if (link != null) {
                 Surface(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
@@ -226,13 +267,13 @@ private fun PlaceCard(place: Place, onClick: () -> Unit = {}) {
                         horizontalArrangement = Arrangement.spacedBy(3.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = null,
-                            tint = Color(0xFFFFD700),
+                            imageVector = distanceIcon(link.distanceType),
+                            contentDescription = link.distanceType,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.size(12.dp)
                         )
                         Text(
-                            text = String.format("%.1f", place.rating),
+                            text = link.distance,
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer

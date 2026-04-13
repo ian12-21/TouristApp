@@ -8,9 +8,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,19 +21,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.touristapp.data.model.Place
+import com.touristapp.data.model.getDistanceFor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryListingScreen(
     category: PlaceCategory,
     places: List<Place>,
+    apartmentId: String,
     onPlaceClick: (Place) -> Unit = {},
     onBack: () -> Unit
 ) {
-    val displayPlaces = places.ifEmpty { dummyPlaces }
-    val filtered = displayPlaces
-        .filter { it.category == category.key }
-        .sortedByDescending { it.rating }
+    val filtered = places.filter { it.category == category.key }
 
     Scaffold(
         topBar = {
@@ -103,7 +100,11 @@ fun CategoryListingScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(filtered, key = { it.id }) { place ->
-                    PlaceListingCard(place = place, onClick = { onPlaceClick(place) })
+                    PlaceListingCard(
+                        place = place,
+                        apartmentId = apartmentId,
+                        onClick = { onPlaceClick(place) }
+                    )
                 }
             }
         }
@@ -111,8 +112,10 @@ fun CategoryListingScreen(
 }
 
 @Composable
-private fun PlaceListingCard(place: Place, onClick: () -> Unit = {}) {
+private fun PlaceListingCard(place: Place, apartmentId: String, onClick: () -> Unit = {}) {
     val cardShape = RoundedCornerShape(16.dp)
+    val link = place.getDistanceFor(apartmentId)
+
     Surface(
         onClick = onClick,
         modifier = Modifier
@@ -128,9 +131,10 @@ private fun PlaceListingCard(place: Place, onClick: () -> Unit = {}) {
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                if (place.photoUrl.isNotBlank()) {
+                val imageUrl = place.thumbImageUrl.ifBlank { place.images.firstOrNull() }
+                if (imageUrl != null && imageUrl.isNotBlank()) {
                     AsyncImage(
-                        model = place.photoUrl,
+                        model = imageUrl,
                         contentDescription = place.name,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
@@ -151,8 +155,8 @@ private fun PlaceListingCard(place: Place, onClick: () -> Unit = {}) {
                         )
                 )
 
-                // Rating badge
-                if (place.rating > 0) {
+                // Distance badge
+                if (link != null) {
                     Surface(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
@@ -166,13 +170,13 @@ private fun PlaceListingCard(place: Place, onClick: () -> Unit = {}) {
                             horizontalArrangement = Arrangement.spacedBy(3.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = null,
-                                tint = Color(0xFFFFD700),
+                                imageVector = distanceIcon(link.distanceType),
+                                contentDescription = link.distanceType,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.size(12.dp)
                             )
                             Text(
-                                text = String.format("%.1f", place.rating),
+                                text = link.distance,
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -219,36 +223,22 @@ private fun PlaceListingCard(place: Place, onClick: () -> Unit = {}) {
                     )
                 }
 
-                // Contact row
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (place.phone.isNotBlank()) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Phone,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(12.dp)
-                            )
-                            Text(
-                                text = place.phone,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                maxLines = 1
-                            )
-                        }
-                    }
-                    if (place.website.isNotBlank()) {
+                if (place.phone.isNotBlank()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
                         Icon(
-                            imageVector = Icons.Default.Language,
-                            contentDescription = "Website",
+                            imageVector = Icons.Default.Phone,
+                            contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(14.dp)
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Text(
+                            text = place.phone,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1
                         )
                     }
                 }

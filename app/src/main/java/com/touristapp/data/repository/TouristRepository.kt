@@ -1,5 +1,6 @@
 package com.touristapp.data.repository
 
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -110,22 +111,28 @@ class TouristRepository {
         }
     }
 
-    suspend fun getPlaces(placeIds: List<String>): List<Place> {
-        if (placeIds.isEmpty()) return emptyList()
+    suspend fun getPlacesForApartment(apartmentId: String): List<Place> {
+        Log.d("TouristRepo", "getPlacesForApartment called with apartmentId=$apartmentId")
         return try {
-            // Firestore 'in' queries support max 30 items per batch
-            placeIds.chunked(30).flatMap { chunk ->
-                db.collection("places")
-                    .whereIn("__name__", chunk.map { db.collection("places").document(it) })
-                    .get()
-                    .await()
-                    .documents
-                    .mapNotNull { doc ->
-                        doc.toObject(Place::class.java)?.copy(id = doc.id)
-                    }
-                    .filter { it.isActive }
+            val snapshot = db.collection("places")
+                .whereArrayContains("apartmentIds", apartmentId)
+                .get()
+                .await()
+            Log.d("TouristRepo", "Firestore returned ${snapshot.documents.size} documents")
+            snapshot.documents.forEach { doc ->
+                Log.d("TouristRepo", "Doc ${doc.id}: ${doc.data}")
             }
+            val places = snapshot.documents
+                .mapNotNull { doc ->
+                    val place = doc.toObject(Place::class.java)?.copy(id = doc.id)
+                    Log.d("TouristRepo", "Parsed place: ${place?.name}, isActive=${place?.isActive}, category=${place?.category}")
+                    place
+                }
+                .filter { it.isActive }
+            Log.d("TouristRepo", "Returning ${places.size} active places")
+            places
         } catch (e: Exception) {
+            Log.e("TouristRepo", "Error fetching places for apartment $apartmentId", e)
             emptyList()
         }
     }

@@ -11,7 +11,6 @@ import androidx.compose.runtime.remember
 import com.touristapp.data.local.AppPreferences
 import com.touristapp.data.model.Apartment
 import com.touristapp.data.model.Guest
-import com.touristapp.data.model.Place
 import com.touristapp.data.model.Stay
 import com.touristapp.data.model.WeatherInfo
 import com.touristapp.data.repository.TouristRepository
@@ -40,7 +39,6 @@ class MainActivity : ComponentActivity() {
                 val apartment = remember { mutableStateOf<Apartment?>(null) }
                 val currentStay = remember { mutableStateOf<Stay?>(null) }
                 val guests = remember { mutableStateOf<List<Guest>>(emptyList()) }
-                val places = remember { mutableStateOf<List<Place>>(emptyList()) }
                 val weatherInfo = remember { mutableStateOf<WeatherInfo?>(null) }
                 LaunchedEffect(apartmentId.value) {
                     apartmentId.value?.let { id ->
@@ -60,13 +58,6 @@ class MainActivity : ComponentActivity() {
                                     stay?.guestIds?.let { guestIds ->
                                         guests.value = repository.getGuests(guestIds)
                                     }
-                                }
-                            }
-
-                            // Places
-                            launch {
-                                fetchedApartment?.placeIds?.let { placeIds ->
-                                    places.value = repository.getPlaces(placeIds)
                                 }
                             }
 
@@ -100,7 +91,6 @@ class MainActivity : ComponentActivity() {
                         apartment = apartment.value,
                         currentStay = currentStay.value,
                         guests = guests.value,
-                        places = places.value,
                         repository = repository,
                         // weatherInfo = weatherInfo.value,
                         onReconfigure = {
@@ -109,7 +99,6 @@ class MainActivity : ComponentActivity() {
                             apartmentName.value = ""
                             apartment.value = null
                             currentStay.value = null
-                            places.value = emptyList()
                         }
                     )
                 }

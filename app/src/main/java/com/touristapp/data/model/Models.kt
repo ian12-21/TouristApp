@@ -61,7 +61,6 @@ data class Apartment(
     val welcomeMessage: String = "",
     val transportation: List<TransportationItem> = emptyList(),
     val currentStayId: String? = null,
-    val placeIds: List<String> = emptyList(),
     val updatedAt: Timestamp? = null
 )
 
@@ -93,6 +92,15 @@ data class Guest(
 )
 
 /**
+ * A link between a place and an apartment, with distance info.
+ */
+data class ApartmentLink(
+    val apartmentId: String = "",
+    val distance: String = "",
+    val distanceType: String = ""
+)
+
+/**
  * Maps to Firestore collection: places
  */
 data class Place(
@@ -100,16 +108,22 @@ data class Place(
     val name: String = "",
     val category: String = "",
     val description: String = "",
-    val coordinates: Map<String, Double> = emptyMap(),
-    val address: String = "",
-    val photoUrl: String = "",
-    val rating: Double = 0.0,
+    val thumbImageUrl: String = "",
+    val images: List<String> = emptyList(),
     val tips: String = "",
-    val website: String = "",
     val phone: String = "",
+    val address: String = "",
     val isActive: Boolean = true,
-    val createdAt: Timestamp? = null
+    val apartments: List<ApartmentLink> = emptyList(),
+    val apartmentIds: List<String> = emptyList()
 )
+
+/**
+ * Get the distance info for a specific apartment from a Place.
+ */
+fun Place.getDistanceFor(apartmentId: String): ApartmentLink? {
+    return apartments.firstOrNull { it.apartmentId == apartmentId }
+}
 
 /**
  * Maps to Firestore collection: customSections

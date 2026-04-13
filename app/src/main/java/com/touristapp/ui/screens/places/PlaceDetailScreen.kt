@@ -10,11 +10,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,14 +26,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.touristapp.data.model.Place
+import com.touristapp.data.model.getDistanceFor
 
 @Composable
 fun PlaceDetailScreen(
     place: Place,
+    apartmentId: String,
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
     val category = PlaceCategory.fromKey(place.category)
+    val link = place.getDistanceFor(apartmentId)
+    val heroImage = place.thumbImageUrl.ifBlank { place.images.firstOrNull() }
 
     Box(
         modifier = Modifier
@@ -53,9 +55,9 @@ fun PlaceDetailScreen(
                     .fillMaxWidth()
                     .height(280.dp)
             ) {
-                if (place.photoUrl.isNotBlank()) {
+                if (heroImage != null && heroImage.isNotBlank()) {
                     AsyncImage(
-                        model = place.photoUrl,
+                        model = heroImage,
                         contentDescription = place.name,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
@@ -105,8 +107,8 @@ fun PlaceDetailScreen(
                     )
                 }
 
-                // Rating badge on image
-                if (place.rating > 0) {
+                // Distance badge on image
+                if (link != null) {
                     Surface(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
@@ -121,13 +123,13 @@ fun PlaceDetailScreen(
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = null,
-                                tint = Color(0xFFFFD700),
+                                imageVector = distanceIcon(link.distanceType),
+                                contentDescription = link.distanceType,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
-                                text = String.format("%.1f", place.rating),
+                                text = link.distance,
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -249,63 +251,31 @@ fun PlaceDetailScreen(
                 }
 
                 // Contact buttons
-                if (place.phone.isNotBlank() || place.website.isNotBlank()) {
-                    Row(
+                if (place.phone.isNotBlank()) {
+                    OutlinedButton(
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${place.phone}"))
+                            context.startActivity(intent)
+                        },
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        contentPadding = PaddingValues(vertical = 14.dp)
                     ) {
-                        if (place.phone.isNotBlank()) {
-                            OutlinedButton(
-                                onClick = {
-                                    val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${place.phone}"))
-                                    context.startActivity(intent)
-                                },
-                                modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(12.dp),
-                                contentPadding = PaddingValues(vertical = 14.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Phone,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(text = "Call")
-                            }
-                        }
-                        if (place.website.isNotBlank()) {
-                            Button(
-                                onClick = {
-                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(place.website))
-                                    context.startActivity(intent)
-                                },
-                                modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(12.dp),
-                                contentPadding = PaddingValues(vertical = 14.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Language,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(text = "Website")
-                            }
-                        }
+                        Icon(
+                            imageVector = Icons.Default.Phone,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = "Call")
                     }
                 }
 
                 // Open in maps
-                if (place.coordinates.isNotEmpty() || place.address.isNotBlank()) {
+                if (place.address.isNotBlank()) {
                     OutlinedButton(
                         onClick = {
-                            val lat = place.coordinates["lat"]
-                            val lng = place.coordinates["lng"]
-                            val uri = if (lat != null && lng != null) {
-                                Uri.parse("geo:$lat,$lng?q=$lat,$lng(${Uri.encode(place.name)})")
-                            } else {
-                                Uri.parse("geo:0,0?q=${Uri.encode(place.address)}")
-                            }
+                            val uri = Uri.parse("geo:0,0?q=${Uri.encode(place.address)}")
                             context.startActivity(Intent(Intent.ACTION_VIEW, uri))
                         },
                         modifier = Modifier.fillMaxWidth(),
@@ -324,46 +294,43 @@ fun PlaceDetailScreen(
             }
 
             // Photos section
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(
-                    text = "Photos",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+            if (place.images.size > 1) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "Photos",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
 
-                // 2-column grid of placeholder images
-                val placeholderCount = 4
-                for (row in 0 until (placeholderCount + 1) / 2) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        for (col in 0..1) {
-                            val index = row * 2 + col
-                            if (index < placeholderCount) {
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(140.dp)
-                                        .background(
-                                            color = MaterialTheme.colorScheme.surfaceVariant,
-                                            shape = RoundedCornerShape(14.dp)
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "Photo ${index + 1}",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    val photos = place.images.drop(1) // first image is already the hero
+                    for (row in 0 until (photos.size + 1) / 2) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            for (col in 0..1) {
+                                val index = row * 2 + col
+                                if (index < photos.size) {
+                                    AsyncImage(
+                                        model = photos[index],
+                                        contentDescription = "${place.name} photo ${index + 2}",
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(140.dp)
+                                            .background(
+                                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                                shape = RoundedCornerShape(14.dp)
+                                            )
                                     )
+                                } else {
+                                    Spacer(modifier = Modifier.weight(1f))
                                 }
-                            } else {
-                                Spacer(modifier = Modifier.weight(1f))
                             }
                         }
                     }

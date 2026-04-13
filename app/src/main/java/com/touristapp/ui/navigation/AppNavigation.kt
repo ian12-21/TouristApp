@@ -46,7 +46,6 @@ fun AppNavigation(
     apartment: Apartment?,
     currentStay: Stay?,
     guests: List<Guest>,
-    places: List<Place>,
     repository: TouristRepository,
     // weatherInfo: WeatherInfo?,
     onReconfigure: () -> Unit
@@ -57,6 +56,7 @@ fun AppNavigation(
     var showApartmentScreen by remember { mutableStateOf(false) }
     var showCategoryListing by remember { mutableStateOf<PlaceCategory?>(null) }
     var selectedPlace by remember { mutableStateOf<Place?>(null) }
+    var cachedPlaces by remember { mutableStateOf<List<Place>>(emptyList()) }
 
     val pageCount = 3
     val pagerState = rememberPagerState(pageCount = { pageCount })
@@ -76,6 +76,7 @@ fun AppNavigation(
     selectedPlace?.let { place ->
         PlaceDetailScreen(
             place = place,
+            apartmentId = apartmentId,
             onBack = { selectedPlace = null }
         )
         return
@@ -84,7 +85,8 @@ fun AppNavigation(
     showCategoryListing?.let { category ->
         CategoryListingScreen(
             category = category,
-            places = places,
+            places = cachedPlaces,
+            apartmentId = apartmentId,
             onPlaceClick = { place -> selectedPlace = place },
             onBack = { showCategoryListing = null }
         )
@@ -212,9 +214,10 @@ fun AppNavigation(
                         }
                     )
                     1 -> PlacesSlide(
-                        places = places,
+                        apartmentId = apartmentId,
                         onSeeAll = { category -> showCategoryListing = category },
-                        onPlaceClick = { place -> selectedPlace = place }
+                        onPlaceClick = { place -> selectedPlace = place },
+                        onPlacesLoaded = { cachedPlaces = it }
                     )
                     2 -> ReviewsSlide(
                         apartmentId = apartmentId,
