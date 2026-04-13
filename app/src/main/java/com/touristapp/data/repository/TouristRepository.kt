@@ -112,24 +112,17 @@ class TouristRepository {
     }
 
     suspend fun getPlacesForApartment(apartmentId: String): List<Place> {
-        Log.d("TouristRepo", "getPlacesForApartment called with apartmentId=$apartmentId")
         return try {
             val snapshot = db.collection("places")
                 .whereArrayContains("apartmentIds", apartmentId)
                 .get()
                 .await()
-            Log.d("TouristRepo", "Firestore returned ${snapshot.documents.size} documents")
-            snapshot.documents.forEach { doc ->
-                Log.d("TouristRepo", "Doc ${doc.id}: ${doc.data}")
-            }
             val places = snapshot.documents
                 .mapNotNull { doc ->
                     val place = doc.toObject(Place::class.java)?.copy(id = doc.id)
-                    Log.d("TouristRepo", "Parsed place: ${place?.name}, isActive=${place?.isActive}, category=${place?.category}")
                     place
                 }
                 .filter { it.isActive }
-            Log.d("TouristRepo", "Returning ${places.size} active places")
             places
         } catch (e: Exception) {
             Log.e("TouristRepo", "Error fetching places for apartment $apartmentId", e)
