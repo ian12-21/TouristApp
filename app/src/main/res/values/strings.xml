@@ -1,3 +1,130 @@
 <resources>
     <string name="app_name">Tourist App</string>
+
+    <!-- Home Screen -->
+    <string name="home_welcome">Welcome!</string>
+    <string name="home_welcome_with_name">Welcome %1$s</string>
+    <string name="home_wifi_label">Wi-Fi: %1$s</string>
+    <string name="home_wifi_not_configured">Not configured</string>
+    <string name="home_wifi_password">Password: %1$s</string>
+    <string name="home_contacts">Contacts</string>
+    <string name="home_action_apartment">Apartment</string>
+    <string name="home_action_explore">Explore</string>
+    <string name="home_action_coming_soon">Coming Soon</string>
+    <string name="home_action_review">Review</string>
+    <string name="home_action_emergency">Emergency</string>
+    <string name="home_checkout_by_time_and_date">Checkout by %1$s on %2$s</string>
+    <string name="home_checkout_by_time">Checkout by %1$s</string>
+    <string name="home_checkout_on_date">Checkout on %1$s</string>
+    <string name="home_checkout_not_set">Checkout info not set</string>
+
+    <!-- Places Screen -->
+    <string name="places_title">Explore</string>
+    <string name="places_subtitle">Your host\'s top picks</string>
+    <string name="places_see_all">See all</string>
+    <string name="places_empty">No places to explore yet</string>
+    <string name="places_category_empty">No %1$s found</string>
+
+    <!-- Place Categories -->
+    <string name="category_beach">Beaches</string>
+    <string name="category_restaurant">Restaurants</string>
+    <string name="category_cafe">Drinks &amp; Coffee</string>
+    <string name="category_store">Stores</string>
+    <string name="category_pharmacy">Pharmacies</string>
+    <string name="category_attraction">Attractions</string>
+    <string name="category_nightlife">Nightlife</string>
+    <string name="category_activity">Activities</string>
+
+    <!-- Place Detail -->
+    <string name="place_detail_tip">Tip</string>
+    <string name="place_detail_call">Call</string>
+    <string name="place_detail_maps">Open in Maps</string>
+    <string name="place_detail_photos">Photos</string>
+
+    <!-- Reviews Screen -->
+    <string name="reviews_empty_title">No reviews yet</string>
+    <string name="reviews_empty_subtitle">Be the first to share your experience!</string>
+    <string name="reviews_count">%1$d review</string>
+    <string name="reviews_count_plural">%1$d reviews</string>
+    <string name="reviews_score_suffix">/ 10</string>
+    <string name="reviews_edit">Edit</string>
+
+    <!-- Create/Edit Review -->
+    <string name="review_create_title">Add Review</string>
+    <string name="review_edit_title">Edit Review</string>
+    <string name="review_who_reviewing">Who is reviewing?</string>
+    <string name="review_existing_notice">%1$s already has a review for this stay. You can edit it below.</string>
+    <string name="review_rate_experience">Rate your experience</string>
+    <string name="review_overall">Overall: </string>
+    <string name="review_out_of_ten"> / 10</string>
+    <string name="review_comment_label">Comment (optional)</string>
+    <string name="review_comment_placeholder">Share your experience…</string>
+    <string name="review_comment_counter">%1$d / 500</string>
+    <string name="review_select_guest">Select a guest to continue</string>
+    <string name="review_submit">Submit Review</string>
+    <string name="review_update">Update Review</string>
+
+    <!-- Rating Categories -->
+    <string name="rating_cleanliness">Cleanliness</string>
+    <string name="rating_location">Location</string>
+    <string name="rating_comfort">Comfort</string>
+    <string name="rating_value_for_money">Value for money</string>
+    <string name="rating_facilities">Facilities</string>
+    <string name="rating_communication">Communication</string>
+    <string name="rating_wifi">Wi-Fi</string>
+
+    <!-- Apartment Screen -->
+    <string name="apartment_section_overview">Overview</string>
+    <string name="apartment_section_rooms">Rooms &amp; Appliances</string>
+    <string name="apartment_section_rules">House Rules</string>
+    <string name="apartment_section_checkout">Checkout</string>
+    <string name="apartment_section_transport">Transport</string>
+    <string name="apartment_overview_size">Size</string>
+    <string name="apartment_overview_capacity">Capacity</string>
+    <string name="apartment_overview_renovated">Renovated</string>
+    <string name="apartment_overview_size_value">%1$s m\u00B2</string>
+    <string name="apartment_overview_capacity_value">%1$d guests</string>
+    <string name="apartment_rooms_empty">No rooms listed.</string>
+    <string name="apartment_rooms_no_appliances">No appliances listed.</string>
+    <string name="apartment_rooms_about">About</string>
+    <string name="apartment_rooms_how_to_use">How to use</string>
+    <string name="apartment_item_count">%1$d item</string>
+    <string name="apartment_item_count_plural">%1$d items</string>
+    <string name="apartment_rules_empty">No house rules listed.</string>
+    <string name="apartment_rules_count">%1$d rule</string>
+    <string name="apartment_rules_count_plural">%1$d rules</string>
+    <string name="apartment_checkout_title">Your Checkout</string>
+    <string name="apartment_checkout_date">Date</string>
+    <string name="apartment_checkout_time">Time</string>
+    <string name="apartment_checkout_instructions">Checkout Instructions</string>
+    <string name="apartment_checkout_empty">No checkout information available yet.</string>
+    <string name="apartment_transport_public">Public Transport</string>
+    <string name="apartment_transport_private">Private Transport</string>
+    <string name="apartment_transport_empty">No transport information available.</string>
+
+    <!-- Admin -->
+    <string name="admin_email">Email</string>
+    <string name="admin_password">Password</string>
+    <string name="admin_sign_in">Sign in</string>
+    <string name="admin_select_apartment">Select apartment</string>
+    <string name="admin_invalid_credentials">Invalid credentials</string>
+
+    <!-- Errors -->
+    <string name="error_generic">Something went wrong</string>
+    <string name="error_retry">Retry</string>
+
+    <!-- Emergency Contacts Dialog -->
+    <string name="contacts_title">Emergency Contacts</string>
+    <string name="contacts_empty">No emergency contacts have been provided yet.</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_home">Home</string>
+    <string name="cd_back">Back</string>
+    <string name="cd_close">Close</string>
+    <string name="cd_add_review">Add Review</string>
+    <string name="cd_wifi">WiFi</string>
+    <string name="cd_checkout">Checkout</string>
+    <string name="cd_view_details">View details</string>
+    <string name="cd_expand">Expand</string>
+    <string name="cd_collapse">Collapse</string>
 </resources>

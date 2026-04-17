@@ -1,13 +1,14 @@
 package com.touristapp.data.local
 
 import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
-/**
- * Simple wrapper around SharedPreferences.
- * Stores only the apartment ID — this is the source of truth
- * for which apartment this tablet displays.
- */
-class AppPreferences(context: Context) {
+@Singleton
+class AppPreferences @Inject constructor(
+    @ApplicationContext context: Context
+) {
 
     private val prefs = context.getSharedPreferences("kiosk_prefs", Context.MODE_PRIVATE)
 
