@@ -28,8 +28,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.clip
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.touristapp.R
+import com.touristapp.core.ui.components.DoodleCanvas
+import com.touristapp.core.util.decodeDoodle
 import com.touristapp.data.model.Guest
 import com.touristapp.data.model.Stay
 
@@ -262,6 +267,84 @@ fun CreateReviewSheet(
                                 .padding(top = 4.dp, end = 4.dp),
                             textAlign = TextAlign.End
                         )
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        // Doodle
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.review_doodle_label),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            val hasDoodle = state.doodleStrokes.isNotEmpty() || state.existingDoodleBase64 != null
+                            if (hasDoodle) {
+                                TextButton(onClick = { viewModel.clearDoodle() }) {
+                                    Text(stringResource(R.string.review_doodle_clear))
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                            )
+                        ) {
+                            if (state.existingDoodleBase64 != null && state.doodleStrokes.isEmpty()) {
+                                val existingBitmap = remember(state.existingDoodleBase64) {
+                                    decodeDoodle(state.existingDoodleBase64!!)
+                                }
+                                if (existingBitmap != null) {
+                                    Image(
+                                        bitmap = existingBitmap,
+                                        contentDescription = stringResource(R.string.review_doodle_cd),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .aspectRatio(3f)
+                                            .clip(RoundedCornerShape(12.dp)),
+                                        contentScale = ContentScale.Fit
+                                    )
+                                } else {
+                                    DoodleCanvas(
+                                        strokes = state.doodleStrokes,
+                                        onStrokeAdded = { viewModel.addDoodleStroke(it) },
+                                        onSizeMeasured = { viewModel.updateDoodleCanvasSize(it.width, it.height) }
+                                    )
+                                }
+                            } else {
+                                DoodleCanvas(
+                                    strokes = state.doodleStrokes,
+                                    onStrokeAdded = { viewModel.addDoodleStroke(it) },
+                                    onSizeMeasured = { viewModel.updateDoodleCanvasSize(it.width, it.height) }
+                                )
+                            }
+                        }
+                        if (state.existingDoodleBase64 != null && state.doodleStrokes.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.review_doodle_replace),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
+
+                        state.saveError?.let { err ->
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = err,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
                     } else if (state.selectedGuest == null) {
                         Box(
                             modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),

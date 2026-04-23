@@ -3,8 +3,10 @@ package com.touristapp.feature.reviews
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -26,6 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.touristapp.R
 import com.touristapp.core.ui.components.ErrorContent
+import com.touristapp.core.util.decodeDoodle
 import com.touristapp.data.model.Guest
 import com.touristapp.data.model.Review
 import com.touristapp.data.model.Stay
@@ -351,6 +354,23 @@ private fun ReviewCard(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.85f)
                 )
+            }
+
+            review.doodleBase64?.let { b64 ->
+                val bitmap = remember(b64) { decodeDoodle(b64) }
+                bitmap?.let {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Image(
+                        bitmap = it,
+                        contentDescription = stringResource(R.string.review_doodle_cd),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(3f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surface),
+                        contentScale = ContentScale.Fit
+                    )
+                }
             }
         }
     }

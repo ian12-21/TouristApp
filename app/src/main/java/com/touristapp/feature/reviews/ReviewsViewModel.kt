@@ -2,9 +2,12 @@ package com.touristapp.feature.reviews
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.touristapp.core.util.DoodleEncodeResult
+import com.touristapp.core.util.DoodleStroke
 import com.touristapp.core.util.Resource
 import com.touristapp.core.util.dataOrEmpty
 import com.touristapp.core.util.dataOrNull
+import com.touristapp.core.util.encodeDoodle
 import com.touristapp.data.model.Guest
 import com.touristapp.data.model.Review
 import com.touristapp.domain.repository.TouristRepository
@@ -34,6 +37,10 @@ data class ReviewsUiState(
     val communication: Int = 5,
     val wifi: Int = 5,
     val comment: String = "",
+    val doodleStrokes: List<DoodleStroke> = emptyList(),
+    val doodleCanvasWidthPx: Int = 0,
+    val doodleCanvasHeightPx: Int = 0,
+    val existingDoodleBase64: String? = null,
     val isSaving: Boolean = false,
     val saveError: String? = null
 ) {
@@ -78,7 +85,10 @@ class ReviewsViewModel @Inject constructor(
                 foundExistingReview = null,
                 cleanliness = 5, location = 5, comfort = 5,
                 valueForMoney = 5, facilities = 5, communication = 5, wifi = 5,
-                comment = "", saveError = null
+                comment = "",
+                doodleStrokes = emptyList(),
+                existingDoodleBase64 = null,
+                saveError = null
             )
         }
     }
@@ -99,6 +109,8 @@ class ReviewsViewModel @Inject constructor(
                 communication = review.communication,
                 wifi = review.wifi,
                 comment = review.comment,
+                doodleStrokes = emptyList(),
+                existingDoodleBase64 = review.doodleBase64,
                 saveError = null
             )
         }
@@ -112,9 +124,23 @@ class ReviewsViewModel @Inject constructor(
                 selectedGuestForEdit = null,
                 selectedGuest = null,
                 foundExistingReview = null,
+                doodleStrokes = emptyList(),
+                existingDoodleBase64 = null,
                 saveError = null
             )
         }
+    }
+
+    fun addDoodleStroke(stroke: DoodleStroke) {
+        _uiState.update { it.copy(doodleStrokes = it.doodleStrokes + stroke) }
+    }
+
+    fun clearDoodle() {
+        _uiState.update { it.copy(doodleStrokes = emptyList(), existingDoodleBase64 = null) }
+    }
+
+    fun updateDoodleCanvasSize(widthPx: Int, heightPx: Int) {
+        _uiState.update { it.copy(doodleCanvasWidthPx = widthPx, doodleCanvasHeightPx = heightPx) }
     }
 
     fun selectGuest(guest: Guest, stayId: String?) {
@@ -182,6 +208,29 @@ class ReviewsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 repository.ensureAnonymousAuth()
+
+                val doodleBase64: String? = if (state.doodleStrokes.isNotEmpty()) {
+                    val encoded = encodeDoodle(
+                        strokes = state.doodleStrokes,
+                        sourceWidthPx = state.doodleCanvasWidthPx.coerceAtLeast(1),
+                        sourceHeightPx = state.doodleCanvasHeightPx.coerceAtLeast(1)
+                    )
+                    when (encoded) {
+                        is DoodleEncodeResult.Success -> encoded.base64
+                        DoodleEncodeResult.Empty -> state.existingDoodleBase64
+                        DoodleEncodeResult.TooLarge -> {
+                            _uiState.update { it.copy(isSaving = false, saveError = "Doodle is too large — try a simpler drawing.") }
+                            return@launch
+                        }
+                        is DoodleEncodeResult.Failure -> {
+                            _uiState.update { it.copy(isSaving = false, saveError = "Couldn't save doodle.") }
+                            return@launch
+                        }
+                    }
+                } else {
+                    state.existingDoodleBase64
+                }
+
                 val review = Review(
                     apartmentId = apartmentId,
                     stayId = stayId,
@@ -195,7 +244,8 @@ class ReviewsViewModel @Inject constructor(
                     communication = state.communication,
                     wifi = state.wifi,
                     overallScore = state.overallScore,
-                    comment = state.comment.trim()
+                    comment = state.comment.trim(),
+                    doodleBase64 = doodleBase64
                 )
 
                 val existingId = state.foundExistingReview?.id ?: state.editingReview?.id

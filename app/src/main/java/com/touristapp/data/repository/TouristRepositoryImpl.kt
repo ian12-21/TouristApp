@@ -242,6 +242,7 @@ class TouristRepositoryImpl @Inject constructor(
                 "wifi" to review.wifi,
                 "overallScore" to review.overallScore,
                 "comment" to review.comment,
+                "doodleBase64" to review.doodleBase64,
                 "createdAt" to Timestamp.now(),
                 "updatedAt" to Timestamp.now()
             )
@@ -265,6 +266,7 @@ class TouristRepositoryImpl @Inject constructor(
                 "wifi" to review.wifi,
                 "overallScore" to review.overallScore,
                 "comment" to review.comment,
+                "doodleBase64" to review.doodleBase64,
                 "updatedAt" to Timestamp.now()
             )
             db.collection("reviews").document(reviewId).update(data).await()

@@ -63,6 +63,10 @@
     <string name="review_select_guest">Select a guest to continue</string>
     <string name="review_submit">Submit Review</string>
     <string name="review_update">Update Review</string>
+    <string name="review_doodle_label">Add a doodle (optional)</string>
+    <string name="review_doodle_clear">Clear</string>
+    <string name="review_doodle_cd">Guest doodle</string>
+    <string name="review_doodle_replace">Tap Clear to redraw</string>
 
     <!-- Rating Categories -->
     <string name="rating_cleanliness">Cleanliness</string>

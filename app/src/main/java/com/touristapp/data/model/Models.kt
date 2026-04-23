@@ -168,6 +168,7 @@ data class Review(
     val wifi: Int = 5,
     val overallScore: Double = 5.0,
     val comment: String = "",
+    val doodleBase64: String? = null,
     val createdAt: Timestamp? = null,
     val updatedAt: Timestamp? = null
 )
