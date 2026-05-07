@@ -342,27 +342,29 @@ fun PlaceDetailScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         text = stringResource(R.string.place_detail_photos),
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .widthIn(max = 720.dp)
                     )
 
                     val pagerState = rememberPagerState(pageCount = { photos.size })
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.fillMaxWidth()
+                    Box(
+                        modifier = Modifier
+                            .widthIn(max = 720.dp)
+                            .fillMaxWidth()
+                            .aspectRatio(4f / 3f)
+                            .clip(RoundedCornerShape(16.dp))
                     ) {
                         HorizontalPager(
                             state = pagerState,
-                            modifier = Modifier
-                                .widthIn(max = 720.dp)
-                                .fillMaxWidth()
-                                .aspectRatio(4f / 3f)
-                                .clip(RoundedCornerShape(16.dp))
+                            modifier = Modifier.fillMaxSize()
                         ) { page ->
                             AsyncImage(
                                 model = photos[page],
@@ -373,19 +375,21 @@ fun PlaceDetailScreen(
                         }
                         if (photos.size > 1) {
                             Row(
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .padding(bottom = 12.dp),
                                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 repeat(photos.size) { index ->
+                                    val isActive = pagerState.currentPage == index
                                     Box(
                                         modifier = Modifier
-                                            .size(if (pagerState.currentPage == index) 8.dp else 6.dp)
+                                            .size(if (isActive) 8.dp else 6.dp)
                                             .clip(CircleShape)
                                             .background(
-                                                if (pagerState.currentPage == index)
-                                                    MaterialTheme.colorScheme.primary
-                                                else
-                                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                                                if (isActive) Color.White
+                                                else Color.White.copy(alpha = 0.5f)
                                             )
                                     )
                                 }
@@ -397,6 +401,7 @@ fun PlaceDetailScreen(
 
             // Bottom spacing
             Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.navigationBarsPadding())
         }
     }
 }
