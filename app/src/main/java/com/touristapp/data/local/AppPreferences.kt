@@ -24,7 +24,14 @@ class AppPreferences @Inject constructor(
         prefs.edit().putString("apartment_name", name).apply()
     }
 
+    fun isDarkTheme(): Boolean = prefs.getBoolean("dark_theme", true)
+
+    fun setDarkTheme(value: Boolean) {
+        prefs.edit().putBoolean("dark_theme", value).apply()
+    }
+
     fun clear() {
-        prefs.edit().clear().apply()
+        val theme = isDarkTheme()
+        prefs.edit().clear().putBoolean("dark_theme", theme).apply()
     }
 }

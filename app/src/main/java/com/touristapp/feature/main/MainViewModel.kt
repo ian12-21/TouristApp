@@ -38,7 +38,8 @@ data class MainUiState(
     val isLoading: Boolean = true,
     val error: String? = null,
     val overlayScreen: OverlayScreen = OverlayScreen.None,
-    val cachedPlaces: List<Place> = emptyList()
+    val cachedPlaces: List<Place> = emptyList(),
+    val isDarkTheme: Boolean = true
 )
 
 @HiltViewModel
@@ -54,7 +55,14 @@ class MainViewModel @Inject constructor(
     init {
         val savedId = prefs.getApartmentId()
         val savedName = prefs.getApartmentName() ?: ""
-        _uiState.update { it.copy(apartmentId = savedId, apartmentName = savedName, isLoading = savedId != null) }
+        _uiState.update {
+            it.copy(
+                apartmentId = savedId,
+                apartmentName = savedName,
+                isLoading = savedId != null,
+                isDarkTheme = prefs.isDarkTheme()
+            )
+        }
         if (savedId != null) {
             loadApartmentData(savedId)
         }
@@ -74,7 +82,13 @@ class MainViewModel @Inject constructor(
 
     fun reconfigure() {
         prefs.clear()
-        _uiState.value = MainUiState()
+        _uiState.value = MainUiState(isDarkTheme = prefs.isDarkTheme())
+    }
+
+    fun toggleTheme() {
+        val next = !_uiState.value.isDarkTheme
+        prefs.setDarkTheme(next)
+        _uiState.update { it.copy(isDarkTheme = next) }
     }
 
     fun navigateToApartment() {

@@ -5,13 +5,16 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -44,7 +47,8 @@ fun AppNavigation(
     onNavigateToCategory: (PlaceCategory) -> Unit,
     onNavigateBack: () -> Unit,
     onPlacesLoaded: (List<Place>) -> Unit,
-    onRetryLoad: () -> Unit
+    onRetryLoad: () -> Unit,
+    onToggleTheme: () -> Unit
 ) {
     if (uiState.apartment == null && uiState.error != null) {
         ErrorContent(message = uiState.error, onRetry = onRetryLoad)
@@ -141,6 +145,21 @@ fun AppNavigation(
                         }
                     },
                     actions = {
+                        Box(
+                            modifier = Modifier
+                                .padding(end = 6.dp)
+                                .size(40.dp)
+                                .clip(MaterialTheme.shapes.small)
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.small)
+                                .clickable { onToggleTheme() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = if (uiState.isDarkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
+                                contentDescription = stringResource(R.string.cd_toggle_theme)
+                            )
+                        }
                         val tempText = uiState.weatherInfo
                             ?.let { "${it.tempCelsius.roundToInt()}°" }
                             ?: "—"

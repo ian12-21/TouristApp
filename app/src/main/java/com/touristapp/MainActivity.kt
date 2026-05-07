@@ -21,10 +21,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            TouristAppTheme {
-                val viewModel: MainViewModel = hiltViewModel()
-                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
+            val viewModel: MainViewModel = hiltViewModel()
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            TouristAppTheme(darkTheme = uiState.isDarkTheme) {
                 if (uiState.apartmentId == null) {
                     SetupScreen(
                         onApartmentSelected = viewModel::selectApartment
@@ -38,7 +37,8 @@ class MainActivity : ComponentActivity() {
                         onNavigateToCategory = viewModel::navigateToCategory,
                         onNavigateBack = viewModel::navigateBack,
                         onPlacesLoaded = viewModel::onPlacesLoaded,
-                        onRetryLoad = viewModel::retryLoad
+                        onRetryLoad = viewModel::retryLoad,
+                        onToggleTheme = viewModel::toggleTheme
                     )
                 }
             }

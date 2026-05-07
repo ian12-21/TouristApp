@@ -8,6 +8,28 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+private val LightColorScheme = lightColorScheme(
+    primary = Color(0xFF2C5A8F),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFC8DCF2),
+    onPrimaryContainer = Color(0xFF0A1B2C),
+    secondary = Color(0xFF454B5C),
+    onSecondary = Color(0xFFFFFFFF),
+    secondaryContainer = Color(0xFFCCD2DE),
+    background = Color(0xFFE4E7EE),
+    surface = Color(0xFFFFFFFF),
+    onBackground = Color(0xFF14161E),
+    onSurface = Color(0xFF14161E),
+    surfaceVariant = Color(0xFFAFB6C4),
+    onSurfaceVariant = Color(0xFF3D4351),
+    outlineVariant = Color(0xFF8A91A0),
+    outline = Color(0xFF5B6172),
+    error = Color(0xFFB3261E),
+    onError = Color(0xFFFFFFFF),
+    errorContainer = Color(0xFFF9DEDC),
+    tertiary = Color(0xFF1F7A6E),
+    onTertiary = Color(0xFFFFFFFF),
+)
 private val DarkColorScheme = darkColorScheme(
     primary = Color(0xFF6CA0DC),
     onPrimary = Color(0xFFFFFFFF),
@@ -80,9 +102,12 @@ private val AppShapes = Shapes(
 )
 
 @Composable
-fun TouristAppTheme(content: @Composable () -> Unit) {
+fun TouristAppTheme(
+    darkTheme: Boolean = true,
+    content: @Composable () -> Unit
+) {
     MaterialTheme(
-        colorScheme = DarkColorScheme,
+        colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
         typography = AppTypography,
         shapes = AppShapes,
         content = content
