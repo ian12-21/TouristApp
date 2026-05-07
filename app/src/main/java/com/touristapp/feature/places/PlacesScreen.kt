@@ -41,8 +41,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.touristapp.R
 import com.touristapp.core.ui.components.ErrorContent
+import com.touristapp.core.ui.components.appliancePalette
 import com.touristapp.data.model.Place
 import com.touristapp.data.model.getDistanceFor
+import kotlin.math.absoluteValue
 
 enum class PlaceCategory(
     val key: String,
@@ -250,6 +252,24 @@ private fun PlaceCard(place: Place, apartmentId: String, onClick: () -> Unit = {
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
+            } else {
+                val category = PlaceCategory.fromKey(place.category)
+                val placeholderTint = appliancePalette[
+                    place.category.hashCode().absoluteValue % appliancePalette.size
+                ]
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(placeholderTint.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = category?.icon ?: Icons.Default.Place,
+                        contentDescription = null,
+                        tint = placeholderTint,
+                        modifier = Modifier.fillMaxSize(0.4f)
+                    )
+                }
             }
 
             Box(

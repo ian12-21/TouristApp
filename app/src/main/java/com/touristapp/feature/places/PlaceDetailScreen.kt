@@ -4,6 +4,8 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,6 +19,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -27,8 +30,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.touristapp.R
+import com.touristapp.core.ui.components.appliancePalette
 import com.touristapp.data.model.Place
 import com.touristapp.data.model.getDistanceFor
+import kotlin.math.absoluteValue
 
 @Composable
 fun PlaceDetailScreen(
@@ -65,11 +70,22 @@ fun PlaceDetailScreen(
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
+                    val placeholderTint = appliancePalette[
+                        place.category.hashCode().absoluteValue % appliancePalette.size
+                    ]
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                    )
+                            .background(placeholderTint.copy(alpha = 0.15f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = category?.icon ?: Icons.Default.LocationOn,
+                            contentDescription = null,
+                            tint = placeholderTint,
+                            modifier = Modifier.fillMaxSize(0.3f)
+                        )
+                    }
                 }
 
                 // Gradient overlay
@@ -252,36 +268,54 @@ fun PlaceDetailScreen(
                     }
                 }
 
-                // Contact buttons
+                // Contact info card (display-only — tablet can't dial)
                 if (place.phone.isNotBlank()) {
-                    OutlinedButton(
-                        onClick = {
-                            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${place.phone}"))
-                            context.startActivity(intent)
-                        },
+                    Surface(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        contentPadding = PaddingValues(vertical = 14.dp)
+                        shape = RoundedCornerShape(14.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Phone,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = stringResource(R.string.place_detail_call))
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Phone,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.place_detail_contact),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = place.phone,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                            }
+                        }
                     }
                 }
 
-                // Open in maps
+                // Open in maps — primary action
                 if (place.address.isNotBlank()) {
-                    OutlinedButton(
+                    Button(
                         onClick = {
                             val uri = Uri.parse("geo:0,0?q=${Uri.encode(place.address)}")
                             context.startActivity(Intent(Intent.ACTION_VIEW, uri))
                         },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        ),
                         contentPadding = PaddingValues(vertical = 14.dp)
                     ) {
                         Icon(
@@ -295,8 +329,15 @@ fun PlaceDetailScreen(
                 }
             }
 
-            // Photos section
-            if (place.images.size > 1) {
+            // Photos section — swipeable carousel.
+            // If thumbImageUrl is its own URL, the hero isn't pulled from images[],
+            // so include all images. Otherwise hero == images[0] and we drop it.
+            val photos = if (place.thumbImageUrl.isNotBlank()) {
+                place.images
+            } else {
+                place.images.drop(1)
+            }
+            if (photos.isNotEmpty()) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -309,29 +350,44 @@ fun PlaceDetailScreen(
                         color = MaterialTheme.colorScheme.onBackground
                     )
 
-                    val photos = place.images.drop(1) // first image is already the hero
-                    for (row in 0 until (photos.size + 1) / 2) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            for (col in 0..1) {
-                                val index = row * 2 + col
-                                if (index < photos.size) {
-                                    AsyncImage(
-                                        model = photos[index],
-                                        contentDescription = "${place.name} photo ${index + 2}",
-                                        contentScale = ContentScale.Crop,
+                    val pagerState = rememberPagerState(pageCount = { photos.size })
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        HorizontalPager(
+                            state = pagerState,
+                            modifier = Modifier
+                                .widthIn(max = 720.dp)
+                                .fillMaxWidth()
+                                .aspectRatio(4f / 3f)
+                                .clip(RoundedCornerShape(16.dp))
+                        ) { page ->
+                            AsyncImage(
+                                model = photos[page],
+                                contentDescription = "${place.name} photo ${page + 1}",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                        if (photos.size > 1) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                repeat(photos.size) { index ->
+                                    Box(
                                         modifier = Modifier
-                                            .weight(1f)
-                                            .height(140.dp)
+                                            .size(if (pagerState.currentPage == index) 8.dp else 6.dp)
+                                            .clip(CircleShape)
                                             .background(
-                                                color = MaterialTheme.colorScheme.surfaceVariant,
-                                                shape = RoundedCornerShape(14.dp)
+                                                if (pagerState.currentPage == index)
+                                                    MaterialTheme.colorScheme.primary
+                                                else
+                                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
                                             )
                                     )
-                                } else {
-                                    Spacer(modifier = Modifier.weight(1f))
                                 }
                             }
                         }

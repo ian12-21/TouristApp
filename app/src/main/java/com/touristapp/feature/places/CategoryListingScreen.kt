@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,8 +23,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.touristapp.R
+import com.touristapp.core.ui.components.appliancePalette
 import com.touristapp.data.model.Place
 import com.touristapp.data.model.getDistanceFor
+import kotlin.math.absoluteValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -144,6 +147,24 @@ private fun PlaceListingCard(place: Place, apartmentId: String, onClick: () -> U
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
+                } else {
+                    val category = PlaceCategory.fromKey(place.category)
+                    val placeholderTint = appliancePalette[
+                        place.category.hashCode().absoluteValue % appliancePalette.size
+                    ]
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(placeholderTint.copy(alpha = 0.15f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = category?.icon ?: Icons.Default.Place,
+                            contentDescription = null,
+                            tint = placeholderTint,
+                            modifier = Modifier.fillMaxSize(0.35f)
+                        )
+                    }
                 }
 
                 // Gradient overlay

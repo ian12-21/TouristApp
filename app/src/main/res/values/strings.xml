@@ -38,6 +38,7 @@
     <!-- Place Detail -->
     <string name="place_detail_tip">Tip</string>
     <string name="place_detail_call">Call</string>
+    <string name="place_detail_contact">Contact</string>
     <string name="place_detail_maps">Open in Maps</string>
     <string name="place_detail_photos">Photos</string>
 

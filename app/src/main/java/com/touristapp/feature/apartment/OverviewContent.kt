@@ -1,12 +1,17 @@
 package com.touristapp.feature.apartment
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.Construction
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.LocationOn
@@ -15,10 +20,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.touristapp.R
 import com.touristapp.data.model.Apartment
 
@@ -31,7 +40,7 @@ internal fun OverviewContent(apartment: Apartment) {
     ) {
         Text(
             text = apartment.name,
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
 
@@ -111,6 +120,75 @@ internal fun OverviewContent(apartment: Apartment) {
                 )
             }
         }
+
+        // Photo gallery — closing visual
+        ApartmentPhotoHero(photos = apartment.photos)
+        }
+    }
+}
+
+@Composable
+private fun ApartmentPhotoHero(photos: List<String>) {
+    if (photos.isEmpty()) {
+        val tint = MaterialTheme.colorScheme.primary
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(16f / 10f)
+                .clip(RoundedCornerShape(16.dp))
+                .background(tint.copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Apartment,
+                contentDescription = null,
+                tint = tint,
+                modifier = Modifier.fillMaxSize(0.25f)
+            )
+        }
+        return
+    }
+
+    val pagerState = rememberPagerState(pageCount = { photos.size })
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(16f / 10f)
+            .clip(RoundedCornerShape(16.dp))
+    ) {
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize()
+        ) { page ->
+            AsyncImage(
+                model = photos[page],
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        if (photos.size > 1) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                repeat(photos.size) { index ->
+                    val isActive = pagerState.currentPage == index
+                    Box(
+                        modifier = Modifier
+                            .size(if (isActive) 8.dp else 6.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (isActive) Color.White
+                                else Color.White.copy(alpha = 0.5f)
+                            )
+                    )
+                }
+            }
         }
     }
 }

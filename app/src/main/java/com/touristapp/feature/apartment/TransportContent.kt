@@ -37,7 +37,7 @@ internal fun TransportContent(
     ) {
         Text(
             text = stringResource(R.string.apartment_section_transport),
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
 

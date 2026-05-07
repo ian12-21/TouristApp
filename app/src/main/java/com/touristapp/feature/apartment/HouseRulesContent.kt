@@ -99,7 +99,7 @@ internal fun HouseRulesContent(apartment: Apartment) {
     ) {
         Text(
             text = stringResource(R.string.apartment_section_rules),
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
 

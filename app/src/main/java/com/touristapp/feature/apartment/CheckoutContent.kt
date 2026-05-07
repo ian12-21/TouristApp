@@ -35,7 +35,7 @@ internal fun CheckoutContent(apartment: Apartment, currentStay: Stay?) {
     ) {
         Text(
             text = stringResource(R.string.apartment_section_checkout),
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
 

@@ -30,7 +30,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import androidx.compose.ui.res.stringResource
@@ -38,27 +37,6 @@ import com.touristapp.R
 import com.touristapp.core.ui.components.resolveApplianceIcon
 import com.touristapp.data.model.Appliance
 import com.touristapp.data.model.Room
-
-// ── Appliance placeholder ──
-
-@Composable
-private fun AppliancePlaceholder(name: String, appliance: Appliance, size: Dp = 64.dp) {
-    val (icon, color) = remember(name, appliance.icon) { resolveApplianceIcon(name, appliance) }
-    Box(
-        modifier = Modifier
-            .size(size)
-            .clip(RoundedCornerShape(12.dp))
-            .background(color.copy(alpha = 0.15f)),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = color,
-            modifier = Modifier.size(size * 0.45f)
-        )
-    }
-}
 
 // ── Appliance card ──
 
@@ -82,47 +60,20 @@ private fun ApplianceCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            val firstImage = appliance.images.firstOrNull()
-            if (firstImage != null) {
-                Box(modifier = Modifier.size(64.dp)) {
-                    AsyncImage(
-                        model = firstImage,
-                        contentDescription = name,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(12.dp))
-                    )
-                    if (appliance.images.size > 1) {
-                        Surface(
-                            color = Color.Black.copy(alpha = 0.6f),
-                            shape = RoundedCornerShape(6.dp),
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .padding(4.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(2.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.PhotoLibrary,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(10.dp)
-                                )
-                                Text(
-                                    text = "${appliance.images.size}",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White
-                                )
-                            }
-                        }
-                    }
-                }
-            } else {
-                AppliancePlaceholder(name = name, appliance = appliance, size = 64.dp)
+            val (icon, color) = remember(name, appliance.icon) { resolveApplianceIcon(name, appliance) }
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(color.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = color,
+                    modifier = Modifier.size(64.dp * 0.45f)
+                )
             }
             Column(
                 modifier = Modifier.weight(1f),
@@ -542,7 +493,7 @@ internal fun RoomsContent(rooms: List<Room>) {
     ) {
         Text(
             text = stringResource(R.string.apartment_section_rooms),
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
 
