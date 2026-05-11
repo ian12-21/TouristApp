@@ -43,6 +43,7 @@ fun AppNavigation(
     uiState: MainUiState,
     onReconfigure: () -> Unit,
     onNavigateToApartment: () -> Unit,
+    onNavigateToHouseRules: () -> Unit,
     onNavigateToPlace: (Place) -> Unit,
     onNavigateToCategory: (PlaceCategory) -> Unit,
     onNavigateBack: () -> Unit,
@@ -68,6 +69,7 @@ fun AppNavigation(
                 apartment = uiState.apartment,
                 apartmentName = uiState.apartmentName,
                 currentStay = uiState.currentStay,
+                initialSection = overlay.initialSection,
                 onBack = onNavigateBack
             )
             return
@@ -215,6 +217,7 @@ fun AppNavigation(
                             coroutineScope.launch { pagerState.animateScrollToPage(2) }
                         },
                         onNavigateToApartment = onNavigateToApartment,
+                        onNavigateToHouseRules = onNavigateToHouseRules,
                         onNavigateToExplore = {
                             coroutineScope.launch { pagerState.animateScrollToPage(1) }
                         },

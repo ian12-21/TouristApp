@@ -53,6 +53,7 @@ fun ApartmentScreen(
     apartment: Apartment?,
     apartmentName: String,
     currentStay: Stay? = null,
+    initialSection: ApartmentSection? = null,
     onBack: () -> Unit
 ) {
     val viewModel: ApartmentViewModel = hiltViewModel()
@@ -61,6 +62,10 @@ fun ApartmentScreen(
     LaunchedEffect(apartment?.id) {
         val id = apartment?.id ?: return@LaunchedEffect
         viewModel.loadData(id, apartment.transportation)
+    }
+
+    LaunchedEffect(initialSection) {
+        initialSection?.let { viewModel.selectSection(it) }
     }
 
     Scaffold(

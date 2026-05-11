@@ -11,6 +11,7 @@ import com.touristapp.data.model.Stay
 import com.touristapp.data.model.WeatherInfo
 import com.touristapp.domain.repository.TouristRepository
 import com.touristapp.domain.repository.WeatherRepository
+import com.touristapp.feature.apartment.ApartmentSection
 import com.touristapp.feature.places.PlaceCategory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -23,7 +24,7 @@ import javax.inject.Inject
 
 sealed interface OverlayScreen {
     data object None : OverlayScreen
-    data object Apartment : OverlayScreen
+    data class Apartment(val initialSection: ApartmentSection? = null) : OverlayScreen
     data class CategoryListing(val category: PlaceCategory) : OverlayScreen
     data class PlaceDetail(val place: Place) : OverlayScreen
 }
@@ -92,7 +93,11 @@ class MainViewModel @Inject constructor(
     }
 
     fun navigateToApartment() {
-        _uiState.update { it.copy(overlayScreen = OverlayScreen.Apartment) }
+        _uiState.update { it.copy(overlayScreen = OverlayScreen.Apartment()) }
+    }
+
+    fun navigateToHouseRules() {
+        _uiState.update { it.copy(overlayScreen = OverlayScreen.Apartment(ApartmentSection.HouseRules)) }
     }
 
     fun navigateToPlace(place: Place) {

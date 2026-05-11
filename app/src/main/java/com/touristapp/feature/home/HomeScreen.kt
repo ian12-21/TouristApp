@@ -2,6 +2,7 @@ package com.touristapp.feature.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Explore
@@ -9,12 +10,14 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.RateReview
+import androidx.compose.material.icons.filled.Rule
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -27,6 +30,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.touristapp.R
 import com.touristapp.core.ui.components.ContactsDialog
+import com.touristapp.core.ui.components.appliancePalette
 import com.touristapp.data.model.Apartment as ApartmentModel
 import com.touristapp.data.model.Stay
 import com.touristapp.feature.places.PlaceCategory
@@ -39,6 +43,7 @@ fun HomeSlide(
     currentStay: Stay?,
     onNavigateToReviews: () -> Unit = {},
     onNavigateToApartment: () -> Unit = {},
+    onNavigateToHouseRules: () -> Unit = {},
     onNavigateToExplore: () -> Unit = {},
     onNavigateToCategory: (PlaceCategory) -> Unit = {}
 ) {
@@ -204,36 +209,42 @@ fun HomeSlide(
             QuickActionCard(
                 icon = Icons.Default.Info,
                 label = stringResource(R.string.home_action_apartment),
+                accentColor = appliancePalette[0],
                 modifier = Modifier.weight(1f),
                 onClick = onNavigateToApartment
             )
             QuickActionCard(
                 icon = Icons.Default.Explore,
                 label = stringResource(R.string.home_action_explore),
+                accentColor = appliancePalette[1],
                 modifier = Modifier.weight(1f),
                 onClick = onNavigateToExplore
             )
             QuickActionCard(
-                icon = Icons.Default.Schedule,
-                label = stringResource(R.string.home_action_coming_soon),
+                icon = Icons.Default.Rule,
+                label = stringResource(R.string.home_action_house_rules),
+                accentColor = appliancePalette[2],
                 modifier = Modifier.weight(1f),
-                onClick = {}
+                onClick = onNavigateToHouseRules
             )
             QuickActionCard(
                 icon = Icons.Default.Schedule,
                 label = stringResource(R.string.home_action_coming_soon),
+                accentColor = appliancePalette[3],
                 modifier = Modifier.weight(1f),
                 onClick = {}
             )
             QuickActionCard(
                 icon = Icons.Default.RateReview,
                 label = stringResource(R.string.home_action_review),
+                accentColor = appliancePalette[4],
                 modifier = Modifier.weight(1f),
                 onClick = onNavigateToReviews
             )
             QuickActionCard(
                 icon = Icons.Default.Phone,
                 label = stringResource(R.string.home_action_emergency),
+                accentColor = MaterialTheme.colorScheme.error,
                 modifier = Modifier.weight(1f),
                 onClick = {
                     showContactsDialog = true
@@ -241,6 +252,8 @@ fun HomeSlide(
                 }
             )
         }
+
+        Spacer(modifier = Modifier.weight(1f))
     }
 
     if (showContactsDialog) {
@@ -259,13 +272,14 @@ private fun QuickActionCard(
     icon: ImageVector,
     label: String,
     modifier: Modifier = Modifier,
+    accentColor: Color = MaterialTheme.colorScheme.primary,
     onClick: () -> Unit
 ) {
     val cardShape = RoundedCornerShape(20.dp)
     Card(
         onClick = onClick,
         modifier = modifier
-            .aspectRatio(1f)
+            .height(118.dp)
             .shadow(
                 elevation = 4.dp,
                 shape = cardShape,
@@ -287,20 +301,28 @@ private fun QuickActionCard(
                         )
                     )
                 )
-                .padding(8.dp),
+                .padding(horizontal = 6.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = label,
-                tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.height(6.dp))
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(CircleShape)
+                    .background(accentColor.copy(alpha = 0.18f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = label,
+                    tint = accentColor,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = label,
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 maxLines = 1
