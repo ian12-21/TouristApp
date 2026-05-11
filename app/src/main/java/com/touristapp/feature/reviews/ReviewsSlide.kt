@@ -20,6 +20,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -360,6 +363,7 @@ private fun ReviewCard(
                 val bitmap = remember(b64) { decodeDoodle(b64) }
                 bitmap?.let {
                     Spacer(modifier = Modifier.height(12.dp))
+                    val isLightTheme = MaterialTheme.colorScheme.background.luminance() > 0.5f
                     Image(
                         bitmap = it,
                         contentDescription = stringResource(R.string.review_doodle_cd),
@@ -368,7 +372,8 @@ private fun ReviewCard(
                             .aspectRatio(3f)
                             .clip(RoundedCornerShape(12.dp))
                             .background(MaterialTheme.colorScheme.surface),
-                        contentScale = ContentScale.Fit
+                        contentScale = ContentScale.Fit,
+                        colorFilter = if (isLightTheme) ColorFilter.tint(Color.Black, BlendMode.SrcIn) else null
                     )
                 }
             }
