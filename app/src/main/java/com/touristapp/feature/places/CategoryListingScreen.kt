@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -141,10 +142,13 @@ private fun PlaceListingCard(place: Place, apartmentId: String, onClick: () -> U
             ) {
                 val imageUrl = place.thumbImageUrl.ifBlank { place.images.firstOrNull() }
                 if (imageUrl != null && imageUrl.isNotBlank()) {
+                    val imagePlaceholder = ColorPainter(MaterialTheme.colorScheme.surfaceVariant)
                     AsyncImage(
                         model = imageUrl,
                         contentDescription = place.name,
                         contentScale = ContentScale.Crop,
+                        placeholder = imagePlaceholder,
+                        error = imagePlaceholder,
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {

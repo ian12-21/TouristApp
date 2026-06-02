@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
@@ -74,6 +75,7 @@ fun distanceIcon(type: String): ImageVector = when (type) {
 @Composable
 fun PlacesSlide(
     apartmentId: String,
+    cachedPlaces: List<Place> = emptyList(),
     onSeeAll: (PlaceCategory) -> Unit = {},
     onPlaceClick: (Place) -> Unit = {},
     onPlacesLoaded: (List<Place>) -> Unit = {}
@@ -81,7 +83,8 @@ fun PlacesSlide(
     val viewModel: PlacesViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(apartmentId) {
+    LaunchedEffect(apartmentId, cachedPlaces) {
+        viewModel.seed(cachedPlaces)
         viewModel.loadPlaces(apartmentId)
     }
 
@@ -246,10 +249,13 @@ private fun PlaceCard(place: Place, apartmentId: String, onClick: () -> Unit = {
         Box(modifier = Modifier.fillMaxSize()) {
             val imageUrl = place.thumbImageUrl.ifBlank { place.images.firstOrNull() }
             if (imageUrl != null && imageUrl.isNotBlank()) {
+                val imagePlaceholder = ColorPainter(MaterialTheme.colorScheme.surfaceVariant)
                 AsyncImage(
                     model = imageUrl,
                     contentDescription = place.name,
                     contentScale = ContentScale.Crop,
+                    placeholder = imagePlaceholder,
+                    error = imagePlaceholder,
                     modifier = Modifier.fillMaxSize()
                 )
             } else {

@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -337,10 +338,13 @@ private fun ApplianceDetailPage(
                             .aspectRatio(16f / 9f)
                             .clip(RoundedCornerShape(16.dp))
                     ) { page ->
+                        val photoPlaceholder = ColorPainter(MaterialTheme.colorScheme.surfaceVariant)
                         AsyncImage(
                             model = appliance.images[page],
                             contentDescription = "$name photo ${page + 1}",
                             contentScale = ContentScale.Crop,
+                            placeholder = photoPlaceholder,
+                            error = photoPlaceholder,
                             modifier = Modifier.fillMaxSize()
                         )
                     }

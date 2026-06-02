@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -63,10 +64,13 @@ fun PlaceDetailScreen(
                     .height(280.dp)
             ) {
                 if (heroImage != null && heroImage.isNotBlank()) {
+                    val heroPlaceholder = ColorPainter(MaterialTheme.colorScheme.surfaceVariant)
                     AsyncImage(
                         model = heroImage,
                         contentDescription = place.name,
                         contentScale = ContentScale.Crop,
+                        placeholder = heroPlaceholder,
+                        error = heroPlaceholder,
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
@@ -366,10 +370,13 @@ fun PlaceDetailScreen(
                             state = pagerState,
                             modifier = Modifier.fillMaxSize()
                         ) { page ->
+                            val photoPlaceholder = ColorPainter(MaterialTheme.colorScheme.surfaceVariant)
                             AsyncImage(
                                 model = photos[page],
                                 contentDescription = "${place.name} photo ${page + 1}",
                                 contentScale = ContentScale.Crop,
+                                placeholder = photoPlaceholder,
+                                error = photoPlaceholder,
                                 modifier = Modifier.fillMaxSize()
                             )
                         }

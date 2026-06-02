@@ -32,6 +32,7 @@ import com.touristapp.R
 import com.touristapp.core.ui.components.ContactsDialog
 import com.touristapp.core.ui.components.appliancePalette
 import com.touristapp.data.model.Apartment as ApartmentModel
+import com.touristapp.data.model.Contact
 import com.touristapp.data.model.Stay
 import com.touristapp.feature.places.PlaceCategory
 import java.text.SimpleDateFormat
@@ -41,6 +42,7 @@ import java.util.Locale
 fun HomeSlide(
     apartment: ApartmentModel?,
     currentStay: Stay?,
+    cachedEmergencyContacts: List<Contact> = emptyList(),
     onNavigateToReviews: () -> Unit = {},
     onNavigateToApartment: () -> Unit = {},
     onNavigateToHouseRules: () -> Unit = {},
@@ -50,6 +52,10 @@ fun HomeSlide(
     val viewModel: HomeViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showContactsDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(cachedEmergencyContacts) {
+        viewModel.seed(cachedEmergencyContacts)
+    }
 
     Column(
         modifier = Modifier

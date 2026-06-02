@@ -27,6 +27,12 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
+    /** Seeds prefetched contacts so the dialog opens instantly; loadEmergencyContacts still refreshes. */
+    fun seed(contacts: List<Contact>) {
+        if (contacts.isEmpty() || _uiState.value.emergencyContacts.isNotEmpty()) return
+        _uiState.update { it.copy(emergencyContacts = contacts, isLoadingContacts = false) }
+    }
+
     fun loadEmergencyContacts() {
         if (_uiState.value.emergencyContacts.isNotEmpty()) return
         _uiState.update { it.copy(isLoadingContacts = true, contactsError = null) }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.touristapp.core.util.Resource
 import com.touristapp.data.local.AppPreferences
 import com.touristapp.data.model.Apartment
+import com.touristapp.data.model.Contact
 import com.touristapp.data.model.Guest
 import com.touristapp.data.model.Place
 import com.touristapp.data.model.Stay
@@ -14,6 +15,7 @@ import com.touristapp.domain.repository.WeatherRepository
 import com.touristapp.feature.apartment.ApartmentSection
 import com.touristapp.feature.places.PlaceCategory
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -40,6 +42,7 @@ data class MainUiState(
     val error: String? = null,
     val overlayScreen: OverlayScreen = OverlayScreen.None,
     val cachedPlaces: List<Place> = emptyList(),
+    val cachedEmergencyContacts: List<Contact> = emptyList(),
     val isDarkTheme: Boolean = true
 )
 
@@ -53,6 +56,8 @@ class MainViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
+    private var weatherJob: Job? = null
+
     init {
         val savedId = prefs.getApartmentId()
         val savedName = prefs.getApartmentName() ?: ""
@@ -61,6 +66,7 @@ class MainViewModel @Inject constructor(
                 apartmentId = savedId,
                 apartmentName = savedName,
                 isLoading = savedId != null,
+                weatherInfo = prefs.getLastWeather(),
                 isDarkTheme = prefs.isDarkTheme()
             )
         }
@@ -81,7 +87,18 @@ class MainViewModel @Inject constructor(
         loadApartmentData(id)
     }
 
+    /**
+     * Silent background refresh from the server, called when the app returns to
+     * the foreground. Bounds how stale cache-first screen reads can be.
+     */
+    fun refresh() {
+        val id = _uiState.value.apartmentId ?: return
+        loadApartmentData(id, forceServer = true)
+    }
+
     fun reconfigure() {
+        weatherJob?.cancel()
+        weatherJob = null
         prefs.clear()
         _uiState.value = MainUiState(isDarkTheme = prefs.isDarkTheme())
     }
@@ -116,9 +133,9 @@ class MainViewModel @Inject constructor(
         _uiState.update { it.copy(cachedPlaces = places) }
     }
 
-    private fun loadApartmentData(apartmentId: String) {
+    private fun loadApartmentData(apartmentId: String, forceServer: Boolean = false) {
         viewModelScope.launch {
-            when (val result = touristRepository.getApartment(apartmentId)) {
+            when (val result = touristRepository.getApartment(apartmentId, forceServer)) {
                 is Resource.Success -> {
                     val apartment = result.data
                     prefs.setApartmentName(apartment.name)
@@ -126,29 +143,34 @@ class MainViewModel @Inject constructor(
                         it.copy(
                             apartment = apartment,
                             apartmentName = apartment.name,
-                            isLoading = false
+                            isLoading = false,
+                            error = null
                         )
                     }
-                    loadStayAndGuests(apartment)
+                    loadStayAndGuests(apartment, forceServer)
+                    prefetchSecondaryData(apartmentId, forceServer)
                     startWeatherRefresh(apartment)
                 }
                 is Resource.Error -> {
-                    _uiState.update { it.copy(isLoading = false, error = result.message) }
+                    // Keep any cached data already on screen during a silent refresh.
+                    if (!forceServer) {
+                        _uiState.update { it.copy(isLoading = false, error = result.message) }
+                    }
                 }
                 is Resource.Loading -> {}
             }
         }
     }
 
-    private fun loadStayAndGuests(apartment: Apartment) {
+    private fun loadStayAndGuests(apartment: Apartment, forceServer: Boolean) {
         val stayId = apartment.currentStayId ?: return
         viewModelScope.launch {
-            when (val stayResult = touristRepository.getCurrentStay(stayId)) {
+            when (val stayResult = touristRepository.getCurrentStay(stayId, forceServer)) {
                 is Resource.Success -> {
                     val stay = stayResult.data
                     _uiState.update { it.copy(currentStay = stay) }
                     if (stay.guestIds.isNotEmpty()) {
-                        when (val guestsResult = touristRepository.getGuests(stay.guestIds)) {
+                        when (val guestsResult = touristRepository.getGuests(stay.guestIds, forceServer)) {
                             is Resource.Success -> _uiState.update { it.copy(guests = guestsResult.data) }
                             else -> {}
                         }
@@ -159,13 +181,33 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    /** Warms the caches for screens the user is likely to open next. */
+    private fun prefetchSecondaryData(apartmentId: String, forceServer: Boolean) {
+        viewModelScope.launch {
+            when (val result = touristRepository.getPlacesForApartment(apartmentId, forceServer)) {
+                is Resource.Success -> _uiState.update { it.copy(cachedPlaces = result.data) }
+                else -> {}
+            }
+        }
+        viewModelScope.launch {
+            when (val result = touristRepository.getEmergencyContactsCroatia(forceServer)) {
+                is Resource.Success -> _uiState.update { it.copy(cachedEmergencyContacts = result.data) }
+                else -> {}
+            }
+        }
+    }
+
     private fun startWeatherRefresh(apartment: Apartment) {
         val lat = apartment.coordinates["lat"] ?: return
         val lon = apartment.coordinates["lng"] ?: return
-        viewModelScope.launch {
+        if (weatherJob?.isActive == true) return
+        weatherJob = viewModelScope.launch {
             while (true) {
                 when (val result = weatherRepository.getCurrentWeather(lat, lon)) {
-                    is Resource.Success -> _uiState.update { it.copy(weatherInfo = result.data) }
+                    is Resource.Success -> {
+                        prefs.setLastWeather(result.data)
+                        _uiState.update { it.copy(weatherInfo = result.data) }
+                    }
                     else -> {}
                 }
                 delay(WEATHER_REFRESH_INTERVAL_MS)

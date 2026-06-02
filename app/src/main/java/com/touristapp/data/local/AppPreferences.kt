@@ -1,13 +1,16 @@
 package com.touristapp.data.local
 
 import android.content.Context
+import com.touristapp.data.model.WeatherInfo
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class AppPreferences @Inject constructor(
-    @ApplicationContext context: Context
+    @ApplicationContext context: Context,
+    private val json: Json
 ) {
 
     private val prefs = context.getSharedPreferences("kiosk_prefs", Context.MODE_PRIVATE)
@@ -28,6 +31,18 @@ class AppPreferences @Inject constructor(
 
     fun setDarkTheme(value: Boolean) {
         prefs.edit().putBoolean("dark_theme", value).apply()
+    }
+
+    fun getLastWeather(): WeatherInfo? {
+        val raw = prefs.getString("last_weather", null) ?: return null
+        return runCatching {
+            json.decodeFromString(WeatherInfo.serializer(), raw)
+        }.getOrNull()
+    }
+
+    fun setLastWeather(weather: WeatherInfo) {
+        val raw = json.encodeToString(WeatherInfo.serializer(), weather)
+        prefs.edit().putString("last_weather", raw).apply()
     }
 
     fun clear() {

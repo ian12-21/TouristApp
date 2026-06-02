@@ -2,12 +2,19 @@ package com.touristapp.data.repository
 
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.Source
 import com.google.firebase.Timestamp
 import com.touristapp.core.util.Resource
 import com.touristapp.data.model.*
 import com.touristapp.domain.repository.TouristRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -17,6 +24,24 @@ class TouristRepositoryImpl @Inject constructor(
     private val db: FirebaseFirestore,
     private val auth: FirebaseAuth
 ) : TouristRepository {
+
+    /** Reads from the local persistent cache first; falls back to the server on a cache miss. */
+    private suspend fun fetch(query: Query, forceServer: Boolean): QuerySnapshot {
+        if (!forceServer) {
+            val cached = query.get(Source.CACHE).await()
+            if (!cached.isEmpty) return cached
+        }
+        return query.get(Source.SERVER).await()
+    }
+
+    /** Single-document equivalent of [fetch]. */
+    private suspend fun fetchDoc(ref: DocumentReference, forceServer: Boolean): DocumentSnapshot {
+        if (!forceServer) {
+            val cached = ref.get(Source.CACHE).await()
+            if (cached.exists()) return cached
+        }
+        return ref.get(Source.SERVER).await()
+    }
 
     override suspend fun ensureAnonymousAuth(): Resource<Unit> {
         if (auth.currentUser == null) {
@@ -32,9 +57,9 @@ class TouristRepositoryImpl @Inject constructor(
     }
 
     @Suppress("UNCHECKED_CAST")
-    override suspend fun getApartment(apartmentId: String): Resource<Apartment> {
+    override suspend fun getApartment(apartmentId: String, forceServer: Boolean): Resource<Apartment> {
         return try {
-            val doc = db.collection("apartments").document(apartmentId).get().await()
+            val doc = fetchDoc(db.collection("apartments").document(apartmentId), forceServer)
             val apartment = doc.toObject(Apartment::class.java)?.copy(id = doc.id)
                 ?: return Resource.Error("Apartment not found")
 
@@ -54,31 +79,30 @@ class TouristRepositoryImpl @Inject constructor(
     }
 
     @Suppress("UNCHECKED_CAST")
-    override suspend fun getTransportationServices(serviceIds: List<String>): Resource<List<TransportationService>> {
+    override suspend fun getTransportationServices(serviceIds: List<String>, forceServer: Boolean): Resource<List<TransportationService>> {
         if (serviceIds.isEmpty()) return Resource.Success(emptyList())
         return try {
-            val services = serviceIds.chunked(30).flatMap { chunk ->
-                chunk.map { id ->
-                    db.collection("transportation").document(id)
-                }.let { refs ->
-                    db.collection("transportation")
-                        .whereIn("__name__", refs)
-                        .get()
-                        .await()
-                        .documents
-                        .mapNotNull { doc ->
-                            val data = doc.data ?: return@mapNotNull null
-                            val entry = data.entries.firstOrNull() ?: return@mapNotNull null
-                            val name = entry.key
-                            val details = entry.value as? Map<*, *> ?: return@mapNotNull null
-                            TransportationService(
-                                id = doc.id,
-                                name = name,
-                                phone = details["phone"] as? String ?: "",
-                                description = details["description"] as? String ?: ""
-                            )
-                        }
-                }
+            val services = coroutineScope {
+                serviceIds.chunked(30).map { chunk ->
+                    async {
+                        val refs = chunk.map { db.collection("transportation").document(it) }
+                        val query = db.collection("transportation").whereIn("__name__", refs)
+                        fetch(query, forceServer)
+                            .documents
+                            .mapNotNull { doc ->
+                                val data = doc.data ?: return@mapNotNull null
+                                val entry = data.entries.firstOrNull() ?: return@mapNotNull null
+                                val name = entry.key
+                                val details = entry.value as? Map<*, *> ?: return@mapNotNull null
+                                TransportationService(
+                                    id = doc.id,
+                                    name = name,
+                                    phone = details["phone"] as? String ?: "",
+                                    description = details["description"] as? String ?: ""
+                                )
+                            }
+                    }
+                }.awaitAll().flatten()
             }
             Resource.Success(services)
         } catch (e: Exception) {
@@ -87,9 +111,9 @@ class TouristRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getCurrentStay(stayId: String): Resource<Stay> {
+    override suspend fun getCurrentStay(stayId: String, forceServer: Boolean): Resource<Stay> {
         return try {
-            val doc = db.collection("stays").document(stayId).get().await()
+            val doc = fetchDoc(db.collection("stays").document(stayId), forceServer)
             val stay = doc.toObject(Stay::class.java)?.copy(id = doc.id)
                 ?: return Resource.Error("Stay not found")
             Resource.Success(stay)
@@ -99,9 +123,9 @@ class TouristRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getGuest(guestId: String): Resource<Guest> {
+    override suspend fun getGuest(guestId: String, forceServer: Boolean): Resource<Guest> {
         return try {
-            val doc = db.collection("guests").document(guestId).get().await()
+            val doc = fetchDoc(db.collection("guests").document(guestId), forceServer)
             val guest = doc.toObject(Guest::class.java)?.copy(id = doc.id)
                 ?: return Resource.Error("Guest not found")
             Resource.Success(guest)
@@ -111,18 +135,21 @@ class TouristRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getGuests(guestIds: List<String>): Resource<List<Guest>> {
+    override suspend fun getGuests(guestIds: List<String>, forceServer: Boolean): Resource<List<Guest>> {
         if (guestIds.isEmpty()) return Resource.Success(emptyList())
         return try {
-            val guests = guestIds.chunked(30).flatMap { chunk ->
-                db.collection("guests")
-                    .whereIn("__name__", chunk.map { db.collection("guests").document(it) })
-                    .get()
-                    .await()
-                    .documents
-                    .mapNotNull { doc ->
-                        doc.toObject(Guest::class.java)?.copy(id = doc.id)
+            val guests = coroutineScope {
+                guestIds.chunked(30).map { chunk ->
+                    async {
+                        val refs = chunk.map { db.collection("guests").document(it) }
+                        val query = db.collection("guests").whereIn("__name__", refs)
+                        fetch(query, forceServer)
+                            .documents
+                            .mapNotNull { doc ->
+                                doc.toObject(Guest::class.java)?.copy(id = doc.id)
+                            }
                     }
+                }.awaitAll().flatten()
             }
             Resource.Success(guests)
         } catch (e: Exception) {
@@ -131,17 +158,19 @@ class TouristRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getPlacesForApartment(apartmentId: String): Resource<List<Place>> {
+    override suspend fun getPlacesForApartment(apartmentId: String, forceServer: Boolean): Resource<List<Place>> {
         return try {
-            val snapshot = db.collection("places")
+            var query: Query = db.collection("places")
                 .whereArrayContains("apartmentIds", apartmentId)
-                .get()
-                .await()
-            val places = snapshot.documents
+            if (USE_IS_ACTIVE_INDEX) {
+                query = query.whereEqualTo("isActive", true)
+            }
+            val places = fetch(query, forceServer)
+                .documents
                 .mapNotNull { doc ->
                     doc.toObject(Place::class.java)?.copy(id = doc.id)
                 }
-                .filter { it.isActive }
+                .filter { USE_IS_ACTIVE_INDEX || it.isActive }
             Resource.Success(places)
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching places for apartment $apartmentId", e)
@@ -150,11 +179,9 @@ class TouristRepositoryImpl @Inject constructor(
     }
 
     @Suppress("UNCHECKED_CAST")
-    override suspend fun getEmergencyContactsCroatia(): Resource<List<Contact>> {
+    override suspend fun getEmergencyContactsCroatia(forceServer: Boolean): Resource<List<Contact>> {
         return try {
-            val contacts = db.collection("emergency_contacts_croatia")
-                .get()
-                .await()
+            val contacts = fetch(db.collection("emergency_contacts_croatia"), forceServer)
                 .documents
                 .flatMap { doc ->
                     val contactsList = doc.get("contacts") as? List<Map<String, String>> ?: emptyList()
@@ -172,11 +199,9 @@ class TouristRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getAllApartments(): Resource<List<Pair<String, String>>> {
+    override suspend fun getAllApartments(forceServer: Boolean): Resource<List<Pair<String, String>>> {
         return try {
-            val apartments = db.collection("apartments")
-                .get()
-                .await()
+            val apartments = fetch(db.collection("apartments"), forceServer)
                 .documents
                 .mapNotNull { doc ->
                     val name = doc.getString("name") ?: return@mapNotNull null
@@ -277,14 +302,13 @@ class TouristRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getRooms(apartmentId: String): Resource<List<Room>> {
+    override suspend fun getRooms(apartmentId: String, forceServer: Boolean): Resource<List<Room>> {
         return try {
             @Suppress("UNCHECKED_CAST")
-            val rooms = db.collection("apartments")
-                .document(apartmentId)
-                .collection("rooms")
-                .get()
-                .await()
+            val rooms = fetch(
+                db.collection("apartments").document(apartmentId).collection("rooms"),
+                forceServer
+            )
                 .documents
                 .map { doc ->
                     Room(
@@ -312,5 +336,12 @@ class TouristRepositoryImpl @Inject constructor(
 
     companion object {
         private const val TAG = "TouristRepo"
+
+        /**
+         * Set to true only once the composite index exists in the Firebase console
+         * (places: apartmentIds Array-contains + isActive Asc). Until then the
+         * client-side isActive filter is used to avoid a FAILED_PRECONDITION crash.
+         */
+        private const val USE_IS_ACTIVE_INDEX = false
     }
 }

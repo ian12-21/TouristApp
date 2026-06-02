@@ -25,6 +25,7 @@ data class WeatherCondition(
     val icon: String
 )
 
+@Serializable
 data class WeatherInfo(
     val tempCelsius: Double,
     val feelsLike: Double,
