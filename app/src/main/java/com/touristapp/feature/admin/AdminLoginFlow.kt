@@ -22,9 +22,17 @@ fun AdminLoginFlow(
     onApartmentSelected: (String) -> Unit,
     onDismiss: (() -> Unit)?,
     onLockout: (() -> Unit)? = null,
+    isKioskEnabled: Boolean = false,
+    onExitKiosk: () -> Unit = {},
+    onEnableKiosk: () -> Unit = {},
+    onRemoveKiosk: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Once logged in, the admin dialog (onDismiss != null) shows an action menu first;
+    // the setup screen (onDismiss == null) jumps straight to the apartment picker.
+    var showApartmentPicker by remember { mutableStateOf(onDismiss == null) }
 
     Column(modifier = modifier) {
         if (onDismiss != null) {
@@ -38,83 +46,164 @@ fun AdminLoginFlow(
             }
         }
 
-        if (state.apartments == null) {
-            OutlinedTextField(
-                value = state.email,
-                onValueChange = { viewModel.updateEmail(it) },
-                label = { Text(stringResource(R.string.admin_email)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
+        when {
+            state.apartments == null -> {
+                OutlinedTextField(
+                    value = state.email,
+                    onValueChange = { viewModel.updateEmail(it) },
+                    label = { Text(stringResource(R.string.admin_email)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-            Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-            OutlinedTextField(
-                value = state.password,
-                onValueChange = { viewModel.updatePassword(it) },
-                label = { Text(stringResource(R.string.admin_password)) },
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth()
-            )
+                OutlinedTextField(
+                    value = state.password,
+                    onValueChange = { viewModel.updatePassword(it) },
+                    label = { Text(stringResource(R.string.admin_password)) },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = {
-                    viewModel.signIn {
-                        onLockout?.invoke()
-                        onDismiss?.invoke()
+                Button(
+                    onClick = {
+                        viewModel.signIn {
+                            onLockout?.invoke()
+                            onDismiss?.invoke()
+                        }
+                    },
+                    enabled = !state.isLoading && state.email.isNotBlank() && state.password.isNotBlank(),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (state.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    } else {
+                        Text(stringResource(R.string.admin_sign_in))
                     }
-                },
-                enabled = !state.isLoading && state.email.isNotBlank() && state.password.isNotBlank(),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                if (state.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimary
+                }
+
+                if (state.errorMessage != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = state.errorMessage!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
                     )
-                } else {
-                    Text(stringResource(R.string.admin_sign_in))
                 }
             }
 
-            if (state.errorMessage != null) {
-                Spacer(modifier = Modifier.height(8.dp))
+            showApartmentPicker -> {
                 Text(
-                    text = state.errorMessage!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
+                    text = stringResource(R.string.admin_select_apartment),
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                LazyColumn {
+                    items(state.apartments!!) { (id, displayName) ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                                .clickable {
+                                    viewModel.selectApartment(id, onApartmentSelected)
+                                }
+                        ) {
+                            Text(
+                                text = displayName,
+                                modifier = Modifier.padding(16.dp),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
+                }
+            }
+
+            else -> {
+                AdminActionMenu(
+                    isKioskEnabled = isKioskEnabled,
+                    onReconfigure = { showApartmentPicker = true },
+                    onExitKiosk = onExitKiosk,
+                    onEnableKiosk = onEnableKiosk,
+                    onRemoveKiosk = onRemoveKiosk
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun AdminActionMenu(
+    isKioskEnabled: Boolean,
+    onReconfigure: () -> Unit,
+    onExitKiosk: () -> Unit,
+    onEnableKiosk: () -> Unit,
+    onRemoveKiosk: () -> Unit
+) {
+    var showRemoveConfirm by remember { mutableStateOf(false) }
+
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Button(
+            onClick = onReconfigure,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(stringResource(R.string.admin_menu_reconfigure))
+        }
+
+        if (isKioskEnabled) {
+            OutlinedButton(
+                onClick = onExitKiosk,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.admin_menu_exit_kiosk))
+            }
         } else {
-            Text(
-                text = stringResource(R.string.admin_select_apartment),
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            LazyColumn {
-                items(state.apartments!!) { (id, displayName) ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                            .clickable {
-                                viewModel.selectApartment(id, onApartmentSelected)
-                            }
-                    ) {
-                        Text(
-                            text = displayName,
-                            modifier = Modifier.padding(16.dp),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
-                }
+            OutlinedButton(
+                onClick = onEnableKiosk,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.admin_menu_enable_kiosk))
             }
         }
+
+        TextButton(
+            onClick = { showRemoveConfirm = true },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = stringResource(R.string.admin_menu_remove_kiosk),
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+    }
+
+    if (showRemoveConfirm) {
+        AlertDialog(
+            onDismissRequest = { showRemoveConfirm = false },
+            title = { Text(stringResource(R.string.admin_remove_kiosk_confirm_title)) },
+            text = { Text(stringResource(R.string.admin_remove_kiosk_confirm_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showRemoveConfirm = false
+                    onRemoveKiosk()
+                }) {
+                    Text(stringResource(R.string.admin_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRemoveConfirm = false }) {
+                    Text(stringResource(R.string.admin_cancel))
+                }
+            }
+        )
     }
 }

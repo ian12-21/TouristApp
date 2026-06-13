@@ -13,7 +13,11 @@ import com.touristapp.feature.admin.AdminViewModel
 fun AdminDialog(
     onApartmentSelected: (String) -> Unit,
     onDismiss: () -> Unit,
-    onLockout: () -> Unit
+    onLockout: () -> Unit,
+    isKioskEnabled: Boolean,
+    onExitKiosk: () -> Unit,
+    onEnableKiosk: () -> Unit,
+    onRemoveKiosk: () -> Unit
 ) {
     val viewModel: AdminViewModel = hiltViewModel()
     Dialog(onDismissRequest = onDismiss) {
@@ -25,6 +29,10 @@ fun AdminDialog(
                 onApartmentSelected = onApartmentSelected,
                 onDismiss = onDismiss,
                 onLockout = onLockout,
+                isKioskEnabled = isKioskEnabled,
+                onExitKiosk = onExitKiosk,
+                onEnableKiosk = onEnableKiosk,
+                onRemoveKiosk = onRemoveKiosk,
                 modifier = Modifier.padding(24.dp)
             )
         }

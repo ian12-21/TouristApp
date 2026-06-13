@@ -33,6 +33,13 @@ class AppPreferences @Inject constructor(
         prefs.edit().putBoolean("dark_theme", value).apply()
     }
 
+    // Kiosk is off until the owner explicitly turns it on from the admin dialog.
+    fun isKioskEnabled(): Boolean = prefs.getBoolean("kiosk_enabled", false)
+
+    fun setKioskEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean("kiosk_enabled", enabled).apply()
+    }
+
     fun getLastWeather(): WeatherInfo? {
         val raw = prefs.getString("last_weather", null) ?: return null
         return runCatching {
@@ -46,7 +53,13 @@ class AppPreferences @Inject constructor(
     }
 
     fun clear() {
+        // Preserve device-level settings the owner controls; reconfiguring an apartment
+        // must not silently flip them.
         val theme = isDarkTheme()
-        prefs.edit().clear().putBoolean("dark_theme", theme).apply()
+        val kiosk = isKioskEnabled()
+        prefs.edit().clear()
+            .putBoolean("dark_theme", theme)
+            .putBoolean("kiosk_enabled", kiosk)
+            .apply()
     }
 }

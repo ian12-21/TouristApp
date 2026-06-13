@@ -43,7 +43,8 @@ data class MainUiState(
     val overlayScreen: OverlayScreen = OverlayScreen.None,
     val cachedPlaces: List<Place> = emptyList(),
     val cachedEmergencyContacts: List<Contact> = emptyList(),
-    val isDarkTheme: Boolean = true
+    val isDarkTheme: Boolean = true,
+    val isKioskEnabled: Boolean = false
 )
 
 @HiltViewModel
@@ -67,7 +68,8 @@ class MainViewModel @Inject constructor(
                 apartmentName = savedName,
                 isLoading = savedId != null,
                 weatherInfo = prefs.getLastWeather(),
-                isDarkTheme = prefs.isDarkTheme()
+                isDarkTheme = prefs.isDarkTheme(),
+                isKioskEnabled = prefs.isKioskEnabled()
             )
         }
         if (savedId != null) {
@@ -100,7 +102,15 @@ class MainViewModel @Inject constructor(
         weatherJob?.cancel()
         weatherJob = null
         prefs.clear()
-        _uiState.value = MainUiState(isDarkTheme = prefs.isDarkTheme())
+        _uiState.value = MainUiState(
+            isDarkTheme = prefs.isDarkTheme(),
+            isKioskEnabled = prefs.isKioskEnabled()
+        )
+    }
+
+    fun setKioskEnabled(enabled: Boolean) {
+        prefs.setKioskEnabled(enabled)
+        _uiState.update { it.copy(isKioskEnabled = enabled) }
     }
 
     fun toggleTheme() {

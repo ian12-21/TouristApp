@@ -1,5 +1,6 @@
 package com.touristapp.feature.main
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
@@ -49,11 +50,23 @@ fun AppNavigation(
     onNavigateBack: () -> Unit,
     onPlacesLoaded: (List<Place>) -> Unit,
     onRetryLoad: () -> Unit,
-    onToggleTheme: () -> Unit
+    onToggleTheme: () -> Unit,
+    isKioskEnabled: Boolean,
+    onExitKiosk: () -> Unit,
+    onEnableKiosk: () -> Unit,
+    onRemoveKiosk: () -> Unit
 ) {
     if (uiState.apartment == null && uiState.error != null) {
         ErrorContent(message = uiState.error, onRetry = onRetryLoad)
         return
+    }
+
+    // In kiosk mode the system Back button must never let the guest leave the app.
+    // An open overlay still closes on Back; at the root, Back is consumed (no-op).
+    BackHandler(enabled = isKioskEnabled) {
+        if (uiState.overlayScreen != OverlayScreen.None) {
+            onNavigateBack()
+        }
     }
 
     var showAdminDialog by remember { mutableStateOf(false) }
@@ -282,6 +295,19 @@ fun AppNavigation(
             onLockout = {
                 cooldownUntil = System.currentTimeMillis() + 60_000
                 showAdminDialog = false
+            },
+            isKioskEnabled = isKioskEnabled,
+            onExitKiosk = {
+                showAdminDialog = false
+                onExitKiosk()
+            },
+            onEnableKiosk = {
+                showAdminDialog = false
+                onEnableKiosk()
+            },
+            onRemoveKiosk = {
+                showAdminDialog = false
+                onRemoveKiosk()
             }
         )
     }
