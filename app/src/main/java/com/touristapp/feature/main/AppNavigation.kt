@@ -233,6 +233,7 @@ fun AppNavigation(
         ) {
             HorizontalPager(
                 state = pagerState,
+                beyondViewportPageCount = 2,
                 modifier = Modifier.weight(1f)
             ) { page ->
                 when (page) {

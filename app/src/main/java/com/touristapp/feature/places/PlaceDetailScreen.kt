@@ -1,7 +1,5 @@
 package com.touristapp.feature.places
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
@@ -24,7 +22,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -42,7 +39,6 @@ fun PlaceDetailScreen(
     apartmentId: String,
     onBack: () -> Unit
 ) {
-    val context = LocalContext.current
     val category = PlaceCategory.fromKey(place.category)
     val link = place.getDistanceFor(apartmentId)
     val heroImage = place.thumbImageUrl.ifBlank { place.images.firstOrNull() }
@@ -308,29 +304,6 @@ fun PlaceDetailScreen(
                     }
                 }
 
-                // Open in maps — primary action
-                if (place.address.isNotBlank()) {
-                    Button(
-                        onClick = {
-                            val uri = Uri.parse("geo:0,0?q=${Uri.encode(place.address)}")
-                            context.startActivity(Intent(Intent.ACTION_VIEW, uri))
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        ),
-                        contentPadding = PaddingValues(vertical = 14.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = stringResource(R.string.place_detail_maps))
-                    }
-                }
             }
 
             // Photos section — swipeable carousel.

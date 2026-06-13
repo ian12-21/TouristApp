@@ -281,7 +281,21 @@ private fun QuickActionCard(
     accentColor: Color = MaterialTheme.colorScheme.primary,
     onClick: () -> Unit
 ) {
-    val cardShape = RoundedCornerShape(20.dp)
+    val cardShape = remember { RoundedCornerShape(20.dp) }
+    val primary = MaterialTheme.colorScheme.primary
+    val ambientColor = remember(primary) { primary.copy(alpha = 0.08f) }
+    val spotColor = remember(primary) { primary.copy(alpha = 0.12f) }
+
+    val secondaryContainer = MaterialTheme.colorScheme.secondaryContainer
+    val cardGradient = remember(secondaryContainer) {
+        Brush.verticalGradient(
+            colors = listOf(
+                secondaryContainer,
+                secondaryContainer.copy(alpha = 0.6f)
+            )
+        )
+    }
+
     Card(
         onClick = onClick,
         modifier = modifier
@@ -289,8 +303,8 @@ private fun QuickActionCard(
             .shadow(
                 elevation = 4.dp,
                 shape = cardShape,
-                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                ambientColor = ambientColor,
+                spotColor = spotColor
             ),
         shape = cardShape,
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
@@ -299,14 +313,7 @@ private fun QuickActionCard(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.secondaryContainer,
-                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
-                        )
-                    )
-                )
+                .background(brush = cardGradient)
                 .padding(horizontal = 6.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
