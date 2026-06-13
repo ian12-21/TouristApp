@@ -11,7 +11,7 @@ import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.Rule
-import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.BeachAccess
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -234,11 +234,11 @@ fun HomeSlide(
                 onClick = onNavigateToHouseRules
             )
             QuickActionCard(
-                icon = Icons.Default.Schedule,
-                label = stringResource(R.string.home_action_coming_soon),
+                icon = Icons.Default.BeachAccess,
+                label = stringResource(R.string.home_action_beaches),
                 accentColor = appliancePalette[3],
                 modifier = Modifier.weight(1f),
-                onClick = {}
+                onClick = { onNavigateToCategory(PlaceCategory.BEACH) }
             )
             QuickActionCard(
                 icon = Icons.Default.RateReview,

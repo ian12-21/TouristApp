@@ -2,8 +2,6 @@ package com.touristapp.data.model
 
 import com.google.firebase.Timestamp
 
-// ── Shared / Nested ──
-
 data class Appliance(
     val description: String = "",
     val instructions: String = "",
@@ -39,9 +37,6 @@ data class TransportationService(
     val description: String = ""
 )
 
-/**
- * Maps to Firestore collection: apartments
- */
 data class Apartment(
     val id: String = "",
     val name: String = "",
@@ -64,9 +59,6 @@ data class Apartment(
     val updatedAt: Timestamp? = null
 )
 
-/**
- * Maps to Firestore collection: stays
- */
 data class Stay(
     val id: String = "",
     val guestIds: List<String> = emptyList(),
@@ -79,9 +71,6 @@ data class Stay(
     val createdAt: Timestamp? = null
 )
 
-/**
- * Maps to Firestore collection: guests
- */
 data class Guest(
     val id: String = "",
     val name: String = "",
@@ -100,9 +89,6 @@ data class ApartmentLink(
     val distanceType: String = ""
 )
 
-/**
- * Maps to Firestore collection: places
- */
 data class Place(
     val id: String = "",
     val name: String = "",
@@ -125,34 +111,6 @@ fun Place.getDistanceFor(apartmentId: String): ApartmentLink? {
     return apartments.firstOrNull { it.apartmentId == apartmentId }
 }
 
-/**
- * Maps to Firestore collection: customSections
- */
-/*
-data class CustomSection(
-    val id: String = "",
-    val title: String = "",
-    val icon: String = "",
-    val content: String = "",
-    val order: Int = 0,
-    val isActive: Boolean = true
-)
-*/
-/**
- * Maps to Firestore collection: admins
- */
-/*
-data class Admin(
-    val id: String = "",
-    val email: String = "",
-    val displayName: String = "",
-    val apartmentIds: List<String> = emptyList(),
-    val createdAt: Timestamp? = null
-)
-*/
-/**
- * Maps to Firestore collection: reviews
- */
 data class Review(
     val id: String = "",
     val apartmentId: String = "",

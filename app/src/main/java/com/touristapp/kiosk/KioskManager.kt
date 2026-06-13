@@ -16,11 +16,9 @@ import com.touristapp.admin.KioskAdminReceiver
  */
 class KioskManager(private val activity: Activity) {
 
-    private val dpm: DevicePolicyManager =
-        activity.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+    private val dpm: DevicePolicyManager = activity.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
 
-    private val adminComponent: ComponentName =
-        ComponentName(activity, KioskAdminReceiver::class.java)
+    private val adminComponent: ComponentName = ComponentName(activity, KioskAdminReceiver::class.java)
 
     /** True only if the app was provisioned as device owner via ADB. */
     fun isDeviceOwner(): Boolean = dpm.isDeviceOwnerApp(activity.packageName)
