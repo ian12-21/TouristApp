@@ -9,6 +9,7 @@ import com.touristapp.data.model.Contact
 import com.touristapp.data.model.Guest
 import com.touristapp.data.model.Place
 import com.touristapp.data.model.Stay
+import com.touristapp.data.model.DailyForecast
 import com.touristapp.data.model.WeatherInfo
 import com.touristapp.domain.repository.TouristRepository
 import com.touristapp.domain.repository.WeatherRepository
@@ -38,6 +39,7 @@ data class MainUiState(
     val currentStay: Stay? = null,
     val guests: List<Guest> = emptyList(),
     val weatherInfo: WeatherInfo? = null,
+    val weekForecast: List<DailyForecast> = emptyList(),
     val isLoading: Boolean = true,
     val error: String? = null,
     val overlayScreen: OverlayScreen = OverlayScreen.None,
@@ -218,6 +220,10 @@ class MainViewModel @Inject constructor(
                         prefs.setLastWeather(result.data)
                         _uiState.update { it.copy(weatherInfo = result.data) }
                     }
+                    else -> {}
+                }
+                when (val result = weatherRepository.getWeekForecast(lat, lon)) {
+                    is Resource.Success -> _uiState.update { it.copy(weekForecast = result.data) }
                     else -> {}
                 }
                 delay(WEATHER_REFRESH_INTERVAL_MS)

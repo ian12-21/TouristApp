@@ -2,6 +2,7 @@ package com.touristapp.data.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.time.LocalDate
 
 @Serializable
 data class WeatherResponse(
@@ -34,4 +35,30 @@ data class WeatherInfo(
     val description: String,
     val iconCode: String,
     val cityName: String
+)
+
+@Serializable
+data class ForecastResponse(
+    val list: List<ForecastItem>,
+    val city: ForecastCity
+)
+
+@Serializable
+data class ForecastItem(
+    val dt: Long,
+    val main: WeatherMain,
+    val weather: List<WeatherCondition>
+)
+
+@Serializable
+data class ForecastCity(
+    val name: String
+)
+
+data class DailyForecast(
+    val date: LocalDate,
+    val minTempCelsius: Double,
+    val maxTempCelsius: Double,
+    val iconCode: String,
+    val condition: String
 )

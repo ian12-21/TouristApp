@@ -26,6 +26,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.touristapp.R
 import com.touristapp.core.ui.components.ErrorContent
+import com.touristapp.core.ui.components.WeatherDialog
+import com.touristapp.core.ui.components.weatherIconFor
 import com.touristapp.data.model.Place
 import com.touristapp.feature.admin.AdminDialog
 import com.touristapp.feature.apartment.ApartmentScreen
@@ -70,6 +72,7 @@ fun AppNavigation(
     }
 
     var showAdminDialog by remember { mutableStateOf(false) }
+    var showWeatherDialog by remember { mutableStateOf(false) }
     var cooldownUntil by remember { mutableLongStateOf(0L) }
 
     val pageCount = 3
@@ -143,7 +146,7 @@ fun AppNavigation(
                                             val pressStartTime = System.currentTimeMillis()
                                             val released = tryAwaitRelease()
                                             val pressDuration = System.currentTimeMillis() - pressStartTime
-                                            if (released && pressDuration >= 10_000) {
+                                            if (released && pressDuration >= 5_000) {
                                                 if (System.currentTimeMillis() > cooldownUntil) {
                                                     showAdminDialog = true
                                                 }
@@ -175,22 +178,32 @@ fun AppNavigation(
                                 contentDescription = stringResource(R.string.cd_toggle_theme)
                             )
                         }
-                        val tempText = uiState.weatherInfo
-                            ?.let { "${it.tempCelsius.roundToInt()}°" }
-                            ?: "—"
+                        val weatherInfo = uiState.weatherInfo
+                        val tempText = weatherInfo?.let { "${it.tempCelsius.roundToInt()}°" } ?: "—"
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(2.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
                             modifier = Modifier
                                 .padding(end = 4.dp)
                                 .height(40.dp)
                                 .clip(MaterialTheme.shapes.small)
                                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                                 .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.small)
+                                .then(
+                                    if (weatherInfo != null)
+                                        Modifier.clickable { showWeatherDialog = true }
+                                    else Modifier
+                                )
                                 .padding(horizontal = 10.dp)
                         ) {
                             Text(text = tempText, style = MaterialTheme.typography.labelLarge)
-                            Text(text = "☀\uFE0F", style = MaterialTheme.typography.titleMedium)
+                            if (weatherInfo != null) {
+                                Icon(
+                                    imageVector = weatherIconFor(weatherInfo.iconCode),
+                                    contentDescription = weatherInfo.condition,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
                         }
                         Spacer(modifier = Modifier.width(6.dp))
                         Box(
@@ -309,6 +322,14 @@ fun AppNavigation(
                 showAdminDialog = false
                 onRemoveKiosk()
             }
+        )
+    }
+
+    if (showWeatherDialog && uiState.weatherInfo != null) {
+        WeatherDialog(
+            weatherInfo = uiState.weatherInfo,
+            weekForecast = uiState.weekForecast,
+            onDismiss = { showWeatherDialog = false }
         )
     }
 }
