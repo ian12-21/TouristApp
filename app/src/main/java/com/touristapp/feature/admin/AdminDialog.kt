@@ -16,8 +16,7 @@ fun AdminDialog(
     onLockout: () -> Unit,
     isKioskEnabled: Boolean,
     onExitKiosk: () -> Unit,
-    onEnableKiosk: () -> Unit,
-    onRemoveKiosk: () -> Unit
+    onEnableKiosk: () -> Unit
 ) {
     val viewModel: AdminViewModel = hiltViewModel()
     Dialog(onDismissRequest = onDismiss) {
@@ -32,7 +31,6 @@ fun AdminDialog(
                 isKioskEnabled = isKioskEnabled,
                 onExitKiosk = onExitKiosk,
                 onEnableKiosk = onEnableKiosk,
-                onRemoveKiosk = onRemoveKiosk,
                 modifier = Modifier.padding(24.dp)
             )
         }
