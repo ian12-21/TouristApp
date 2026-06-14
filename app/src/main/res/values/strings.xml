@@ -117,6 +117,11 @@
     <string name="admin_menu_reconfigure">Reconfigure apartment</string>
     <string name="admin_menu_exit_kiosk">Exit kiosk mode</string>
     <string name="admin_menu_enable_kiosk">Enable kiosk mode</string>
+    <string name="admin_menu_remove_kiosk">Remove kiosk completely (advanced)</string>
+    <string name="admin_remove_kiosk_confirm_title">Remove kiosk mode?</string>
+    <string name="admin_remove_kiosk_confirm_message">This fully disables kiosk mode and requires ADB re-provisioning to restore. Continue?</string>
+    <string name="admin_confirm">Continue</string>
+    <string name="admin_cancel">Cancel</string>
 
     <!-- Errors -->
     <string name="error_generic">Something went wrong</string>

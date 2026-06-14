@@ -25,6 +25,7 @@ fun AdminLoginFlow(
     isKioskEnabled: Boolean = false,
     onExitKiosk: () -> Unit = {},
     onEnableKiosk: () -> Unit = {},
+    onRemoveKiosk: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -132,7 +133,8 @@ fun AdminLoginFlow(
                     isKioskEnabled = isKioskEnabled,
                     onReconfigure = { showApartmentPicker = true },
                     onExitKiosk = onExitKiosk,
-                    onEnableKiosk = onEnableKiosk
+                    onEnableKiosk = onEnableKiosk,
+                    onRemoveKiosk = onRemoveKiosk
                 )
             }
         }
@@ -144,8 +146,11 @@ private fun AdminActionMenu(
     isKioskEnabled: Boolean,
     onReconfigure: () -> Unit,
     onExitKiosk: () -> Unit,
-    onEnableKiosk: () -> Unit
+    onEnableKiosk: () -> Unit,
+    onRemoveKiosk: () -> Unit
 ) {
+    var showRemoveConfirm by remember { mutableStateOf(false) }
+
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Button(
             onClick = onReconfigure,
@@ -169,5 +174,36 @@ private fun AdminActionMenu(
                 Text(stringResource(R.string.admin_menu_enable_kiosk))
             }
         }
+
+        TextButton(
+            onClick = { showRemoveConfirm = true },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = stringResource(R.string.admin_menu_remove_kiosk),
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+    }
+
+    if (showRemoveConfirm) {
+        AlertDialog(
+            onDismissRequest = { showRemoveConfirm = false },
+            title = { Text(stringResource(R.string.admin_remove_kiosk_confirm_title)) },
+            text = { Text(stringResource(R.string.admin_remove_kiosk_confirm_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showRemoveConfirm = false
+                    onRemoveKiosk()
+                }) {
+                    Text(stringResource(R.string.admin_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRemoveConfirm = false }) {
+                    Text(stringResource(R.string.admin_cancel))
+                }
+            }
+        )
     }
 }

@@ -78,6 +78,10 @@ class MainActivity : ComponentActivity() {
                         onEnableKiosk = {
                             viewModel.setKioskEnabled(true)
                             kioskManager.enterKioskMode()
+                        },
+                        onRemoveKiosk = {
+                            viewModel.setKioskEnabled(false)
+                            kioskManager.clearDeviceOwner()
                         }
                     )
                 }
