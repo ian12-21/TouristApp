@@ -76,4 +76,10 @@ class AdminViewModel @Inject constructor(
         auth.signOut()
         onSelected(id)
     }
+
+    /** Clears any prior session so the dialog always re-requires login on open. */
+    fun reset() {
+        auth.signOut()
+        _uiState.value = AdminUiState()
+    }
 }

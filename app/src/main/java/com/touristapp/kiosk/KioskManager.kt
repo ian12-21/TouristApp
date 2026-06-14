@@ -49,18 +49,6 @@ class KioskManager(private val activity: Activity) {
         }
     }
 
-    /**
-     * NUCLEAR: relinquishes device-owner status. After this, ADB re-provisioning is
-     * required to re-enable kiosk mode.
-     */
-    fun clearDeviceOwner() {
-        try {
-            dpm.clearDeviceOwnerApp(activity.packageName)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to clear device owner", e)
-        }
-    }
-
     private companion object {
         const val TAG = "KioskManager"
     }

@@ -55,8 +55,7 @@ fun AppNavigation(
     onToggleTheme: () -> Unit,
     isKioskEnabled: Boolean,
     onExitKiosk: () -> Unit,
-    onEnableKiosk: () -> Unit,
-    onRemoveKiosk: () -> Unit
+    onEnableKiosk: () -> Unit
 ) {
     if (uiState.apartment == null && uiState.error != null) {
         ErrorContent(message = uiState.error, onRetry = onRetryLoad)
@@ -318,10 +317,6 @@ fun AppNavigation(
             onEnableKiosk = {
                 showAdminDialog = false
                 onEnableKiosk()
-            },
-            onRemoveKiosk = {
-                showAdminDialog = false
-                onRemoveKiosk()
             }
         )
     }
