@@ -21,7 +21,8 @@ data class AdminUiState(
     val errorMessage: String? = null,
     val failedAttempts: Int = 0,
     val apartments: List<Pair<String, String>>? = null,
-    val isLockedOut: Boolean = false
+    val isLockedOut: Boolean = false,
+    val isAuthenticated: Boolean = false
 )
 
 @HiltViewModel
@@ -48,7 +49,7 @@ class AdminViewModel @Inject constructor(
                 auth.signInWithEmailAndPassword(_uiState.value.email, _uiState.value.password).await()
                 when (val result = repository.getAllApartments()) {
                     is Resource.Success -> _uiState.update {
-                        it.copy(apartments = result.data, isLoading = false)
+                        it.copy(apartments = result.data, isAuthenticated = true, isLoading = false)
                     }
                     is Resource.Error -> throw Exception(result.message)
                     is Resource.Loading -> {}
@@ -75,5 +76,18 @@ class AdminViewModel @Inject constructor(
     fun selectApartment(id: String, onSelected: (String) -> Unit) {
         auth.signOut()
         onSelected(id)
+    }
+
+    fun lock() {
+        auth.signOut()
+        _uiState.update {
+            it.copy(
+                isAuthenticated = false,
+                email = "",
+                password = "",
+                errorMessage = null,
+                isLoading = false
+            )
+        }
     }
 }

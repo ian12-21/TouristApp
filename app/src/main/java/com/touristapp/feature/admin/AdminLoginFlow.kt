@@ -46,7 +46,7 @@ fun AdminLoginFlow(
         }
 
         when {
-            state.apartments == null -> {
+            !state.isAuthenticated -> {
                 OutlinedTextField(
                     value = state.email,
                     onValueChange = { viewModel.updateEmail(it) },
