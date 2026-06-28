@@ -147,7 +147,7 @@ fun PlaceDetailScreen(
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
-                                text = link.distance,
+                                text = formatDuration(link.distance),
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer

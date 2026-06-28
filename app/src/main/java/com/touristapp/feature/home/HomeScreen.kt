@@ -5,13 +5,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BeachAccess
+import androidx.compose.material.icons.filled.DirectionsBus
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.RateReview
-import androidx.compose.material.icons.filled.Rule
-import androidx.compose.material.icons.filled.BeachAccess
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -45,7 +45,7 @@ fun HomeSlide(
     cachedEmergencyContacts: List<Contact> = emptyList(),
     onNavigateToReviews: () -> Unit = {},
     onNavigateToApartment: () -> Unit = {},
-    onNavigateToHouseRules: () -> Unit = {},
+    onNavigateToTransport: () -> Unit = {},
     onNavigateToExplore: () -> Unit = {},
     onNavigateToCategory: (PlaceCategory) -> Unit = {}
 ) {
@@ -227,11 +227,11 @@ fun HomeSlide(
                 onClick = onNavigateToExplore
             )
             QuickActionCard(
-                icon = Icons.Default.Rule,
-                label = stringResource(R.string.home_action_house_rules),
+                icon = Icons.Default.DirectionsBus,
+                label = stringResource(R.string.home_action_transport),
                 accentColor = appliancePalette[2],
                 modifier = Modifier.weight(1f),
-                onClick = onNavigateToHouseRules
+                onClick = onNavigateToTransport
             )
             QuickActionCard(
                 icon = Icons.Default.BeachAccess,

@@ -206,7 +206,7 @@ private fun PlaceListingCard(place: Place, apartmentId: String, onClick: () -> U
                                 modifier = Modifier.size(12.dp)
                             )
                             Text(
-                                text = link.distance,
+                                text = formatDuration(link.distance),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer

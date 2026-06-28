@@ -13,6 +13,7 @@
     <string name="home_action_beaches">Beaches</string>
     <string name="home_action_review">Review</string>
     <string name="home_action_house_rules">House Rules</string>
+    <string name="home_action_transport">Transport</string>
     <string name="home_action_emergency">Emergency</string>
     <string name="home_checkout_by_time_and_date">Checkout by %1$s on %2$s</string>
     <string name="home_checkout_by_time">Checkout by %1$s</string>

@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.DirectionsBus
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MeetingRoom
@@ -36,15 +35,13 @@ sealed class ApartmentSection(@StringRes val titleRes: Int, val icon: ImageVecto
     data object Rooms : ApartmentSection(R.string.apartment_section_rooms, Icons.Default.MeetingRoom)
     data object HouseRules : ApartmentSection(R.string.apartment_section_rules, Icons.Default.Rule)
     data object Checkout : ApartmentSection(R.string.apartment_section_checkout, Icons.Default.ExitToApp)
-    data object Transport : ApartmentSection(R.string.apartment_section_transport, Icons.Default.DirectionsBus)
 }
 
 private val fixedSections = listOf(
     ApartmentSection.Overview,
     ApartmentSection.Rooms,
     ApartmentSection.HouseRules,
-    ApartmentSection.Checkout,
-    ApartmentSection.Transport
+    ApartmentSection.Checkout
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,7 +58,7 @@ fun ApartmentScreen(
 
     LaunchedEffect(apartment?.id) {
         val id = apartment?.id ?: return@LaunchedEffect
-        viewModel.loadData(id, apartment.transportation)
+        viewModel.loadData(id)
     }
 
     LaunchedEffect(initialSection) {
@@ -151,14 +148,14 @@ fun ApartmentScreen(
                 if (state.error != null) {
                     ErrorContent(
                         message = state.error,
-                        onRetry = { viewModel.loadData(apartment.id, apartment.transportation) }
+                        onRetry = { viewModel.loadData(apartment.id) }
                     )
                 } else when (state.selectedSection) {
                     is ApartmentSection.Overview -> OverviewContent(apartment)
                     is ApartmentSection.Rooms -> RoomsContent(state.rooms)
                     is ApartmentSection.HouseRules -> HouseRulesContent(apartment)
                     is ApartmentSection.Checkout -> CheckoutContent(apartment, currentStay)
-                    is ApartmentSection.Transport -> TransportContent(apartment, state.transportationServices)
+                    else -> {}
                 }
             }
         }

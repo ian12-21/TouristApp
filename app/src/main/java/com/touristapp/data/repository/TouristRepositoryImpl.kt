@@ -91,15 +91,27 @@ class TouristRepositoryImpl @Inject constructor(
                             .documents
                             .mapNotNull { doc ->
                                 val data = doc.data ?: return@mapNotNull null
-                                val entry = data.entries.firstOrNull() ?: return@mapNotNull null
-                                val name = entry.key
-                                val details = entry.value as? Map<*, *> ?: return@mapNotNull null
-                                TransportationService(
-                                    id = doc.id,
-                                    name = name,
-                                    phone = details["phone"] as? String ?: "",
-                                    description = details["description"] as? String ?: ""
-                                )
+                                // New flat format: { name, phone, description, thumbImageUrl? }
+                                // Legacy format:   { [serviceName]: { phone, description } }
+                                if (data.containsKey("name")) {
+                                    TransportationService(
+                                        id = doc.id,
+                                        name = data["name"] as? String ?: "",
+                                        phone = data["phone"] as? String ?: "",
+                                        description = data["description"] as? String ?: "",
+                                        thumbImageUrl = data["thumbImageUrl"] as? String ?: ""
+                                    )
+                                } else {
+                                    val entry = data.entries.firstOrNull() ?: return@mapNotNull null
+                                    val name = entry.key
+                                    val details = entry.value as? Map<*, *> ?: return@mapNotNull null
+                                    TransportationService(
+                                        id = doc.id,
+                                        name = name,
+                                        phone = details["phone"] as? String ?: "",
+                                        description = details["description"] as? String ?: ""
+                                    )
+                                }
                             }
                     }
                 }.awaitAll().flatten()

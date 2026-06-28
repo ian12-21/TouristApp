@@ -63,7 +63,6 @@ class MainActivity : ComponentActivity() {
                         uiState = uiState,
                         onReconfigure = viewModel::reconfigure,
                         onNavigateToApartment = viewModel::navigateToApartment,
-                        onNavigateToHouseRules = viewModel::navigateToHouseRules,
                         onNavigateToPlace = viewModel::navigateToPlace,
                         onNavigateToCategory = viewModel::navigateToCategory,
                         onNavigateBack = viewModel::navigateBack,

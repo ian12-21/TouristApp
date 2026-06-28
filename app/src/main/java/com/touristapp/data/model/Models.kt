@@ -34,7 +34,8 @@ data class TransportationService(
     val id: String = "",
     val name: String = "",
     val phone: String = "",
-    val description: String = ""
+    val description: String = "",
+    val thumbImageUrl: String = ""
 )
 
 data class Apartment(
@@ -77,6 +78,7 @@ data class Guest(
     val email: String = "",
     val phone: String = "",
     val language: String = "en",
+    val active: Boolean = true,
     val createdAt: Timestamp? = null
 )
 
@@ -85,7 +87,7 @@ data class Guest(
  */
 data class ApartmentLink(
     val apartmentId: String = "",
-    val distance: String = "",
+    val distance: Int = 0,
     val distanceType: String = ""
 )
 

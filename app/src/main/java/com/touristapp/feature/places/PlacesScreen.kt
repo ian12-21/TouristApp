@@ -72,6 +72,13 @@ fun distanceIcon(type: String): ImageVector = when (type) {
     else -> Icons.Default.DirectionsWalk
 }
 
+fun formatDuration(minutes: Int): String {
+    if (minutes < 60) return "$minutes min"
+    val h = minutes / 60
+    val m = minutes % 60
+    return if (m == 0) "${h}h" else "${h}h ${m.toString().padStart(2, '0')}min"
+}
+
 @Composable
 fun PlacesSlide(
     apartmentId: String,
@@ -312,7 +319,7 @@ private fun PlaceCard(place: Place, apartmentId: String, onClick: () -> Unit = {
                             modifier = Modifier.size(12.dp)
                         )
                         Text(
-                            text = link.distance,
+                            text = formatDuration(link.distance),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer

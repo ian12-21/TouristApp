@@ -10,6 +10,7 @@ import com.touristapp.data.model.Guest
 import com.touristapp.data.model.Place
 import com.touristapp.data.model.Stay
 import com.touristapp.data.model.DailyForecast
+import com.touristapp.data.model.TransportationService
 import com.touristapp.data.model.WeatherInfo
 import com.touristapp.domain.repository.TouristRepository
 import com.touristapp.domain.repository.WeatherRepository
@@ -45,6 +46,7 @@ data class MainUiState(
     val overlayScreen: OverlayScreen = OverlayScreen.None,
     val cachedPlaces: List<Place> = emptyList(),
     val cachedEmergencyContacts: List<Contact> = emptyList(),
+    val transportationServices: List<TransportationService> = emptyList(),
     val isDarkTheme: Boolean = true,
     val isKioskEnabled: Boolean = false
 )
@@ -160,7 +162,7 @@ class MainViewModel @Inject constructor(
                         )
                     }
                     loadStayAndGuests(apartment, forceServer)
-                    prefetchSecondaryData(apartmentId, forceServer)
+                    prefetchSecondaryData(apartmentId, apartment, forceServer)
                     startWeatherRefresh(apartment)
                 }
                 is Resource.Error -> {
@@ -194,7 +196,7 @@ class MainViewModel @Inject constructor(
     }
 
     /** Warms the caches for screens the user is likely to open next. */
-    private fun prefetchSecondaryData(apartmentId: String, forceServer: Boolean) {
+    private fun prefetchSecondaryData(apartmentId: String, apartment: Apartment, forceServer: Boolean) {
         viewModelScope.launch {
             when (val result = touristRepository.getPlacesForApartment(apartmentId, forceServer)) {
                 is Resource.Success -> _uiState.update { it.copy(cachedPlaces = result.data) }
@@ -204,6 +206,16 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = touristRepository.getEmergencyContactsCroatia(forceServer)) {
                 is Resource.Success -> _uiState.update { it.copy(cachedEmergencyContacts = result.data) }
+                else -> {}
+            }
+        }
+        viewModelScope.launch {
+            val privateIds = apartment.transportation
+                .filter { it.type == "private" && it.transportationId.isNotBlank() }
+                .map { it.transportationId }
+            // Always fetch from server so thumbImageUrl is never stale from old cache
+            when (val result = touristRepository.getTransportationServices(privateIds, forceServer = true)) {
+                is Resource.Success -> _uiState.update { it.copy(transportationServices = result.data) }
                 else -> {}
             }
         }

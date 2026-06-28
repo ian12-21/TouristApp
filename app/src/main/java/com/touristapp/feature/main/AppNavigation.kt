@@ -31,6 +31,7 @@ import com.touristapp.core.ui.components.weatherIconFor
 import com.touristapp.data.model.Place
 import com.touristapp.feature.admin.AdminDialog
 import com.touristapp.feature.apartment.ApartmentScreen
+import com.touristapp.feature.apartment.TransportationSlide
 import com.touristapp.feature.home.HomeSlide
 import com.touristapp.feature.places.CategoryListingScreen
 import com.touristapp.feature.places.PlaceCategory
@@ -46,7 +47,6 @@ fun AppNavigation(
     uiState: MainUiState,
     onReconfigure: () -> Unit,
     onNavigateToApartment: () -> Unit,
-    onNavigateToHouseRules: () -> Unit,
     onNavigateToPlace: (Place) -> Unit,
     onNavigateToCategory: (PlaceCategory) -> Unit,
     onNavigateBack: () -> Unit,
@@ -74,7 +74,7 @@ fun AppNavigation(
     var showWeatherDialog by remember { mutableStateOf(false) }
     var cooldownUntil by remember { mutableLongStateOf(0L) }
 
-    val pageCount = 3
+    val pageCount = 4
     val pagerState = rememberPagerState(pageCount = { pageCount })
     val coroutineScope = rememberCoroutineScope()
 
@@ -244,7 +244,9 @@ fun AppNavigation(
                             coroutineScope.launch { pagerState.animateScrollToPage(2) }
                         },
                         onNavigateToApartment = onNavigateToApartment,
-                        onNavigateToHouseRules = onNavigateToHouseRules,
+                        onNavigateToTransport = {
+                            coroutineScope.launch { pagerState.animateScrollToPage(3) }
+                        },
                         onNavigateToExplore = {
                             coroutineScope.launch { pagerState.animateScrollToPage(1) }
                         },
@@ -261,6 +263,10 @@ fun AppNavigation(
                         apartmentId = uiState.apartmentId.orEmpty(),
                         currentStay = uiState.currentStay,
                         guests = uiState.guests
+                    )
+                    3 -> TransportationSlide(
+                        apartment = uiState.apartment,
+                        transportationServices = uiState.transportationServices
                     )
                 }
             }
