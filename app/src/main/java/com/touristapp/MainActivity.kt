@@ -1,6 +1,9 @@
 package com.touristapp
 
+import android.content.Context
+import android.content.res.Configuration
 import android.os.Bundle
+import java.util.Locale
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -22,6 +25,18 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    // Apply the stored per-app language before the UI is created so every
+    // stringResource() resolves in that language. Read SharedPreferences directly
+    // because Hilt injection is not yet available at attachBaseContext.
+    override fun attachBaseContext(newBase: Context) {
+        val lang = newBase
+            .getSharedPreferences("kiosk_prefs", Context.MODE_PRIVATE)
+            .getString("language", "en") ?: "en"
+        val config = Configuration(newBase.resources.configuration)
+        config.setLocale(Locale(lang))
+        super.attachBaseContext(newBase.createConfigurationContext(config))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,6 +76,11 @@ class MainActivity : ComponentActivity() {
                     }
                     AppNavigation(
                         uiState = uiState,
+                        currentLanguage = uiState.language,
+                        onSelectLanguage = { code ->
+                            viewModel.setLanguage(code)
+                            recreate()
+                        },
                         onReconfigure = viewModel::reconfigure,
                         onNavigateToApartment = viewModel::navigateToApartment,
                         onNavigateToPlace = viewModel::navigateToPlace,

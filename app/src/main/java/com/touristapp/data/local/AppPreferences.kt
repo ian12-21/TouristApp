@@ -33,6 +33,12 @@ class AppPreferences @Inject constructor(
         prefs.edit().putBoolean("dark_theme", value).apply()
     }
 
+    fun getLanguage(): String = prefs.getString("language", "en") ?: "en"
+
+    fun setLanguage(code: String) {
+        prefs.edit().putString("language", code).apply()
+    }
+
     // Kiosk is off until the owner explicitly turns it on from the admin dialog.
     fun isKioskEnabled(): Boolean = prefs.getBoolean("kiosk_enabled", false)
 
@@ -57,9 +63,11 @@ class AppPreferences @Inject constructor(
         // must not silently flip them.
         val theme = isDarkTheme()
         val kiosk = isKioskEnabled()
+        val language = getLanguage()
         prefs.edit().clear()
             .putBoolean("dark_theme", theme)
             .putBoolean("kiosk_enabled", kiosk)
+            .putString("language", language)
             .apply()
     }
 }

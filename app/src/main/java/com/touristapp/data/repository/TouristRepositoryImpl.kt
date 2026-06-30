@@ -9,7 +9,10 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.Source
 import com.google.firebase.Timestamp
+import com.touristapp.core.i18n.localize
+import com.touristapp.core.i18n.localizeList
 import com.touristapp.core.util.Resource
+import com.touristapp.data.local.AppPreferences
 import com.touristapp.data.model.*
 import com.touristapp.domain.repository.TouristRepository
 import kotlinx.coroutines.async
@@ -22,8 +25,12 @@ import javax.inject.Singleton
 @Singleton
 class TouristRepositoryImpl @Inject constructor(
     private val db: FirebaseFirestore,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    private val prefs: AppPreferences
 ) : TouristRepository {
+
+    /** The language currently selected by the guest, used to resolve localized content. */
+    private val lang: String get() = prefs.getLanguage()
 
     /** Reads from the local persistent cache first; falls back to the server on a cache miss. */
     private suspend fun fetch(query: Query, forceServer: Boolean): QuerySnapshot {
@@ -67,11 +74,37 @@ class TouristRepositoryImpl @Inject constructor(
             val transportItems = rawTransport.map { map ->
                 TransportationItem(
                     type = map["type"] as? String ?: "",
-                    description = map["description"] as? String ?: "",
+                    description = localize(map["description"], lang),
                     transportationId = map["transportation_id"] as? String ?: ""
                 )
             }
-            Resource.Success(apartment.copy(transportation = transportItems))
+
+            val rawHouseRules = doc.get("houseRules") as? List<Map<String, Any?>> ?: emptyList()
+            val houseRules = rawHouseRules.map { group ->
+                HouseRuleGroup(
+                    title = localize(group["title"], lang),
+                    rules = localizeList(group["rules"], lang)
+                )
+            }
+
+            val rawContacts = doc.get("contacts") as? List<Map<String, Any?>> ?: emptyList()
+            val contacts = rawContacts.map { contact ->
+                Contact(
+                    name = localize(contact["name"], lang),
+                    phone = contact["phone"] as? String ?: ""
+                )
+            }
+
+            Resource.Success(
+                apartment.copy(
+                    description = localize(doc.get("description"), lang),
+                    checkoutInstructions = localize(doc.get("checkoutInstructions"), lang),
+                    welcomeMessage = localize(doc.get("welcomeMessage"), lang),
+                    houseRules = houseRules,
+                    contacts = contacts,
+                    transportation = transportItems
+                )
+            )
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching apartment $apartmentId", e)
             Resource.Error("Failed to load apartment", e)
@@ -98,7 +131,7 @@ class TouristRepositoryImpl @Inject constructor(
                                         id = doc.id,
                                         name = data["name"] as? String ?: "",
                                         phone = data["phone"] as? String ?: "",
-                                        description = data["description"] as? String ?: "",
+                                        description = localize(data["description"], lang),
                                         thumbImageUrl = data["thumbImageUrl"] as? String ?: ""
                                     )
                                 } else {
@@ -109,7 +142,7 @@ class TouristRepositoryImpl @Inject constructor(
                                         id = doc.id,
                                         name = name,
                                         phone = details["phone"] as? String ?: "",
-                                        description = details["description"] as? String ?: ""
+                                        description = localize(details["description"], lang)
                                     )
                                 }
                             }
@@ -126,8 +159,11 @@ class TouristRepositoryImpl @Inject constructor(
     override suspend fun getCurrentStay(stayId: String, forceServer: Boolean): Resource<Stay> {
         return try {
             val doc = fetchDoc(db.collection("stays").document(stayId), forceServer)
-            val stay = doc.toObject(Stay::class.java)?.copy(id = doc.id)
-                ?: return Resource.Error("Stay not found")
+            val stay = doc.toObject(Stay::class.java)?.copy(
+                id = doc.id,
+                welcomeMessage = localize(doc.get("welcomeMessage"), lang),
+                notes = localize(doc.get("notes"), lang)
+            ) ?: return Resource.Error("Stay not found")
             Resource.Success(stay)
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching stay $stayId", e)
@@ -180,7 +216,11 @@ class TouristRepositoryImpl @Inject constructor(
             val places = fetch(query, forceServer)
                 .documents
                 .mapNotNull { doc ->
-                    doc.toObject(Place::class.java)?.copy(id = doc.id)
+                    doc.toObject(Place::class.java)?.copy(
+                        id = doc.id,
+                        description = localize(doc.get("description"), lang),
+                        tips = localize(doc.get("tips"), lang)
+                    )
                 }
                 .filter { USE_IS_ACTIVE_INDEX || it.isActive }
             Resource.Success(places)
@@ -196,11 +236,11 @@ class TouristRepositoryImpl @Inject constructor(
             val contacts = fetch(db.collection("emergency_contacts_croatia"), forceServer)
                 .documents
                 .flatMap { doc ->
-                    val contactsList = doc.get("contacts") as? List<Map<String, String>> ?: emptyList()
+                    val contactsList = doc.get("contacts") as? List<Map<String, Any?>> ?: emptyList()
                     contactsList.map { map ->
                         Contact(
-                            name = map["name"] ?: "",
-                            phone = map["phone"] ?: map["number"] ?: ""
+                            name = localize(map["name"], lang),
+                            phone = map["phone"] as? String ?: map["number"] as? String ?: ""
                         )
                     }
                 }
@@ -330,8 +370,8 @@ class TouristRepositoryImpl @Inject constructor(
                             ?.mapValues { (_, value) ->
                                 val map = value as Map<*, *>
                                 Appliance(
-                                    description = map["description"] as? String ?: "",
-                                    instructions = map["instructions"] as? String ?: "",
+                                    description = localize(map["description"], lang),
+                                    instructions = localize(map["instructions"], lang),
                                     images = (map["images"] as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
                                     icon = map["icon"] as? String ?: ""
                                 )

@@ -1,0 +1,154 @@
+<resources>
+    <string name="app_name">Tourist App</string>
+
+    <!-- Home Screen -->
+    <string name="home_welcome">Willkommen!</string>
+    <string name="home_welcome_with_name">Willkommen %1$s</string>
+    <string name="home_wifi_label">WLAN: %1$s</string>
+    <string name="home_wifi_not_configured">Nicht konfiguriert</string>
+    <string name="home_wifi_password">Passwort: %1$s</string>
+    <string name="home_contacts">Kontakte</string>
+    <string name="home_action_apartment">Wohnung</string>
+    <string name="home_action_explore">Entdecken</string>
+    <string name="home_action_beaches">Strände</string>
+    <string name="home_action_review">Bewertung</string>
+    <string name="home_action_house_rules">Hausordnung</string>
+    <string name="home_action_transport">Verkehr</string>
+    <string name="home_action_emergency">Notfall</string>
+    <string name="home_checkout_by_time_and_date">Check-out bis %1$s am %2$s</string>
+    <string name="home_checkout_by_time">Check-out bis %1$s</string>
+    <string name="home_checkout_on_date">Check-out am %1$s</string>
+    <string name="home_checkout_not_set">Check-out-Informationen nicht festgelegt</string>
+
+    <!-- Places Screen -->
+    <string name="places_title">Entdecken</string>
+    <string name="places_subtitle">Die Top-Empfehlungen Ihres Gastgebers</string>
+    <string name="places_see_all">Alle anzeigen</string>
+    <string name="places_empty">Noch keine Orte zum Entdecken</string>
+    <string name="places_category_empty">Keine Ergebnisse für %1$s</string>
+
+    <!-- Place Categories -->
+    <string name="category_beach">Strände</string>
+    <string name="category_restaurant">Restaurants</string>
+    <string name="category_cafe">Getränke &amp; Kaffee</string>
+    <string name="category_store">Geschäfte</string>
+    <string name="category_pharmacy">Apotheken</string>
+    <string name="category_attraction">Sehenswürdigkeiten</string>
+    <string name="category_nightlife">Nachtleben</string>
+    <string name="category_activity">Aktivitäten</string>
+
+    <!-- Place Detail -->
+    <string name="place_detail_tip">Tipp</string>
+    <string name="place_detail_call">Anrufen</string>
+    <string name="place_detail_contact">Kontakt</string>
+    <string name="place_detail_maps">In Karten öffnen</string>
+    <string name="place_detail_photos">Fotos</string>
+
+    <!-- Reviews Screen -->
+    <string name="reviews_empty_title">Noch keine Bewertungen</string>
+    <string name="reviews_empty_subtitle">Teilen Sie als Erster Ihre Erfahrung!</string>
+    <string name="reviews_count">%1$d Bewertung</string>
+    <string name="reviews_count_plural">%1$d Bewertungen</string>
+    <string name="reviews_score_suffix">/ 10</string>
+    <string name="reviews_edit">Bearbeiten</string>
+
+    <!-- Create/Edit Review -->
+    <string name="review_create_title">Bewertung hinzufügen</string>
+    <string name="review_edit_title">Bewertung bearbeiten</string>
+    <string name="review_who_reviewing">Wer bewertet?</string>
+    <string name="review_existing_notice">%1$s hat bereits eine Bewertung für diesen Aufenthalt. Sie können sie unten bearbeiten.</string>
+    <string name="review_rate_experience">Bewerten Sie Ihre Erfahrung</string>
+    <string name="review_overall">Gesamt: </string>
+    <string name="review_out_of_ten"> / 10</string>
+    <string name="review_comment_label">Kommentar (optional)</string>
+    <string name="review_comment_placeholder">Teilen Sie Ihre Erfahrung…</string>
+    <string name="review_comment_counter">%1$d / 500</string>
+    <string name="review_select_guest">Wählen Sie einen Gast zum Fortfahren</string>
+    <string name="review_submit">Bewertung senden</string>
+    <string name="review_update">Bewertung aktualisieren</string>
+    <string name="review_doodle_label">Zeichnung hinzufügen (optional)</string>
+    <string name="review_doodle_clear">Löschen</string>
+    <string name="review_doodle_cd">Zeichnung des Gastes</string>
+    <string name="review_doodle_replace">Tippen Sie auf Löschen zum Neuzeichnen</string>
+    <string name="review_quality_exceptional">Außergewöhnlich</string>
+    <string name="review_quality_excellent">Ausgezeichnet</string>
+    <string name="review_quality_very_good">Sehr gut</string>
+    <string name="review_quality_good">Gut</string>
+    <string name="review_quality_average">Durchschnittlich</string>
+    <string name="review_quality_below_average">Unterdurchschnittlich</string>
+    <string name="weather_forecast_title">5-TAGE-VORHERSAGE</string>
+    <string name="weather_feels_like">Gefühlt</string>
+    <string name="weather_humidity">Luftfeuchtigkeit</string>
+    <string name="weather_today">Heute</string>
+
+    <!-- Rating Categories -->
+    <string name="rating_cleanliness">Sauberkeit</string>
+    <string name="rating_location">Lage</string>
+    <string name="rating_comfort">Komfort</string>
+    <string name="rating_value_for_money">Preis-Leistung</string>
+    <string name="rating_facilities">Ausstattung</string>
+    <string name="rating_communication">Kommunikation</string>
+    <string name="rating_wifi">WLAN</string>
+
+    <!-- Apartment Screen -->
+    <string name="apartment_section_overview">Übersicht</string>
+    <string name="apartment_section_rooms">Zimmer &amp; Geräte</string>
+    <string name="apartment_section_rules">Hausordnung</string>
+    <string name="apartment_section_checkout">Check-out</string>
+    <string name="apartment_section_transport">Verkehr</string>
+    <string name="apartment_overview_size">Größe</string>
+    <string name="apartment_overview_capacity">Kapazität</string>
+    <string name="apartment_overview_renovated">Renoviert</string>
+    <string name="apartment_overview_size_value">%1$s m²</string>
+    <string name="apartment_overview_capacity_value">%1$d Gäste</string>
+    <string name="apartment_rooms_empty">Keine Zimmer angegeben.</string>
+    <string name="apartment_rooms_no_appliances">Keine Geräte angegeben.</string>
+    <string name="apartment_rooms_about">Über</string>
+    <string name="apartment_rooms_how_to_use">Bedienung</string>
+    <string name="apartment_item_count">%1$d Element</string>
+    <string name="apartment_item_count_plural">%1$d Elemente</string>
+    <string name="apartment_rules_empty">Keine Hausordnung angegeben.</string>
+    <string name="apartment_rules_count">%1$d Regel</string>
+    <string name="apartment_rules_count_plural">%1$d Regeln</string>
+    <string name="apartment_checkout_title">Ihr Check-out</string>
+    <string name="apartment_checkout_date">Datum</string>
+    <string name="apartment_checkout_time">Uhrzeit</string>
+    <string name="apartment_checkout_instructions">Check-out-Anweisungen</string>
+    <string name="apartment_checkout_empty">Noch keine Check-out-Informationen verfügbar.</string>
+    <string name="apartment_transport_public">Öffentliche Verkehrsmittel</string>
+    <string name="apartment_transport_private">Privater Transport</string>
+    <string name="apartment_transport_empty">Keine Verkehrsinformationen verfügbar.</string>
+
+    <!-- Admin -->
+    <string name="admin_email">E-Mail</string>
+    <string name="admin_password">Passwort</string>
+    <string name="admin_sign_in">Anmelden</string>
+    <string name="admin_select_apartment">Wohnung auswählen</string>
+    <string name="admin_invalid_credentials">Ungültige Anmeldedaten</string>
+    <string name="admin_menu_reconfigure">Wohnung neu konfigurieren</string>
+    <string name="admin_menu_exit_kiosk">Kiosk-Modus beenden</string>
+    <string name="admin_menu_enable_kiosk">Kiosk-Modus aktivieren</string>
+
+    <!-- Errors -->
+    <string name="error_generic">Etwas ist schiefgelaufen</string>
+    <string name="error_retry">Erneut versuchen</string>
+
+    <!-- Emergency Contacts Dialog -->
+    <string name="contacts_title">Notfallkontakte</string>
+    <string name="contacts_empty">Es wurden noch keine Notfallkontakte angegeben.</string>
+
+    <!-- Language Picker -->
+    <string name="language_picker_title">Sprache</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_home">Startseite</string>
+    <string name="cd_back">Zurück</string>
+    <string name="cd_close">Schließen</string>
+    <string name="cd_add_review">Bewertung hinzufügen</string>
+    <string name="cd_wifi">WLAN</string>
+    <string name="cd_checkout">Check-out</string>
+    <string name="cd_view_details">Details anzeigen</string>
+    <string name="cd_expand">Erweitern</string>
+    <string name="cd_collapse">Einklappen</string>
+    <string name="cd_toggle_theme">Design wechseln</string>
+</resources>

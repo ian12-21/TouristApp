@@ -70,6 +70,16 @@
     <string name="review_doodle_clear">Clear</string>
     <string name="review_doodle_cd">Guest doodle</string>
     <string name="review_doodle_replace">Tap Clear to redraw</string>
+    <string name="review_quality_exceptional">Exceptional</string>
+    <string name="review_quality_excellent">Excellent</string>
+    <string name="review_quality_very_good">Very Good</string>
+    <string name="review_quality_good">Good</string>
+    <string name="review_quality_average">Average</string>
+    <string name="review_quality_below_average">Below Average</string>
+    <string name="weather_forecast_title">5-DAY FORECAST</string>
+    <string name="weather_feels_like">Feels like</string>
+    <string name="weather_humidity">Humidity</string>
+    <string name="weather_today">Today</string>
 
     <!-- Rating Categories -->
     <string name="rating_cleanliness">Cleanliness</string>
@@ -126,6 +136,9 @@
     <!-- Emergency Contacts Dialog -->
     <string name="contacts_title">Emergency Contacts</string>
     <string name="contacts_empty">No emergency contacts have been provided yet.</string>
+
+    <!-- Language Picker -->
+    <string name="language_picker_title">Language</string>
 
     <!-- Content Descriptions -->
     <string name="cd_home">Home</string>

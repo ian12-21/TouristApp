@@ -1,6 +1,7 @@
 package com.touristapp.data.model
 
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.Exclude
 
 data class Appliance(
     val description: String = "",
@@ -42,7 +43,9 @@ data class Apartment(
     val id: String = "",
     val name: String = "",
     val address: String = "",
-    val description: String = "",
+    // Localized fields are resolved manually in the repository; excluded so
+    // Firestore's toObject() never tries to coerce a {en,hr,it,de} map into a String.
+    @get:Exclude val description: String = "",
     val coordinates: Map<String, Double> = emptyMap(),
     val photos: List<String> = emptyList(),
     val size: String = "",
@@ -51,10 +54,10 @@ data class Apartment(
     val wifiName: String = "",
     val wifiPassword: String = "",
     val checkoutTime: String = "",
-    val checkoutInstructions: String = "",
-    val houseRules: List<HouseRuleGroup> = emptyList(),
-    val contacts: List<Contact> = emptyList(),
-    val welcomeMessage: String = "",
+    @get:Exclude val checkoutInstructions: String = "",
+    @get:Exclude val houseRules: List<HouseRuleGroup> = emptyList(),
+    @get:Exclude val contacts: List<Contact> = emptyList(),
+    @get:Exclude val welcomeMessage: String = "",
     val transportation: List<TransportationItem> = emptyList(),
     val currentStayId: String? = null,
     val updatedAt: Timestamp? = null
@@ -66,8 +69,8 @@ data class Stay(
     val apartmentId: String = "",
     val checkIn: Timestamp? = null,
     val checkOut: Timestamp? = null,
-    val welcomeMessage: String = "",
-    val notes: String = "",
+    @get:Exclude val welcomeMessage: String = "",
+    @get:Exclude val notes: String = "",
     val status: String = "",
     val createdAt: Timestamp? = null
 )
@@ -95,10 +98,10 @@ data class Place(
     val id: String = "",
     val name: String = "",
     val category: String = "",
-    val description: String = "",
+    @get:Exclude val description: String = "",
     val thumbImageUrl: String = "",
     val images: List<String> = emptyList(),
-    val tips: String = "",
+    @get:Exclude val tips: String = "",
     val phone: String = "",
     val address: String = "",
     val isActive: Boolean = true,

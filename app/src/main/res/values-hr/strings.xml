@@ -1,0 +1,154 @@
+<resources>
+    <string name="app_name">Tourist App</string>
+
+    <!-- Home Screen -->
+    <string name="home_welcome">Dobrodošli!</string>
+    <string name="home_welcome_with_name">Dobrodošli %1$s</string>
+    <string name="home_wifi_label">Wi-Fi: %1$s</string>
+    <string name="home_wifi_not_configured">Nije postavljeno</string>
+    <string name="home_wifi_password">Lozinka: %1$s</string>
+    <string name="home_contacts">Kontakti</string>
+    <string name="home_action_apartment">Apartman</string>
+    <string name="home_action_explore">Istraži</string>
+    <string name="home_action_beaches">Plaže</string>
+    <string name="home_action_review">Recenzija</string>
+    <string name="home_action_house_rules">Kućni red</string>
+    <string name="home_action_transport">Prijevoz</string>
+    <string name="home_action_emergency">Hitne službe</string>
+    <string name="home_checkout_by_time_and_date">Odjava do %1$s dana %2$s</string>
+    <string name="home_checkout_by_time">Odjava do %1$s</string>
+    <string name="home_checkout_on_date">Odjava %1$s</string>
+    <string name="home_checkout_not_set">Informacije o odjavi nisu postavljene</string>
+
+    <!-- Places Screen -->
+    <string name="places_title">Istraži</string>
+    <string name="places_subtitle">Najbolji odabir vašeg domaćina</string>
+    <string name="places_see_all">Prikaži sve</string>
+    <string name="places_empty">Još nema mjesta za istraživanje</string>
+    <string name="places_category_empty">Nema rezultata za %1$s</string>
+
+    <!-- Place Categories -->
+    <string name="category_beach">Plaže</string>
+    <string name="category_restaurant">Restorani</string>
+    <string name="category_cafe">Piće i kava</string>
+    <string name="category_store">Trgovine</string>
+    <string name="category_pharmacy">Ljekarne</string>
+    <string name="category_attraction">Atrakcije</string>
+    <string name="category_nightlife">Noćni život</string>
+    <string name="category_activity">Aktivnosti</string>
+
+    <!-- Place Detail -->
+    <string name="place_detail_tip">Savjet</string>
+    <string name="place_detail_call">Nazovi</string>
+    <string name="place_detail_contact">Kontakt</string>
+    <string name="place_detail_maps">Otvori u Kartama</string>
+    <string name="place_detail_photos">Fotografije</string>
+
+    <!-- Reviews Screen -->
+    <string name="reviews_empty_title">Još nema recenzija</string>
+    <string name="reviews_empty_subtitle">Budite prvi koji će podijeliti svoje iskustvo!</string>
+    <string name="reviews_count">%1$d recenzija</string>
+    <string name="reviews_count_plural">%1$d recenzija</string>
+    <string name="reviews_score_suffix">/ 10</string>
+    <string name="reviews_edit">Uredi</string>
+
+    <!-- Create/Edit Review -->
+    <string name="review_create_title">Dodaj recenziju</string>
+    <string name="review_edit_title">Uredi recenziju</string>
+    <string name="review_who_reviewing">Tko piše recenziju?</string>
+    <string name="review_existing_notice">%1$s već ima recenziju za ovaj boravak. Možete je urediti u nastavku.</string>
+    <string name="review_rate_experience">Ocijenite svoje iskustvo</string>
+    <string name="review_overall">Ukupno: </string>
+    <string name="review_out_of_ten"> / 10</string>
+    <string name="review_comment_label">Komentar (neobavezno)</string>
+    <string name="review_comment_placeholder">Podijelite svoje iskustvo…</string>
+    <string name="review_comment_counter">%1$d / 500</string>
+    <string name="review_select_guest">Odaberite gosta za nastavak</string>
+    <string name="review_submit">Pošalji recenziju</string>
+    <string name="review_update">Ažuriraj recenziju</string>
+    <string name="review_doodle_label">Dodaj crtež (neobavezno)</string>
+    <string name="review_doodle_clear">Obriši</string>
+    <string name="review_doodle_cd">Gostov crtež</string>
+    <string name="review_doodle_replace">Dodirnite Obriši za ponovno crtanje</string>
+    <string name="review_quality_exceptional">Iznimno</string>
+    <string name="review_quality_excellent">Izvrsno</string>
+    <string name="review_quality_very_good">Vrlo dobro</string>
+    <string name="review_quality_good">Dobro</string>
+    <string name="review_quality_average">Prosječno</string>
+    <string name="review_quality_below_average">Ispod prosjeka</string>
+    <string name="weather_forecast_title">PROGNOZA ZA 5 DANA</string>
+    <string name="weather_feels_like">Osjećaj</string>
+    <string name="weather_humidity">Vlažnost</string>
+    <string name="weather_today">Danas</string>
+
+    <!-- Rating Categories -->
+    <string name="rating_cleanliness">Čistoća</string>
+    <string name="rating_location">Lokacija</string>
+    <string name="rating_comfort">Udobnost</string>
+    <string name="rating_value_for_money">Omjer cijene i kvalitete</string>
+    <string name="rating_facilities">Sadržaji</string>
+    <string name="rating_communication">Komunikacija</string>
+    <string name="rating_wifi">Wi-Fi</string>
+
+    <!-- Apartment Screen -->
+    <string name="apartment_section_overview">Pregled</string>
+    <string name="apartment_section_rooms">Sobe i uređaji</string>
+    <string name="apartment_section_rules">Kućni red</string>
+    <string name="apartment_section_checkout">Odjava</string>
+    <string name="apartment_section_transport">Prijevoz</string>
+    <string name="apartment_overview_size">Veličina</string>
+    <string name="apartment_overview_capacity">Kapacitet</string>
+    <string name="apartment_overview_renovated">Obnovljeno</string>
+    <string name="apartment_overview_size_value">%1$s m²</string>
+    <string name="apartment_overview_capacity_value">%1$d gostiju</string>
+    <string name="apartment_rooms_empty">Nema navedenih soba.</string>
+    <string name="apartment_rooms_no_appliances">Nema navedenih uređaja.</string>
+    <string name="apartment_rooms_about">O uređaju</string>
+    <string name="apartment_rooms_how_to_use">Kako koristiti</string>
+    <string name="apartment_item_count">%1$d stavka</string>
+    <string name="apartment_item_count_plural">%1$d stavki</string>
+    <string name="apartment_rules_empty">Nema navedenih kućnih pravila.</string>
+    <string name="apartment_rules_count">%1$d pravilo</string>
+    <string name="apartment_rules_count_plural">%1$d pravila</string>
+    <string name="apartment_checkout_title">Vaša odjava</string>
+    <string name="apartment_checkout_date">Datum</string>
+    <string name="apartment_checkout_time">Vrijeme</string>
+    <string name="apartment_checkout_instructions">Upute za odjavu</string>
+    <string name="apartment_checkout_empty">Informacije o odjavi još nisu dostupne.</string>
+    <string name="apartment_transport_public">Javni prijevoz</string>
+    <string name="apartment_transport_private">Privatni prijevoz</string>
+    <string name="apartment_transport_empty">Informacije o prijevozu nisu dostupne.</string>
+
+    <!-- Admin -->
+    <string name="admin_email">E-pošta</string>
+    <string name="admin_password">Lozinka</string>
+    <string name="admin_sign_in">Prijava</string>
+    <string name="admin_select_apartment">Odaberite apartman</string>
+    <string name="admin_invalid_credentials">Neispravni podaci</string>
+    <string name="admin_menu_reconfigure">Ponovno postavi apartman</string>
+    <string name="admin_menu_exit_kiosk">Izađi iz kiosk načina</string>
+    <string name="admin_menu_enable_kiosk">Omogući kiosk način</string>
+
+    <!-- Errors -->
+    <string name="error_generic">Nešto je pošlo po krivu</string>
+    <string name="error_retry">Pokušaj ponovno</string>
+
+    <!-- Emergency Contacts Dialog -->
+    <string name="contacts_title">Hitni kontakti</string>
+    <string name="contacts_empty">Hitni kontakti još nisu navedeni.</string>
+
+    <!-- Language Picker -->
+    <string name="language_picker_title">Jezik</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_home">Početna</string>
+    <string name="cd_back">Natrag</string>
+    <string name="cd_close">Zatvori</string>
+    <string name="cd_add_review">Dodaj recenziju</string>
+    <string name="cd_wifi">WiFi</string>
+    <string name="cd_checkout">Odjava</string>
+    <string name="cd_view_details">Prikaži pojedinosti</string>
+    <string name="cd_expand">Proširi</string>
+    <string name="cd_collapse">Sažmi</string>
+    <string name="cd_toggle_theme">Promijeni temu</string>
+</resources>

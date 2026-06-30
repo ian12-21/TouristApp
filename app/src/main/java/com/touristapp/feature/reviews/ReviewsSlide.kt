@@ -1,5 +1,6 @@
 package com.touristapp.feature.reviews
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -46,13 +47,14 @@ private fun scoreColor(score: Double): Color = when {
     else -> Color(0xFF4ECDC4)
 }
 
-private fun qualitativeLabel(score: Double): String = when {
-    score >= 9.0 -> "Exceptional"
-    score >= 8.0 -> "Excellent"
-    score >= 7.0 -> "Very Good"
-    score >= 6.0 -> "Good"
-    score >= 5.0 -> "Average"
-    else -> "Below Average"
+@StringRes
+private fun qualitativeLabelRes(score: Double): Int = when {
+    score >= 9.0 -> R.string.review_quality_exceptional
+    score >= 8.0 -> R.string.review_quality_excellent
+    score >= 7.0 -> R.string.review_quality_very_good
+    score >= 6.0 -> R.string.review_quality_good
+    score >= 5.0 -> R.string.review_quality_average
+    else -> R.string.review_quality_below_average
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -201,7 +203,7 @@ private fun AggregateScoreCard(reviews: List<Review>) {
                 )
             }
             Text(
-                text = qualitativeLabel(avgScore),
+                text = stringResource(qualitativeLabelRes(avgScore)),
                 style = MaterialTheme.typography.labelLarge,
                 color = scoreColor(avgScore)
             )

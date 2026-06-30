@@ -25,6 +25,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.touristapp.R
+import com.touristapp.core.i18n.AppLanguage
 import com.touristapp.core.ui.components.ErrorContent
 import com.touristapp.core.ui.components.WeatherDialog
 import com.touristapp.core.ui.components.weatherIconFor
@@ -45,6 +46,8 @@ import kotlin.math.roundToInt
 @Composable
 fun AppNavigation(
     uiState: MainUiState,
+    currentLanguage: String,
+    onSelectLanguage: (String) -> Unit,
     onReconfigure: () -> Unit,
     onNavigateToApartment: () -> Unit,
     onNavigateToPlace: (Place) -> Unit,
@@ -72,6 +75,7 @@ fun AppNavigation(
 
     var showAdminDialog by remember { mutableStateOf(false) }
     var showWeatherDialog by remember { mutableStateOf(false) }
+    var showLanguageDialog by remember { mutableStateOf(false) }
     var cooldownUntil by remember { mutableLongStateOf(0L) }
 
     val pageCount = 4
@@ -211,10 +215,14 @@ fun AppNavigation(
                                 .size(40.dp)
                                 .clip(MaterialTheme.shapes.small)
                                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.small),
+                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.small)
+                                .clickable { showLanguageDialog = true },
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("\uD83C\uDDEC\uD83C\uDDE7", style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                AppLanguage.fromCode(currentLanguage).flag,
+                                style = MaterialTheme.typography.titleMedium
+                            )
                         }
                     }
                 )
@@ -332,6 +340,14 @@ fun AppNavigation(
             weatherInfo = uiState.weatherInfo,
             weekForecast = uiState.weekForecast,
             onDismiss = { showWeatherDialog = false }
+        )
+    }
+
+    if (showLanguageDialog) {
+        LanguagePickerDialog(
+            currentLanguage = currentLanguage,
+            onSelect = onSelectLanguage,
+            onDismiss = { showLanguageDialog = false }
         )
     }
 }

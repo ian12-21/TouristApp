@@ -48,7 +48,8 @@ data class MainUiState(
     val cachedEmergencyContacts: List<Contact> = emptyList(),
     val transportationServices: List<TransportationService> = emptyList(),
     val isDarkTheme: Boolean = true,
-    val isKioskEnabled: Boolean = false
+    val isKioskEnabled: Boolean = false,
+    val language: String = "en"
 )
 
 @HiltViewModel
@@ -73,7 +74,8 @@ class MainViewModel @Inject constructor(
                 isLoading = savedId != null,
                 weatherInfo = prefs.getLastWeather(),
                 isDarkTheme = prefs.isDarkTheme(),
-                isKioskEnabled = prefs.isKioskEnabled()
+                isKioskEnabled = prefs.isKioskEnabled(),
+                language = prefs.getLanguage()
             )
         }
         if (savedId != null) {
@@ -108,7 +110,8 @@ class MainViewModel @Inject constructor(
         prefs.clear()
         _uiState.value = MainUiState(
             isDarkTheme = prefs.isDarkTheme(),
-            isKioskEnabled = prefs.isKioskEnabled()
+            isKioskEnabled = prefs.isKioskEnabled(),
+            language = prefs.getLanguage()
         )
     }
 
@@ -121,6 +124,18 @@ class MainViewModel @Inject constructor(
         val next = !_uiState.value.isDarkTheme
         prefs.setDarkTheme(next)
         _uiState.update { it.copy(isDarkTheme = next) }
+    }
+
+    /**
+     * Persist the chosen language and re-resolve already-loaded content to it.
+     * The Activity recreates afterwards to apply the per-app locale to UI chrome;
+     * this re-read is cache-only (no network) since the raw maps are unchanged.
+     */
+    fun setLanguage(code: String) {
+        if (code == _uiState.value.language) return
+        prefs.setLanguage(code)
+        _uiState.update { it.copy(language = code) }
+        _uiState.value.apartmentId?.let { loadApartmentData(it) }
     }
 
     fun navigateToApartment() {

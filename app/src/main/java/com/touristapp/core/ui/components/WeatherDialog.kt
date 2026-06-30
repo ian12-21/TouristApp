@@ -14,10 +14,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.touristapp.R
 import com.touristapp.data.model.DailyForecast
 import com.touristapp.data.model.WeatherInfo
 import java.time.LocalDate
@@ -48,7 +50,7 @@ fun WeatherDialog(
                     val today = LocalDate.now()
 
                     Text(
-                        text = "5-DAY FORECAST",
+                        text = stringResource(R.string.weather_forecast_title),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.SemiBold,
                         letterSpacing = 1.5.sp,
@@ -94,7 +96,7 @@ private fun WeatherHero(weatherInfo: WeatherInfo, onDismiss: () -> Unit) {
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
-                contentDescription = "Close",
+                contentDescription = stringResource(R.string.cd_close),
                 tint = Color.White.copy(alpha = 0.9f)
             )
         }
@@ -156,13 +158,13 @@ private fun WeatherHero(weatherInfo: WeatherInfo, onDismiss: () -> Unit) {
                 Column(horizontalAlignment = Alignment.End) {
                     WeatherChip(
                         icon = Icons.Default.Thermostat,
-                        label = "Feels like",
+                        label = stringResource(R.string.weather_feels_like),
                         value = "${weatherInfo.feelsLike.roundToInt()}°C"
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     WeatherChip(
                         icon = Icons.Default.WaterDrop,
-                        label = "Humidity",
+                        label = stringResource(R.string.weather_humidity),
                         value = "${weatherInfo.humidity}%"
                     )
                 }
@@ -208,7 +210,7 @@ private fun ForecastRow(
     forecast: DailyForecast,
     isToday: Boolean
 ) {
-    val dayLabel = if (isToday) "Today"
+    val dayLabel = if (isToday) stringResource(R.string.weather_today)
     else forecast.date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
 
     Row(
