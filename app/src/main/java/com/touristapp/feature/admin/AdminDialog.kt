@@ -23,7 +23,7 @@ fun AdminDialog(
     val viewModel: AdminViewModel = hiltViewModel()
     LaunchedEffect(Unit) { viewModel.lock() }
     Dialog(onDismissRequest = onDismiss) {
-        ProvideLocalizedContext {
+        ProvideLocalizedContext(language = "en") {
         Card(
             modifier = Modifier.widthIn(max = 400.dp)
         ) {
