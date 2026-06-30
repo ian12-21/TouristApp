@@ -63,7 +63,6 @@ fun HomeSlide(
             .padding(horizontal = 20.dp, vertical = 24.dp)
     ) {
         val welcomeText = currentStay?.welcomeMessage?.takeIf { it.isNotBlank() }
-            ?.let { stringResource(R.string.home_welcome_with_name, it) }
             ?: stringResource(R.string.home_welcome)
 
         Spacer(modifier = Modifier.weight(1f))

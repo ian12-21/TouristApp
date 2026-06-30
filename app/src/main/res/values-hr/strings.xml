@@ -3,7 +3,6 @@
 
     <!-- Home Screen -->
     <string name="home_welcome">Dobrodošli!</string>
-    <string name="home_welcome_with_name">Dobrodošli %1$s</string>
     <string name="home_wifi_label">Wi-Fi: %1$s</string>
     <string name="home_wifi_not_configured">Nije postavljeno</string>
     <string name="home_wifi_password">Lozinka: %1$s</string>

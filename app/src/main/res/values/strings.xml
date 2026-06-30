@@ -3,7 +3,6 @@
 
     <!-- Home Screen -->
     <string name="home_welcome">Welcome!</string>
-    <string name="home_welcome_with_name">Welcome %1$s</string>
     <string name="home_wifi_label">Wi-Fi: %1$s</string>
     <string name="home_wifi_not_configured">Not configured</string>
     <string name="home_wifi_password">Password: %1$s</string>
