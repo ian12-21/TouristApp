@@ -16,6 +16,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.touristapp.core.i18n.ProvideLocalizedContext
+import com.touristapp.core.ui.components.LanguageSwitchOverlay
 import com.touristapp.core.ui.theme.TouristAppTheme
 import com.touristapp.feature.main.AppNavigation
 import com.touristapp.feature.main.MainViewModel
@@ -63,42 +65,48 @@ class MainActivity : ComponentActivity() {
                 lifecycleOwner.lifecycle.addObserver(observer)
                 onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
             }
-            TouristAppTheme(darkTheme = uiState.isDarkTheme) {
-                if (uiState.apartmentId == null) {
-                    SetupScreen(
-                        onApartmentSelected = viewModel::selectApartment
-                    )
-                } else {
-                    LaunchedEffect(uiState.isKioskEnabled) {
-                        if (kioskManager.isDeviceOwner() && uiState.isKioskEnabled) {
-                            kioskManager.enterKioskMode()
+            // Apply the chosen language reactively (no Activity recreate, so the switch can be
+            // animated). This re-resolves every stringResource() and the weather day-name locale
+            // when uiState.language changes. attachBaseContext still seeds the locale on cold start.
+            // Dialogs re-apply ProvideLocalizedContext themselves (separate windows don't inherit
+            // the platform LocalContext override).
+            ProvideLocalizedContext(language = uiState.language) {
+                TouristAppTheme(darkTheme = uiState.isDarkTheme) {
+                    LanguageSwitchOverlay(isSwitching = uiState.isSwitchingLanguage) {
+                        if (uiState.apartmentId == null) {
+                            SetupScreen(
+                                onApartmentSelected = viewModel::selectApartment
+                            )
+                        } else {
+                            LaunchedEffect(uiState.isKioskEnabled) {
+                                if (kioskManager.isDeviceOwner() && uiState.isKioskEnabled) {
+                                    kioskManager.enterKioskMode()
+                                }
+                            }
+                            AppNavigation(
+                                uiState = uiState,
+                                currentLanguage = uiState.language,
+                                onSelectLanguage = viewModel::setLanguage,
+                                onReconfigure = viewModel::reconfigure,
+                                onNavigateToApartment = viewModel::navigateToApartment,
+                                onNavigateToPlace = viewModel::navigateToPlace,
+                                onNavigateToCategory = viewModel::navigateToCategory,
+                                onNavigateBack = viewModel::navigateBack,
+                                onPlacesLoaded = viewModel::onPlacesLoaded,
+                                onRetryLoad = viewModel::retryLoad,
+                                onToggleTheme = viewModel::toggleTheme,
+                                isKioskEnabled = uiState.isKioskEnabled,
+                                onExitKiosk = {
+                                    viewModel.setKioskEnabled(false)
+                                    kioskManager.exitKioskMode()
+                                },
+                                onEnableKiosk = {
+                                    viewModel.setKioskEnabled(true)
+                                    kioskManager.enterKioskMode()
+                                }
+                            )
                         }
                     }
-                    AppNavigation(
-                        uiState = uiState,
-                        currentLanguage = uiState.language,
-                        onSelectLanguage = { code ->
-                            viewModel.setLanguage(code)
-                            recreate()
-                        },
-                        onReconfigure = viewModel::reconfigure,
-                        onNavigateToApartment = viewModel::navigateToApartment,
-                        onNavigateToPlace = viewModel::navigateToPlace,
-                        onNavigateToCategory = viewModel::navigateToCategory,
-                        onNavigateBack = viewModel::navigateBack,
-                        onPlacesLoaded = viewModel::onPlacesLoaded,
-                        onRetryLoad = viewModel::retryLoad,
-                        onToggleTheme = viewModel::toggleTheme,
-                        isKioskEnabled = uiState.isKioskEnabled,
-                        onExitKiosk = {
-                            viewModel.setKioskEnabled(false)
-                            kioskManager.exitKioskMode()
-                        },
-                        onEnableKiosk = {
-                            viewModel.setKioskEnabled(true)
-                            kioskManager.enterKioskMode()
-                        }
-                    )
                 }
             }
         }

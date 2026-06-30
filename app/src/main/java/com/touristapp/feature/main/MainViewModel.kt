@@ -49,7 +49,8 @@ data class MainUiState(
     val transportationServices: List<TransportationService> = emptyList(),
     val isDarkTheme: Boolean = true,
     val isKioskEnabled: Boolean = false,
-    val language: String = "en"
+    val language: String = "en",
+    val isSwitchingLanguage: Boolean = false
 )
 
 @HiltViewModel
@@ -127,15 +128,19 @@ class MainViewModel @Inject constructor(
     }
 
     /**
-     * Persist the chosen language and re-resolve already-loaded content to it.
-     * The Activity recreates afterwards to apply the per-app locale to UI chrome;
-     * this re-read is cache-only (no network) since the raw maps are unchanged.
+     * Persist the chosen language and re-resolve already-loaded content to it. The locale is now
+     * applied reactively in Compose (no Activity recreate), and a blur+spinner overlay covers the
+     * reload: [isSwitchingLanguage] stays true until [loadApartmentData] completes, so both the
+     * localized strings and the re-fetched content swap in while hidden.
      */
     fun setLanguage(code: String) {
         if (code == _uiState.value.language) return
         prefs.setLanguage(code)
-        _uiState.update { it.copy(language = code) }
-        _uiState.value.apartmentId?.let { loadApartmentData(it) }
+        val apartmentId = _uiState.value.apartmentId
+        // Only show the reload overlay when there's content to re-fetch; otherwise it would never
+        // clear (loadApartmentData clears the flag on completion).
+        _uiState.update { it.copy(language = code, isSwitchingLanguage = apartmentId != null) }
+        apartmentId?.let { loadApartmentData(it) }
     }
 
     fun navigateToApartment() {
@@ -159,7 +164,26 @@ class MainViewModel @Inject constructor(
     }
 
     fun onPlacesLoaded(places: List<Place>) {
-        _uiState.update { it.copy(cachedPlaces = places) }
+        updateCachedPlaces(places)
+    }
+
+    /**
+     * Replaces the cached places and keeps any open place-detail overlay in sync: the overlay
+     * holds a snapshot taken at navigation time, so without this a language change would leave
+     * the open detail screen showing the previous language's description and tips.
+     */
+    private fun updateCachedPlaces(places: List<Place>) {
+        _uiState.update { state ->
+            val overlay = state.overlayScreen
+            val refreshedOverlay = if (overlay is OverlayScreen.PlaceDetail) {
+                places.firstOrNull { it.id == overlay.place.id }
+                    ?.let { OverlayScreen.PlaceDetail(it) }
+                    ?: overlay
+            } else {
+                overlay
+            }
+            state.copy(cachedPlaces = places, overlayScreen = refreshedOverlay)
+        }
     }
 
     private fun loadApartmentData(apartmentId: String, forceServer: Boolean = false) {
@@ -173,6 +197,7 @@ class MainViewModel @Inject constructor(
                             apartment = apartment,
                             apartmentName = apartment.name,
                             isLoading = false,
+                            isSwitchingLanguage = false,
                             error = null
                         )
                     }
@@ -183,7 +208,12 @@ class MainViewModel @Inject constructor(
                 is Resource.Error -> {
                     // Keep any cached data already on screen during a silent refresh.
                     if (!forceServer) {
-                        _uiState.update { it.copy(isLoading = false, error = result.message) }
+                        _uiState.update {
+                            it.copy(isLoading = false, isSwitchingLanguage = false, error = result.message)
+                        }
+                    } else {
+                        // A failed language-switch refresh must still drop the overlay.
+                        _uiState.update { it.copy(isSwitchingLanguage = false) }
                     }
                 }
                 is Resource.Loading -> {}
@@ -214,7 +244,7 @@ class MainViewModel @Inject constructor(
     private fun prefetchSecondaryData(apartmentId: String, apartment: Apartment, forceServer: Boolean) {
         viewModelScope.launch {
             when (val result = touristRepository.getPlacesForApartment(apartmentId, forceServer)) {
-                is Resource.Success -> _uiState.update { it.copy(cachedPlaces = result.data) }
+                is Resource.Success -> updateCachedPlaces(result.data)
                 else -> {}
             }
         }

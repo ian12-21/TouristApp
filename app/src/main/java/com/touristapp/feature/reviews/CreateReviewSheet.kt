@@ -33,6 +33,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.draw.clip
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.touristapp.R
+import com.touristapp.core.i18n.ProvideLocalizedContext
 import com.touristapp.core.ui.components.DoodleCanvas
 import com.touristapp.core.util.decodeDoodle
 import com.touristapp.data.model.Guest
@@ -69,6 +70,7 @@ fun CreateReviewSheet(
             decorFitsSystemWindows = false
         )
     ) {
+        ProvideLocalizedContext {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -401,6 +403,7 @@ fun CreateReviewSheet(
                     }
                 }
             }
+        }
         }
         }
     }

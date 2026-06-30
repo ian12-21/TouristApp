@@ -29,9 +29,13 @@ class PlacesViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(PlacesUiState())
     val uiState: StateFlow<PlacesUiState> = _uiState.asStateFlow()
 
-    /** Seeds prefetched places so the screen renders instantly; loadPlaces still refreshes. */
+    /**
+     * Seeds prefetched places so the screen renders instantly; loadPlaces still refreshes.
+     * Re-seeds whenever the incoming list differs — e.g. after a language change, when the
+     * caller hands down a freshly re-localized list — so the screen never shows stale content.
+     */
     fun seed(places: List<Place>) {
-        if (places.isEmpty() || _uiState.value.places.isNotEmpty()) return
+        if (places.isEmpty() || places == _uiState.value.places) return
         _uiState.update { it.copy(places = places, isLoading = false, error = null) }
     }
 

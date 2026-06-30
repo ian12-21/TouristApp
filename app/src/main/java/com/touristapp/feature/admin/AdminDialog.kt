@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.touristapp.core.i18n.ProvideLocalizedContext
 import com.touristapp.feature.admin.AdminViewModel
 @Composable
 fun AdminDialog(
@@ -22,6 +23,7 @@ fun AdminDialog(
     val viewModel: AdminViewModel = hiltViewModel()
     LaunchedEffect(Unit) { viewModel.lock() }
     Dialog(onDismissRequest = onDismiss) {
+        ProvideLocalizedContext {
         Card(
             modifier = Modifier.widthIn(max = 400.dp)
         ) {
@@ -35,6 +37,7 @@ fun AdminDialog(
                 onEnableKiosk = onEnableKiosk,
                 modifier = Modifier.padding(24.dp)
             )
+        }
         }
     }
 }

@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.touristapp.R
 import com.touristapp.core.i18n.AppLanguage
+import com.touristapp.core.i18n.ProvideLocalizedContext
 
 /**
  * A simple popup to choose the app language. Highlights the active language and
@@ -29,6 +30,7 @@ fun LanguagePickerDialog(
     onDismiss: () -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss) {
+        ProvideLocalizedContext {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -57,6 +59,7 @@ fun LanguagePickerDialog(
                     )
                 }
             }
+        }
         }
     }
 }

@@ -27,9 +27,13 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    /** Seeds prefetched contacts so the dialog opens instantly; loadEmergencyContacts still refreshes. */
+    /**
+     * Seeds prefetched contacts so the dialog opens instantly; loadEmergencyContacts still refreshes.
+     * Re-seeds when the incoming list differs so a language change (which re-localizes the contact
+     * names upstream) propagates instead of being blocked by the already-loaded guard.
+     */
     fun seed(contacts: List<Contact>) {
-        if (contacts.isEmpty() || _uiState.value.emergencyContacts.isNotEmpty()) return
+        if (contacts.isEmpty() || contacts == _uiState.value.emergencyContacts) return
         _uiState.update { it.copy(emergencyContacts = contacts, isLoadingContacts = false) }
     }
 

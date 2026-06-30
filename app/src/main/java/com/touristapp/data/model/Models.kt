@@ -58,7 +58,9 @@ data class Apartment(
     @get:Exclude val houseRules: List<HouseRuleGroup> = emptyList(),
     @get:Exclude val contacts: List<Contact> = emptyList(),
     @get:Exclude val welcomeMessage: String = "",
-    val transportation: List<TransportationItem> = emptyList(),
+    // Rebuilt manually in the repository (its description is a localized map); excluded so
+    // Firestore's toObject() never tries to coerce that map into TransportationItem.description.
+    @get:Exclude val transportation: List<TransportationItem> = emptyList(),
     val currentStayId: String? = null,
     val updatedAt: Timestamp? = null
 )

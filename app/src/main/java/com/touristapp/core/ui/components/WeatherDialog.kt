@@ -14,12 +14,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.touristapp.R
+import com.touristapp.core.i18n.ProvideLocalizedContext
 import com.touristapp.data.model.DailyForecast
 import com.touristapp.data.model.WeatherInfo
 import java.time.LocalDate
@@ -34,6 +36,7 @@ fun WeatherDialog(
     onDismiss: () -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss) {
+        ProvideLocalizedContext {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -75,6 +78,7 @@ fun WeatherDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
             }
+        }
         }
     }
 }
@@ -210,8 +214,11 @@ private fun ForecastRow(
     forecast: DailyForecast,
     isToday: Boolean
 ) {
+    // Use the app's selected language (set as the configuration locale in attachBaseContext),
+    // not Locale.getDefault() — the latter is the device locale and ignores the in-app picker.
+    val locale = LocalConfiguration.current.locales[0] ?: Locale.getDefault()
     val dayLabel = if (isToday) stringResource(R.string.weather_today)
-    else forecast.date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+    else forecast.date.dayOfWeek.getDisplayName(TextStyle.SHORT, locale)
 
     Row(
         modifier = Modifier

@@ -32,22 +32,21 @@ class TouristRepositoryImpl @Inject constructor(
     /** The language currently selected by the guest, used to resolve localized content. */
     private val lang: String get() = prefs.getLanguage()
 
-    /** Reads from the local persistent cache first; falls back to the server on a cache miss. */
+    /**
+     * Server-first read: when online, fetches fresh data from the server (and updates the local
+     * cache); when offline, [Source.DEFAULT] transparently falls back to the cache. This keeps the
+     * tablet in sync with admin edits while staying usable on a flaky connection. [forceServer]
+     * skips the cache entirely (used for refreshes that must never read stale data).
+     */
     private suspend fun fetch(query: Query, forceServer: Boolean): QuerySnapshot {
-        if (!forceServer) {
-            val cached = query.get(Source.CACHE).await()
-            if (!cached.isEmpty) return cached
-        }
-        return query.get(Source.SERVER).await()
+        val source = if (forceServer) Source.SERVER else Source.DEFAULT
+        return query.get(source).await()
     }
 
     /** Single-document equivalent of [fetch]. */
     private suspend fun fetchDoc(ref: DocumentReference, forceServer: Boolean): DocumentSnapshot {
-        if (!forceServer) {
-            val cached = ref.get(Source.CACHE).await()
-            if (cached.exists()) return cached
-        }
-        return ref.get(Source.SERVER).await()
+        val source = if (forceServer) Source.SERVER else Source.DEFAULT
+        return ref.get(source).await()
     }
 
     override suspend fun ensureAnonymousAuth(): Resource<Unit> {

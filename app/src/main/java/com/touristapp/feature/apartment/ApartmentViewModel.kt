@@ -28,12 +28,19 @@ class ApartmentViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ApartmentUiState())
     val uiState: StateFlow<ApartmentUiState> = _uiState.asStateFlow()
 
+    /**
+     * Re-fetches rooms every time the screen opens (the repository is server-first, so this picks
+     * up admin edits and the current language). Only blocks while a load is already in flight.
+     * Existing rooms stay on screen during the refresh; the spinner shows only on the first load.
+     */
     fun loadData(apartmentId: String) {
-        if (_uiState.value.rooms.isNotEmpty() || _uiState.value.isLoading) return
-        _uiState.update { it.copy(isLoading = true, error = null) }
+        if (_uiState.value.isLoading) return
+        if (_uiState.value.rooms.isEmpty()) {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+        }
         viewModelScope.launch {
             when (val result = repository.getRooms(apartmentId)) {
-                is Resource.Success -> _uiState.update { it.copy(rooms = result.data) }
+                is Resource.Success -> _uiState.update { it.copy(rooms = result.data, error = null) }
                 is Resource.Error -> _uiState.update { it.copy(error = result.message) }
                 is Resource.Loading -> {}
             }
