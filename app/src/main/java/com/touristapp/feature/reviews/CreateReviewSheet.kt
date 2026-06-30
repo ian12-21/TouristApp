@@ -26,14 +26,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.draw.clip
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.touristapp.R
-import com.touristapp.core.i18n.ProvideLocalizedContext
+import com.touristapp.core.ui.components.AppDialog
 import com.touristapp.core.ui.components.DoodleCanvas
 import com.touristapp.core.util.decodeDoodle
 import com.touristapp.data.model.Guest
@@ -63,14 +62,13 @@ fun CreateReviewSheet(
         }
     }
 
-    Dialog(
+    AppDialog(
         onDismissRequest = { viewModel.dismissCreateSheet() },
         properties = DialogProperties(
             usePlatformDefaultWidth = false,
             decorFitsSystemWindows = false
         )
     ) {
-        ProvideLocalizedContext {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -403,7 +401,6 @@ fun CreateReviewSheet(
                     }
                 }
             }
-        }
         }
         }
     }

@@ -16,9 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import com.touristapp.R
-import com.touristapp.core.i18n.ProvideLocalizedContext
 import com.touristapp.data.model.Contact
 
 @Composable
@@ -29,8 +27,7 @@ fun ContactsDialog(
     errorMessage: String? = null,
     onRetry: (() -> Unit)? = null
 ) {
-    Dialog(onDismissRequest = onDismiss) {
-        ProvideLocalizedContext {
+    AppDialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -141,7 +138,6 @@ fun ContactsDialog(
                 }
 
             }
-        }
         }
     }
 }

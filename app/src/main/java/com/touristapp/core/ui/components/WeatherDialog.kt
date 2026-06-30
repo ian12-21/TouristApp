@@ -19,9 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import com.touristapp.R
-import com.touristapp.core.i18n.ProvideLocalizedContext
 import com.touristapp.data.model.DailyForecast
 import com.touristapp.data.model.WeatherInfo
 import java.time.LocalDate
@@ -35,8 +33,7 @@ fun WeatherDialog(
     weekForecast: List<DailyForecast> = emptyList(),
     onDismiss: () -> Unit
 ) {
-    Dialog(onDismissRequest = onDismiss) {
-        ProvideLocalizedContext {
+    AppDialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -78,7 +75,6 @@ fun WeatherDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
             }
-        }
         }
     }
 }
