@@ -4,7 +4,10 @@ import android.app.Activity
 import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.util.Log
+import com.touristapp.MainActivity
 import com.touristapp.admin.KioskAdminReceiver
 
 /**
@@ -34,19 +37,44 @@ class KioskManager(private val activity: Activity) {
         }
         try {
             dpm.setLockTaskPackages(adminComponent, arrayOf(activity.packageName))
+            setAsPersistentHome()
             activity.startLockTask()
         } catch (e: Exception) {
             Log.e(TAG, "Failed to enter kiosk mode", e)
         }
     }
 
-    /** Stops lock task. Safe to call even when not currently locked. */
+    /** Stops lock task and releases the home binding. Safe to call even when not currently locked. */
     fun exitKioskMode() {
         try {
+            clearPersistentHome()
             activity.stopLockTask()
         } catch (e: Exception) {
             Log.e(TAG, "Failed to exit kiosk mode", e)
         }
+    }
+
+    /**
+     * Pins this app as the device's HOME activity so it relaunches on every boot
+     * (battery die, manual shutdown). Without this, lock task is lost on reboot and
+     * the tablet boots to the stock launcher instead of the kiosk. Device owner only.
+     */
+    private fun setAsPersistentHome() {
+        val filter = IntentFilter(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_HOME)
+            addCategory(Intent.CATEGORY_DEFAULT)
+        }
+        dpm.addPersistentPreferredActivity(
+            adminComponent,
+            filter,
+            ComponentName(activity, MainActivity::class.java)
+        )
+    }
+
+    /** Releases the HOME binding so the device boots to its normal launcher again. */
+    private fun clearPersistentHome() {
+        if (!isDeviceOwner()) return
+        dpm.clearPackagePersistentPreferredActivities(adminComponent, activity.packageName)
     }
 
     /**
