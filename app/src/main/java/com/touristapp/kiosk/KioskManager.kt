@@ -6,8 +6,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.util.Log
-import com.touristapp.MainActivity
 import com.touristapp.admin.KioskAdminReceiver
 
 /**
@@ -22,6 +22,9 @@ class KioskManager(private val activity: Activity) {
     private val dpm: DevicePolicyManager = activity.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
 
     private val adminComponent: ComponentName = ComponentName(activity, KioskAdminReceiver::class.java)
+
+    /** The HOME activity-alias, disabled in the manifest and toggled with kiosk state. */
+    private val homeAlias: ComponentName = ComponentName(activity, HOME_ALIAS)
 
     /** True only if the app was provisioned as device owner via ADB. */
     fun isDeviceOwner(): Boolean = dpm.isDeviceOwnerApp(activity.packageName)
@@ -44,7 +47,11 @@ class KioskManager(private val activity: Activity) {
         }
     }
 
-    /** Stops lock task and releases the home binding. Safe to call even when not currently locked. */
+    /**
+     * Stops lock task and releases the home binding. The app stays in the foreground,
+     * now unlocked, so admin can keep working; since the HOME alias is disabled, pressing
+     * Home leaves to the stock launcher normally.
+     */
     fun exitKioskMode() {
         try {
             clearPersistentHome()
@@ -55,26 +62,43 @@ class KioskManager(private val activity: Activity) {
     }
 
     /**
-     * Pins this app as the device's HOME activity so it relaunches on every boot
-     * (battery die, manual shutdown). Without this, lock task is lost on reboot and
-     * the tablet boots to the stock launcher instead of the kiosk. Device owner only.
+     * Enables the HOME alias and pins it as the device's preferred home so the app
+     * relaunches on every boot (battery die, manual shutdown). Without this, lock task
+     * is lost on reboot and the tablet boots to the stock launcher instead of the kiosk.
+     * Device owner only.
      */
     private fun setAsPersistentHome() {
+        setHomeAliasEnabled(true)
         val filter = IntentFilter(Intent.ACTION_MAIN).apply {
             addCategory(Intent.CATEGORY_HOME)
             addCategory(Intent.CATEGORY_DEFAULT)
         }
-        dpm.addPersistentPreferredActivity(
-            adminComponent,
-            filter,
-            ComponentName(activity, MainActivity::class.java)
-        )
+        dpm.addPersistentPreferredActivity(adminComponent, filter, homeAlias)
     }
 
-    /** Releases the HOME binding so the device boots to its normal launcher again. */
+    /**
+     * Releases the HOME binding and disables the HOME alias, so the app stops being a
+     * home candidate entirely and the tablet behaves like normal — pressing Home goes
+     * straight to the stock launcher.
+     */
     private fun clearPersistentHome() {
         if (!isDeviceOwner()) return
         dpm.clearPackagePersistentPreferredActivities(adminComponent, activity.packageName)
+        setHomeAliasEnabled(false)
+    }
+
+    /** Flips the manifest-disabled HOME alias on/off without killing the running app. */
+    private fun setHomeAliasEnabled(enabled: Boolean) {
+        val state = if (enabled) {
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+        } else {
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+        }
+        activity.packageManager.setComponentEnabledSetting(
+            homeAlias,
+            state,
+            PackageManager.DONT_KILL_APP
+        )
     }
 
     /**
@@ -91,5 +115,6 @@ class KioskManager(private val activity: Activity) {
 
     private companion object {
         const val TAG = "KioskManager"
+        const val HOME_ALIAS = "com.touristapp.MainActivityHome"
     }
 }
