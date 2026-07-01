@@ -2,9 +2,21 @@ package com.touristapp.domain.repository
 
 import com.touristapp.core.util.Resource
 import com.touristapp.data.model.*
+import kotlinx.coroutines.flow.Flow
 
 interface TouristRepository {
     suspend fun ensureAnonymousAuth(): Resource<Unit>
+
+    /**
+     * Realtime listeners. Each emits immediately from the local cache (if present) and again on
+     * every server change, so admin edits propagate to the tablet without a manual refresh.
+     * Content is localized to the language selected at subscription time; re-subscribe to re-localize.
+     */
+    fun observeApartment(apartmentId: String): Flow<Resource<Apartment>>
+    fun observeStay(stayId: String): Flow<Resource<Stay>>
+    fun observeGuests(guestIds: List<String>): Flow<Resource<List<Guest>>>
+    fun observePlacesForApartment(apartmentId: String): Flow<Resource<List<Place>>>
+
     suspend fun getApartment(apartmentId: String, forceServer: Boolean = false): Resource<Apartment>
     suspend fun getTransportationServices(serviceIds: List<String>, forceServer: Boolean = false): Resource<List<TransportationService>>
     suspend fun getCurrentStay(stayId: String, forceServer: Boolean = false): Resource<Stay>

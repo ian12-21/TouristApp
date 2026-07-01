@@ -22,6 +22,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -65,6 +66,15 @@ class MainViewModel @Inject constructor(
 
     private var weatherJob: Job? = null
 
+    // Realtime listeners. The apartment listener drives the stay/guests listeners as the apartment's
+    // currentStayId/guestIds change; all are restarted on apartment or language switch.
+    private var apartmentJob: Job? = null
+    private var placesJob: Job? = null
+    private var stayJob: Job? = null
+    private var guestsJob: Job? = null
+    private var observedStayId: String? = null
+    private var observedGuestIds: List<String> = emptyList()
+
     init {
         val savedId = prefs.getApartmentId()
         val savedName = prefs.getApartmentName() ?: ""
@@ -80,32 +90,33 @@ class MainViewModel @Inject constructor(
             )
         }
         if (savedId != null) {
-            loadApartmentData(savedId)
+            observeApartmentData(savedId)
         }
     }
 
     fun selectApartment(id: String) {
         prefs.setApartmentId(id)
         _uiState.update { it.copy(apartmentId = id, isLoading = true, error = null) }
-        loadApartmentData(id)
+        observeApartmentData(id)
     }
 
     fun retryLoad() {
         val id = _uiState.value.apartmentId ?: return
         _uiState.update { it.copy(isLoading = true, error = null) }
-        loadApartmentData(id)
+        observeApartmentData(id)
     }
 
     /**
-     * Silent background refresh from the server, called when the app returns to
-     * the foreground. Bounds how stale cache-first screen reads can be.
+     * Foreground re-sync. Realtime listeners already keep content fresh while subscribed; this
+     * re-subscribes so any change missed while listeners were torn down (backgrounded) is picked up.
      */
     fun refresh() {
         val id = _uiState.value.apartmentId ?: return
-        loadApartmentData(id, forceServer = true)
+        observeApartmentData(id)
     }
 
     fun reconfigure() {
+        cancelListeners()
         weatherJob?.cancel()
         weatherJob = null
         prefs.clear()
@@ -130,17 +141,19 @@ class MainViewModel @Inject constructor(
     /**
      * Persist the chosen language and re-resolve already-loaded content to it. The locale is now
      * applied reactively in Compose (no Activity recreate), and a blur+spinner overlay covers the
-     * reload: [isSwitchingLanguage] stays true until [loadApartmentData] completes, so both the
-     * localized strings and the re-fetched content swap in while hidden.
+     * reload: [isSwitchingLanguage] stays true until the apartment listener re-emits, so both the
+     * localized strings and the re-resolved content swap in while hidden.
      */
     fun setLanguage(code: String) {
         if (code == _uiState.value.language) return
         prefs.setLanguage(code)
         val apartmentId = _uiState.value.apartmentId
-        // Only show the reload overlay when there's content to re-fetch; otherwise it would never
-        // clear (loadApartmentData clears the flag on completion).
+        // Only show the reload overlay when there's content to re-resolve; otherwise it would never
+        // clear (the apartment listener clears the flag on its next emission).
         _uiState.update { it.copy(language = code, isSwitchingLanguage = apartmentId != null) }
-        apartmentId?.let { loadApartmentData(it) }
+        // Re-subscribing re-runs the localized mappers against the (cached) documents, so all content
+        // swaps to the new language while the blur overlay hides the transition.
+        apartmentId?.let { observeApartmentData(it) }
     }
 
     fun navigateToApartment() {
@@ -186,70 +199,108 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun loadApartmentData(apartmentId: String, forceServer: Boolean = false) {
-        viewModelScope.launch {
-            when (val result = touristRepository.getApartment(apartmentId, forceServer)) {
-                is Resource.Success -> {
-                    val apartment = result.data
-                    prefs.setApartmentName(apartment.name)
-                    _uiState.update {
+    /**
+     * Subscribes to realtime listeners for the apartment and its places. Each fresh call cancels the
+     * previous subscriptions and starts over, which is also how a language switch re-localizes: the
+     * listeners re-emit the cached documents through the now-current-language mappers.
+     */
+    private fun observeApartmentData(apartmentId: String) {
+        cancelListeners()
+        observedStayId = null
+        observedGuestIds = emptyList()
+
+        apartmentJob = viewModelScope.launch {
+            touristRepository.observeApartment(apartmentId).collect { result ->
+                when (result) {
+                    is Resource.Success -> onApartmentUpdate(apartmentId, result.data)
+                    is Resource.Error -> _uiState.update {
+                        // Keep any cached content already on screen; only surface an error if there's
+                        // nothing to show yet.
                         it.copy(
-                            apartment = apartment,
-                            apartmentName = apartment.name,
                             isLoading = false,
                             isSwitchingLanguage = false,
-                            error = null
+                            error = if (it.apartment == null) result.message else it.error
                         )
                     }
-                    loadStayAndGuests(apartment, forceServer)
-                    prefetchSecondaryData(apartmentId, apartment, forceServer)
-                    startWeatherRefresh(apartment)
+                    is Resource.Loading -> {}
                 }
-                is Resource.Error -> {
-                    // Keep any cached data already on screen during a silent refresh.
-                    if (!forceServer) {
-                        _uiState.update {
-                            it.copy(isLoading = false, isSwitchingLanguage = false, error = result.message)
-                        }
-                    } else {
-                        // A failed language-switch refresh must still drop the overlay.
-                        _uiState.update { it.copy(isSwitchingLanguage = false) }
-                    }
-                }
-                is Resource.Loading -> {}
+            }
+        }
+
+        placesJob = viewModelScope.launch {
+            touristRepository.observePlacesForApartment(apartmentId).collect { result ->
+                if (result is Resource.Success) updateCachedPlaces(result.data)
             }
         }
     }
 
-    private fun loadStayAndGuests(apartment: Apartment, forceServer: Boolean) {
-        val stayId = apartment.currentStayId ?: return
-        viewModelScope.launch {
-            when (val stayResult = touristRepository.getCurrentStay(stayId, forceServer)) {
-                is Resource.Success -> {
-                    val stay = stayResult.data
+    private fun onApartmentUpdate(apartmentId: String, apartment: Apartment) {
+        prefs.setApartmentName(apartment.name)
+        _uiState.update {
+            it.copy(
+                apartment = apartment,
+                apartmentName = apartment.name,
+                isLoading = false,
+                isSwitchingLanguage = false,
+                error = null
+            )
+        }
+        observeStayAndGuests(apartment)
+        loadSecondaryData(apartment)
+        startWeatherRefresh(apartment)
+    }
+
+    /**
+     * (Re)subscribes the stay listener when the apartment's [Apartment.currentStayId] changes, and
+     * the guests listener when the stay's guest list changes. Guards against the apartment listener's
+     * frequent re-emissions restarting these on every tick.
+     */
+    private fun observeStayAndGuests(apartment: Apartment) {
+        val stayId = apartment.currentStayId
+        if (stayId == observedStayId) return
+        observedStayId = stayId
+        observedGuestIds = emptyList()
+        stayJob?.cancel()
+        guestsJob?.cancel()
+
+        if (stayId == null) {
+            _uiState.update { it.copy(currentStay = null, guests = emptyList()) }
+            return
+        }
+        stayJob = viewModelScope.launch {
+            touristRepository.observeStay(stayId).collect { result ->
+                if (result is Resource.Success) {
+                    val stay = result.data
                     _uiState.update { it.copy(currentStay = stay) }
-                    if (stay.guestIds.isNotEmpty()) {
-                        when (val guestsResult = touristRepository.getGuests(stay.guestIds, forceServer)) {
-                            is Resource.Success -> _uiState.update { it.copy(guests = guestsResult.data) }
-                            else -> {}
-                        }
-                    }
+                    observeGuests(stay.guestIds)
                 }
-                else -> {}
             }
         }
     }
 
-    /** Warms the caches for screens the user is likely to open next. */
-    private fun prefetchSecondaryData(apartmentId: String, apartment: Apartment, forceServer: Boolean) {
-        viewModelScope.launch {
-            when (val result = touristRepository.getPlacesForApartment(apartmentId, forceServer)) {
-                is Resource.Success -> updateCachedPlaces(result.data)
-                else -> {}
+    private fun observeGuests(guestIds: List<String>) {
+        if (guestIds == observedGuestIds) return
+        observedGuestIds = guestIds
+        guestsJob?.cancel()
+        if (guestIds.isEmpty()) {
+            _uiState.update { it.copy(guests = emptyList()) }
+            return
+        }
+        guestsJob = viewModelScope.launch {
+            touristRepository.observeGuests(guestIds).collect { result ->
+                if (result is Resource.Success) _uiState.update { it.copy(guests = result.data) }
             }
         }
+    }
+
+    /**
+     * Loads content that changes rarely and isn't worth a standing listener: emergency contacts and
+     * the apartment's private transportation services. Re-run on each apartment emission so a
+     * language switch re-localizes them too.
+     */
+    private fun loadSecondaryData(apartment: Apartment) {
         viewModelScope.launch {
-            when (val result = touristRepository.getEmergencyContactsCroatia(forceServer)) {
+            when (val result = touristRepository.getEmergencyContactsCroatia()) {
                 is Resource.Success -> _uiState.update { it.copy(cachedEmergencyContacts = result.data) }
                 else -> {}
             }
@@ -264,6 +315,13 @@ class MainViewModel @Inject constructor(
                 else -> {}
             }
         }
+    }
+
+    private fun cancelListeners() {
+        apartmentJob?.cancel()
+        placesJob?.cancel()
+        stayJob?.cancel()
+        guestsJob?.cancel()
     }
 
     private fun startWeatherRefresh(apartment: Apartment) {

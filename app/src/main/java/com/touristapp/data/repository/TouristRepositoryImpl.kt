@@ -9,6 +9,9 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.Source
 import com.google.firebase.Timestamp
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import com.touristapp.core.i18n.localize
 import com.touristapp.core.i18n.localizeList
 import com.touristapp.core.util.Resource
@@ -49,6 +52,43 @@ class TouristRepositoryImpl @Inject constructor(
         return ref.get(source).await()
     }
 
+    /**
+     * Wraps a document listener in a [Flow]. Emits on every change (including the immediate cached
+     * value) and tears the listener down when the collector stops. [label] identifies the source in
+     * error logs. The [map] runs on the listener callback; errors there surface as [Resource.Error].
+     */
+    private fun <T> DocumentReference.observe(
+        label: String,
+        map: (DocumentSnapshot) -> Resource<T>
+    ): Flow<Resource<T>> = callbackFlow {
+        val registration = addSnapshotListener { snapshot, error ->
+            when {
+                error != null -> trySend(Resource.Error("Failed to load $label", error))
+                snapshot != null -> trySend(runCatching { map(snapshot) }
+                    .getOrElse { Resource.Error("Failed to load $label", it) })
+            }
+        }
+        awaitClose { registration.remove() }
+    }
+
+    /** Query equivalent of the document [observe]. */
+    private fun <T> Query.observe(
+        label: String,
+        map: (QuerySnapshot) -> Resource<T>
+    ): Flow<Resource<T>> = callbackFlow {
+        val registration = addSnapshotListener { snapshot, error ->
+            when {
+                error != null -> trySend(Resource.Error("Failed to load $label", error))
+                snapshot != null -> trySend(runCatching { map(snapshot) }
+                    .getOrElse { Resource.Error("Failed to load $label", it) })
+            }
+        }
+        awaitClose { registration.remove() }
+    }
+
+    private fun <T> emptyResourceList(): Flow<Resource<List<T>>> =
+        kotlinx.coroutines.flow.flowOf(Resource.Success(emptyList()))
+
     override suspend fun ensureAnonymousAuth(): Resource<Unit> {
         if (auth.currentUser == null) {
             return try {
@@ -62,52 +102,60 @@ class TouristRepositoryImpl @Inject constructor(
         return Resource.Success(Unit)
     }
 
-    @Suppress("UNCHECKED_CAST")
     override suspend fun getApartment(apartmentId: String, forceServer: Boolean): Resource<Apartment> {
         return try {
             val doc = fetchDoc(db.collection("apartments").document(apartmentId), forceServer)
-            val apartment = doc.toObject(Apartment::class.java)?.copy(id = doc.id)
-                ?: return Resource.Error("Apartment not found")
-
-            val rawTransport = doc.get("transportation") as? List<Map<String, Any>> ?: emptyList()
-            val transportItems = rawTransport.map { map ->
-                TransportationItem(
-                    type = map["type"] as? String ?: "",
-                    description = localize(map["description"], lang),
-                    transportationId = map["transportation_id"] as? String ?: ""
-                )
-            }
-
-            val rawHouseRules = doc.get("houseRules") as? List<Map<String, Any?>> ?: emptyList()
-            val houseRules = rawHouseRules.map { group ->
-                HouseRuleGroup(
-                    title = localize(group["title"], lang),
-                    rules = localizeList(group["rules"], lang)
-                )
-            }
-
-            val rawContacts = doc.get("contacts") as? List<Map<String, Any?>> ?: emptyList()
-            val contacts = rawContacts.map { contact ->
-                Contact(
-                    name = localize(contact["name"], lang),
-                    phone = contact["phone"] as? String ?: ""
-                )
-            }
-
-            Resource.Success(
-                apartment.copy(
-                    description = localize(doc.get("description"), lang),
-                    checkoutInstructions = localize(doc.get("checkoutInstructions"), lang),
-                    welcomeMessage = localize(doc.get("welcomeMessage"), lang),
-                    houseRules = houseRules,
-                    contacts = contacts,
-                    transportation = transportItems
-                )
-            )
+            mapApartment(doc)?.let { Resource.Success(it) }
+                ?: Resource.Error("Apartment not found")
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching apartment $apartmentId", e)
             Resource.Error("Failed to load apartment", e)
         }
+    }
+
+    override fun observeApartment(apartmentId: String): Flow<Resource<Apartment>> =
+        db.collection("apartments").document(apartmentId).observe("apartment $apartmentId") { doc ->
+            mapApartment(doc)?.let { Resource.Success(it) } ?: Resource.Error("Apartment not found")
+        }
+
+    /** Resolves an apartment document into a localized [Apartment], or null if it doesn't exist. */
+    @Suppress("UNCHECKED_CAST")
+    private fun mapApartment(doc: DocumentSnapshot): Apartment? {
+        val apartment = doc.toObject(Apartment::class.java)?.copy(id = doc.id) ?: return null
+
+        val rawTransport = doc.get("transportation") as? List<Map<String, Any>> ?: emptyList()
+        val transportItems = rawTransport.map { map ->
+            TransportationItem(
+                type = map["type"] as? String ?: "",
+                description = localize(map["description"], lang),
+                transportationId = map["transportation_id"] as? String ?: ""
+            )
+        }
+
+        val rawHouseRules = doc.get("houseRules") as? List<Map<String, Any?>> ?: emptyList()
+        val houseRules = rawHouseRules.map { group ->
+            HouseRuleGroup(
+                title = localize(group["title"], lang),
+                rules = localizeList(group["rules"], lang)
+            )
+        }
+
+        val rawContacts = doc.get("contacts") as? List<Map<String, Any?>> ?: emptyList()
+        val contacts = rawContacts.map { contact ->
+            Contact(
+                name = localize(contact["name"], lang),
+                phone = contact["phone"] as? String ?: ""
+            )
+        }
+
+        return apartment.copy(
+            description = localize(doc.get("description"), lang),
+            checkoutInstructions = localize(doc.get("checkoutInstructions"), lang),
+            welcomeMessage = localize(doc.get("welcomeMessage"), lang),
+            houseRules = houseRules,
+            contacts = contacts,
+            transportation = transportItems
+        )
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -158,17 +206,25 @@ class TouristRepositoryImpl @Inject constructor(
     override suspend fun getCurrentStay(stayId: String, forceServer: Boolean): Resource<Stay> {
         return try {
             val doc = fetchDoc(db.collection("stays").document(stayId), forceServer)
-            val stay = doc.toObject(Stay::class.java)?.copy(
-                id = doc.id,
-                welcomeMessage = localize(doc.get("welcomeMessage"), lang),
-                notes = localize(doc.get("notes"), lang)
-            ) ?: return Resource.Error("Stay not found")
-            Resource.Success(stay)
+            mapStay(doc)?.let { Resource.Success(it) } ?: Resource.Error("Stay not found")
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching stay $stayId", e)
             Resource.Error("Failed to load stay", e)
         }
     }
+
+    override fun observeStay(stayId: String): Flow<Resource<Stay>> =
+        db.collection("stays").document(stayId).observe("stay $stayId") { doc ->
+            mapStay(doc)?.let { Resource.Success(it) } ?: Resource.Error("Stay not found")
+        }
+
+    /** Resolves a stay document into a localized [Stay], or null if it doesn't exist. */
+    private fun mapStay(doc: DocumentSnapshot): Stay? =
+        doc.toObject(Stay::class.java)?.copy(
+            id = doc.id,
+            welcomeMessage = localize(doc.get("welcomeMessage"), lang),
+            notes = localize(doc.get("notes"), lang)
+        )
 
     override suspend fun getGuest(guestId: String, forceServer: Boolean): Resource<Guest> {
         return try {
@@ -205,29 +261,50 @@ class TouristRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun observeGuests(guestIds: List<String>): Flow<Resource<List<Guest>>> {
+        if (guestIds.isEmpty()) return emptyResourceList()
+        // A stay has only a handful of guests, so a single whereIn (max 30) listener is sufficient.
+        val refs = guestIds.take(WHERE_IN_LIMIT).map { db.collection("guests").document(it) }
+        return db.collection("guests").whereIn("__name__", refs).observe("guests") { snapshot ->
+            Resource.Success(
+                snapshot.documents.mapNotNull { doc -> doc.toObject(Guest::class.java)?.copy(id = doc.id) }
+            )
+        }
+    }
+
     override suspend fun getPlacesForApartment(apartmentId: String, forceServer: Boolean): Resource<List<Place>> {
         return try {
-            var query: Query = db.collection("places")
-                .whereArrayContains("apartmentIds", apartmentId)
-            if (USE_IS_ACTIVE_INDEX) {
-                query = query.whereEqualTo("isActive", true)
-            }
-            val places = fetch(query, forceServer)
-                .documents
-                .mapNotNull { doc ->
-                    doc.toObject(Place::class.java)?.copy(
-                        id = doc.id,
-                        description = localize(doc.get("description"), lang),
-                        tips = localize(doc.get("tips"), lang)
-                    )
-                }
-                .filter { USE_IS_ACTIVE_INDEX || it.isActive }
-            Resource.Success(places)
+            Resource.Success(mapPlaces(fetch(placesQuery(apartmentId), forceServer)))
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching places for apartment $apartmentId", e)
             Resource.Error("Failed to load places", e)
         }
     }
+
+    override fun observePlacesForApartment(apartmentId: String): Flow<Resource<List<Place>>> =
+        placesQuery(apartmentId).observe("places $apartmentId") { snapshot ->
+            Resource.Success(mapPlaces(snapshot))
+        }
+
+    private fun placesQuery(apartmentId: String): Query {
+        var query: Query = db.collection("places").whereArrayContains("apartmentIds", apartmentId)
+        if (USE_IS_ACTIVE_INDEX) {
+            query = query.whereEqualTo("isActive", true)
+        }
+        return query
+    }
+
+    /** Resolves a places query snapshot into localized, active [Place]s. */
+    private fun mapPlaces(snapshot: QuerySnapshot): List<Place> =
+        snapshot.documents
+            .mapNotNull { doc ->
+                doc.toObject(Place::class.java)?.copy(
+                    id = doc.id,
+                    description = localize(doc.get("description"), lang),
+                    tips = localize(doc.get("tips"), lang)
+                )
+            }
+            .filter { USE_IS_ACTIVE_INDEX || it.isActive }
 
     @Suppress("UNCHECKED_CAST")
     override suspend fun getEmergencyContactsCroatia(forceServer: Boolean): Resource<List<Contact>> {
@@ -387,6 +464,9 @@ class TouristRepositoryImpl @Inject constructor(
 
     companion object {
         private const val TAG = "TouristRepo"
+
+        /** Firestore caps `whereIn` filters at 30 values. */
+        private const val WHERE_IN_LIMIT = 30
 
         /**
          * Set to true only once the composite index exists in the Firebase console
