@@ -249,7 +249,7 @@ class MainViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            when (val result = touristRepository.getEmergencyContactsCroatia(forceServer)) {
+            when (val result = touristRepository.getEmergencyContacts(apartment.emergencyContactGroupId, forceServer)) {
                 is Resource.Success -> _uiState.update { it.copy(cachedEmergencyContacts = result.data) }
                 else -> {}
             }

@@ -37,11 +37,11 @@ class HomeViewModel @Inject constructor(
         _uiState.update { it.copy(emergencyContacts = contacts, isLoadingContacts = false) }
     }
 
-    fun loadEmergencyContacts() {
+    fun loadEmergencyContacts(groupId: String?) {
         if (_uiState.value.emergencyContacts.isNotEmpty()) return
         _uiState.update { it.copy(isLoadingContacts = true, contactsError = null) }
         viewModelScope.launch {
-            when (val result = repository.getEmergencyContactsCroatia()) {
+            when (val result = repository.getEmergencyContacts(groupId)) {
                 is Resource.Success -> _uiState.update {
                     it.copy(emergencyContacts = result.data, isLoadingContacts = false)
                 }

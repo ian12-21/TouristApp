@@ -253,7 +253,7 @@ fun HomeSlide(
                 modifier = Modifier.weight(1f),
                 onClick = {
                     showContactsDialog = true
-                    viewModel.loadEmergencyContacts()
+                    viewModel.loadEmergencyContacts(apartment?.emergencyContactGroupId)
                 }
             )
         }
@@ -267,7 +267,7 @@ fun HomeSlide(
             onDismiss = { showContactsDialog = false },
             isLoading = state.isLoadingContacts,
             errorMessage = state.contactsError,
-            onRetry = { viewModel.loadEmergencyContacts() }
+            onRetry = { viewModel.loadEmergencyContacts(apartment?.emergencyContactGroupId) }
         )
     }
 }

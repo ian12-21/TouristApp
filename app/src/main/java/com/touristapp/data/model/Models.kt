@@ -62,6 +62,7 @@ data class Apartment(
     // Firestore's toObject() never tries to coerce that map into TransportationItem.description.
     @get:Exclude val transportation: List<TransportationItem> = emptyList(),
     val currentStayId: String? = null,
+    val emergencyContactGroupId: String? = null,
     val updatedAt: Timestamp? = null
 )
 
