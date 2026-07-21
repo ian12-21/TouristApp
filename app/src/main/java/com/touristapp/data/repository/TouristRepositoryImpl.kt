@@ -230,19 +230,20 @@ class TouristRepositoryImpl @Inject constructor(
     }
 
     @Suppress("UNCHECKED_CAST")
-    override suspend fun getEmergencyContactsCroatia(forceServer: Boolean): Resource<List<Contact>> {
+    override suspend fun getEmergencyContacts(groupId: String?, forceServer: Boolean): Resource<List<Contact>> {
+        if (groupId.isNullOrBlank()) return Resource.Success(emptyList())
         return try {
-            val contacts = fetch(db.collection("emergency_contacts_croatia"), forceServer)
-                .documents
-                .flatMap { doc ->
-                    val contactsList = doc.get("contacts") as? List<Map<String, Any?>> ?: emptyList()
-                    contactsList.map { map ->
-                        Contact(
-                            name = localize(map["name"], lang),
-                            phone = map["phone"] as? String ?: map["number"] as? String ?: ""
-                        )
-                    }
-                }
+            val doc = fetchDoc(
+                db.collection("emergency_contacts_croatia").document(groupId),
+                forceServer
+            )
+            val contactsList = doc.get("contacts") as? List<Map<String, Any?>> ?: emptyList()
+            val contacts = contactsList.map { map ->
+                Contact(
+                    name = localize(map["name"], lang),
+                    phone = map["phone"] as? String ?: map["number"] as? String ?: ""
+                )
+            }
             Resource.Success(contacts)
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching emergency contacts", e)
