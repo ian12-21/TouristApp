@@ -175,41 +175,6 @@ class TouristRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getGuest(guestId: String, forceServer: Boolean): Resource<Guest> {
-        return try {
-            val doc = fetchDoc(db.collection("guests").document(guestId), forceServer)
-            val guest = doc.toObject(Guest::class.java)?.copy(id = doc.id)
-                ?: return Resource.Error("Guest not found")
-            Resource.Success(guest)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error fetching guest $guestId", e)
-            Resource.Error("Failed to load guest", e)
-        }
-    }
-
-    override suspend fun getGuests(guestIds: List<String>, forceServer: Boolean): Resource<List<Guest>> {
-        if (guestIds.isEmpty()) return Resource.Success(emptyList())
-        return try {
-            val guests = coroutineScope {
-                guestIds.chunked(30).map { chunk ->
-                    async {
-                        val refs = chunk.map { db.collection("guests").document(it) }
-                        val query = db.collection("guests").whereIn("__name__", refs)
-                        fetch(query, forceServer)
-                            .documents
-                            .mapNotNull { doc ->
-                                doc.toObject(Guest::class.java)?.copy(id = doc.id)
-                            }
-                    }
-                }.awaitAll().flatten()
-            }
-            Resource.Success(guests)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error fetching guests", e)
-            Resource.Error("Failed to load guests", e)
-        }
-    }
-
     override suspend fun getPlacesForApartment(apartmentId: String, forceServer: Boolean): Resource<List<Place>> {
         return try {
             var query: Query = db.collection("places")

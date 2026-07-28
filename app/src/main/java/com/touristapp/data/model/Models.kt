@@ -69,6 +69,7 @@ data class Apartment(
 data class Stay(
     val id: String = "",
     val guestIds: List<String> = emptyList(),
+    val guestNames: Map<String, String> = emptyMap(),
     val apartmentId: String = "",
     val checkIn: Timestamp? = null,
     val checkOut: Timestamp? = null,

@@ -227,13 +227,12 @@ class MainViewModel @Inject constructor(
             when (val stayResult = touristRepository.getCurrentStay(stayId, forceServer)) {
                 is Resource.Success -> {
                     val stay = stayResult.data
-                    _uiState.update { it.copy(currentStay = stay) }
-                    if (stay.guestIds.isNotEmpty()) {
-                        when (val guestsResult = touristRepository.getGuests(stay.guestIds, forceServer)) {
-                            is Resource.Success -> _uiState.update { it.copy(guests = guestsResult.data) }
-                            else -> {}
-                        }
+                    // Guest names are denormalized onto the stay, so the tablet no longer
+                    // reads the private `guests` collection. Preserve guestIds order.
+                    val guests = stay.guestIds.map { id ->
+                        Guest(id = id, name = stay.guestNames[id] ?: "")
                     }
+                    _uiState.update { it.copy(currentStay = stay, guests = guests) }
                 }
                 else -> {}
             }
