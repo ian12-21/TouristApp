@@ -39,12 +39,17 @@ class TouristRepositoryImpl @Inject constructor(
      * skips the cache entirely (used for refreshes that must never read stale data).
      */
     private suspend fun fetch(query: Query, forceServer: Boolean): QuerySnapshot {
+        // Security rules require an authenticated user for every read. Sign in
+        // anonymously first (no-op if already signed in, incl. as an owner). If it
+        // fails (e.g. offline), we still attempt the read so the cache can serve it.
+        ensureAnonymousAuth()
         val source = if (forceServer) Source.SERVER else Source.DEFAULT
         return query.get(source).await()
     }
 
     /** Single-document equivalent of [fetch]. */
     private suspend fun fetchDoc(ref: DocumentReference, forceServer: Boolean): DocumentSnapshot {
+        ensureAnonymousAuth()
         val source = if (forceServer) Source.SERVER else Source.DEFAULT
         return ref.get(source).await()
     }
@@ -269,6 +274,7 @@ class TouristRepositoryImpl @Inject constructor(
 
     override suspend fun getReviewsForApartment(apartmentId: String): Resource<List<Review>> {
         return try {
+            ensureAnonymousAuth()
             val reviews = db.collection("reviews")
                 .whereEqualTo("apartmentId", apartmentId)
                 .orderBy("createdAt", Query.Direction.DESCENDING)
@@ -287,6 +293,7 @@ class TouristRepositoryImpl @Inject constructor(
 
     override suspend fun getReviewForGuestAndStay(guestId: String, stayId: String): Resource<Review?> {
         return try {
+            ensureAnonymousAuth()
             val docs = db.collection("reviews")
                 .whereEqualTo("guestId", guestId)
                 .whereEqualTo("stayId", stayId)
