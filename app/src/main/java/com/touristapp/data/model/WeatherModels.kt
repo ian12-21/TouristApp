@@ -1,5 +1,6 @@
 package com.touristapp.data.model
 
+import com.touristapp.core.util.LocalDateSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
@@ -55,8 +56,11 @@ data class ForecastCity(
     val name: String
 )
 
+// @Serializable so the forecast can be cached to disk alongside the current weather —
+// otherwise the 5-day strip is empty on every cold start until the first network call lands.
+@Serializable
 data class DailyForecast(
-    val date: LocalDate,
+    @Serializable(with = LocalDateSerializer::class) val date: LocalDate,
     val minTempCelsius: Double,
     val maxTempCelsius: Double,
     val iconCode: String,

@@ -7,6 +7,7 @@ import com.touristapp.data.model.DailyForecast
 import com.touristapp.data.model.ForecastResponse
 import com.touristapp.data.model.WeatherInfo
 import com.touristapp.data.model.WeatherResponse
+import com.touristapp.data.local.AppPreferences
 import com.touristapp.domain.repository.WeatherRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -22,10 +23,13 @@ import javax.inject.Singleton
 @Singleton
 class WeatherRepositoryImpl @Inject constructor(
     private val client: HttpClient,
-    private val json: Json
+    private val json: Json,
+    private val prefs: AppPreferences
 ) : WeatherRepository {
 
     override suspend fun getCurrentWeather(lat: Double, lon: Double): Resource<WeatherInfo> {
+        val cached = prefs.getLastWeather()
+
         return try {
             val httpResponse = client.get(
                 "https://api.openweathermap.org/data/2.5/weather"
@@ -40,7 +44,9 @@ class WeatherRepositoryImpl @Inject constructor(
 
             if (httpResponse.status.value != 200) {
                 Log.e(TAG, "API error ${httpResponse.status}: $body")
-                return Resource.Error("Weather API error: ${httpResponse.status}")
+                // 429 (rate limited) lands here — serving the cache keeps the tablet usable.
+                return cached?.let { Resource.Success(it) }
+                    ?: Resource.Error("Weather API error: ${httpResponse.status}")
             }
 
             val response = json.decodeFromString<WeatherResponse>(body)
@@ -54,14 +60,20 @@ class WeatherRepositoryImpl @Inject constructor(
                 iconCode = condition?.icon ?: "01d",
                 cityName = response.name
             )
+            prefs.setLastWeather(weatherInfo)
             Resource.Success(weatherInfo)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to fetch weather", e)
+            // Stale data beats no data on a wall-mounted kiosk: a guest would rather see
+            // the last known temperature than a dash while the wifi is flaky.
+            cached?.let { return Resource.Success(it) }
             Resource.Error("Failed to load weather", e)
         }
     }
 
     override suspend fun getWeekForecast(lat: Double, lon: Double): Resource<List<DailyForecast>> {
+        val cached = prefs.getLastForecast()
+
         return try {
             val httpResponse = client.get(
                 "https://api.openweathermap.org/data/2.5/forecast"
@@ -76,7 +88,8 @@ class WeatherRepositoryImpl @Inject constructor(
 
             if (httpResponse.status.value != 200) {
                 Log.e(TAG, "Forecast API error ${httpResponse.status}: $body")
-                return Resource.Error("Forecast API error: ${httpResponse.status}")
+                return cached?.let { Resource.Success(it) }
+                    ?: Resource.Error("Forecast API error: ${httpResponse.status}")
             }
 
             val response = json.decodeFromString<ForecastResponse>(body)
@@ -103,9 +116,11 @@ class WeatherRepositoryImpl @Inject constructor(
                     )
                 }
 
+            prefs.setLastForecast(dailyForecasts)
             Resource.Success(dailyForecasts)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to fetch forecast", e)
+            cached?.let { return Resource.Success(it) }
             Resource.Error("Failed to load forecast", e)
         }
     }

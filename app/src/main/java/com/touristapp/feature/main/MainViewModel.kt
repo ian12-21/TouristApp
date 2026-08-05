@@ -17,7 +17,6 @@ import com.touristapp.domain.repository.WeatherRepository
 import com.touristapp.feature.apartment.ApartmentSection
 import com.touristapp.feature.places.PlaceCategory
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -63,8 +62,6 @@ class MainViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
-    private var weatherJob: Job? = null
-
     init {
         val savedId = prefs.getApartmentId()
         val savedName = prefs.getApartmentName() ?: ""
@@ -74,6 +71,7 @@ class MainViewModel @Inject constructor(
                 apartmentName = savedName,
                 isLoading = savedId != null,
                 weatherInfo = prefs.getLastWeather(),
+                weekForecast = prefs.getLastForecast() ?: emptyList(),
                 isDarkTheme = prefs.isDarkTheme(),
                 isKioskEnabled = prefs.isKioskEnabled(),
                 language = prefs.getLanguage()
@@ -106,8 +104,6 @@ class MainViewModel @Inject constructor(
     }
 
     fun reconfigure() {
-        weatherJob?.cancel()
-        weatherJob = null
         prefs.clear()
         _uiState.value = MainUiState(
             isDarkTheme = prefs.isDarkTheme(),
@@ -203,7 +199,6 @@ class MainViewModel @Inject constructor(
                     }
                     loadStayAndGuests(apartment, forceServer)
                     prefetchSecondaryData(apartmentId, apartment, forceServer)
-                    startWeatherRefresh(apartment)
                 }
                 is Resource.Error -> {
                     // Keep any cached data already on screen during a silent refresh.
@@ -265,29 +260,29 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun startWeatherRefresh(apartment: Apartment) {
-        val lat = apartment.coordinates["lat"] ?: return
-        val lon = apartment.coordinates["lng"] ?: return
-        if (weatherJob?.isActive == true) return
-        weatherJob = viewModelScope.launch {
-            while (true) {
-                when (val result = weatherRepository.getCurrentWeather(lat, lon)) {
-                    is Resource.Success -> {
-                        prefs.setLastWeather(result.data)
-                        _uiState.update { it.copy(weatherInfo = result.data) }
-                    }
-                    else -> {}
-                }
-                when (val result = weatherRepository.getWeekForecast(lat, lon)) {
-                    is Resource.Success -> _uiState.update { it.copy(weekForecast = result.data) }
-                    else -> {}
-                }
-                delay(WEATHER_REFRESH_INTERVAL_MS)
-            }
+    suspend fun runWeatherRefresh(lat: Double, lon: Double) {
+        while (true) {
+            fetchWeather(lat, lon)
+            delay(WEATHER_REFRESH_INTERVAL_MS)
+        }
+    }
+
+    private suspend fun fetchWeather(lat: Double, lon: Double) {
+        when (val result = weatherRepository.getCurrentWeather(lat, lon)) {
+            is Resource.Success -> _uiState.update { it.copy(weatherInfo = result.data) }
+            else -> {}
+        }
+        when (val result = weatherRepository.getWeekForecast(lat, lon)) {
+            is Resource.Success -> _uiState.update { it.copy(weekForecast = result.data) }
+            else -> {}
         }
     }
 
     companion object {
-        private const val WEATHER_REFRESH_INTERVAL_MS = 30 * 60 * 1000L
+        /**
+         * The loop fetches once immediately, then every 6 hours — so a cold start always
+         * refreshes and a running tablet makes 4 calls a day.
+         */
+        private const val WEATHER_REFRESH_INTERVAL_MS = 6L * 60 * 60 * 1000
     }
 }

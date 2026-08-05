@@ -1,8 +1,11 @@
 package com.touristapp.data.local
 
 import android.content.Context
+import com.touristapp.data.model.DailyForecast
 import com.touristapp.data.model.WeatherInfo
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -46,16 +49,27 @@ class AppPreferences @Inject constructor(
         prefs.edit().putBoolean("kiosk_enabled", enabled).apply()
     }
 
-    fun getLastWeather(): WeatherInfo? {
-        val raw = prefs.getString("last_weather", null) ?: return null
-        return runCatching {
-            json.decodeFromString(WeatherInfo.serializer(), raw)
-        }.getOrNull()
-    }
+    fun getLastWeather(): WeatherInfo? = read(KEY_WEATHER, WeatherInfo.serializer())
 
     fun setLastWeather(weather: WeatherInfo) {
-        val raw = json.encodeToString(WeatherInfo.serializer(), weather)
-        prefs.edit().putString("last_weather", raw).apply()
+        prefs.edit()
+            .putString(KEY_WEATHER, json.encodeToString(WeatherInfo.serializer(), weather))
+            .apply()
+    }
+
+    fun getLastForecast(): List<DailyForecast>? =
+        read(KEY_FORECAST, ListSerializer(DailyForecast.serializer()))
+
+    fun setLastForecast(forecast: List<DailyForecast>) {
+        prefs.edit()
+            .putString(KEY_FORECAST, json.encodeToString(ListSerializer(DailyForecast.serializer()), forecast))
+            .apply()
+    }
+
+    /** Decodes a cached payload, discarding anything unreadable (e.g. after a model change). */
+    private fun <T> read(key: String, serializer: KSerializer<T>): T? {
+        val raw = prefs.getString(key, null) ?: return null
+        return runCatching { json.decodeFromString(serializer, raw) }.getOrNull()
     }
 
     fun clear() {
@@ -69,5 +83,10 @@ class AppPreferences @Inject constructor(
             .putBoolean("kiosk_enabled", kiosk)
             .putString("language", language)
             .apply()
+    }
+
+    private companion object {
+        const val KEY_WEATHER = "last_weather"
+        const val KEY_FORECAST = "last_forecast"
     }
 }
