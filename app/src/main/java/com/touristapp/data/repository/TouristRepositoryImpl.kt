@@ -221,21 +221,9 @@ class TouristRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getAllApartments(forceServer: Boolean): Resource<List<Pair<String, String>>> {
-        return try {
-            val apartments = fetch(db.collection("apartments"), forceServer)
-                .documents
-                .mapNotNull { doc ->
-                    val name = doc.getString("name") ?: return@mapNotNull null
-                    val address = doc.getString("address") ?: ""
-                    doc.id to "$name — $address"
-                }
-            Resource.Success(apartments)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error fetching apartments", e)
-            Resource.Error("Failed to load apartments", e)
-        }
-    }
+    // getAllApartments lived here, but listing `apartments` is owner-only in the
+    // security rules and this repository always runs as the anonymous guest. It
+    // now sits on AdminRepository, which holds the owner session.
 
     override suspend fun getReviewsForApartment(apartmentId: String): Resource<List<Review>> {
         return try {
@@ -277,11 +265,18 @@ class TouristRepositoryImpl @Inject constructor(
 
     override suspend fun createReview(review: Review): Resource<Unit> {
         return try {
+            ensureAnonymousAuth()
+            // Security rules require authorUid == request.auth.uid, so a missing
+            // uid means the write is guaranteed to fail with PERMISSION_DENIED.
+            // Fail here instead, where we can give the guest a real message.
+            val authorUid = auth.currentUser?.uid
+                ?: return Resource.Error("Not signed in — cannot submit review")
             val data = hashMapOf(
                 "apartmentId" to review.apartmentId,
                 "stayId" to review.stayId,
                 "guestId" to review.guestId,
                 "guestName" to review.guestName,
+                "authorUid" to authorUid,
                 "cleanliness" to review.cleanliness,
                 "location" to review.location,
                 "comfort" to review.comfort,
@@ -305,6 +300,9 @@ class TouristRepositoryImpl @Inject constructor(
 
     override suspend fun updateReview(reviewId: String, review: Review): Resource<Unit> {
         return try {
+            ensureAnonymousAuth()
+            // authorUid is deliberately absent from this map: it is immutable per
+            // security rules, and a partial update leaves the stored value intact.
             val data = mapOf(
                 "cleanliness" to review.cleanliness,
                 "location" to review.location,

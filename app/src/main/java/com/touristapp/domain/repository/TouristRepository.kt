@@ -10,7 +10,6 @@ interface TouristRepository {
     suspend fun getCurrentStay(stayId: String, forceServer: Boolean = false): Resource<Stay>
     suspend fun getPlacesForApartment(apartmentId: String, forceServer: Boolean = false): Resource<List<Place>>
     suspend fun getEmergencyContacts(groupId: String?, forceServer: Boolean = false): Resource<List<Contact>>
-    suspend fun getAllApartments(forceServer: Boolean = false): Resource<List<Pair<String, String>>>
     suspend fun getReviewsForApartment(apartmentId: String): Resource<List<Review>>
     suspend fun getReviewForGuestAndStay(guestId: String, stayId: String): Resource<Review?>
     suspend fun createReview(review: Review): Resource<Unit>

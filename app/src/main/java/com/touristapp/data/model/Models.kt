@@ -126,6 +126,12 @@ data class Review(
     val stayId: String = "",
     val guestId: String = "",
     val guestName: String = "",
+    /**
+     * Firebase uid of the client that created this review. Set by the repository
+     * on create — never by the UI — and enforced immutable by security rules,
+     * which only let this uid edit the document afterwards.
+     */
+    val authorUid: String = "",
     val cleanliness: Int = 5,
     val location: Int = 5,
     val comfort: Int = 5,

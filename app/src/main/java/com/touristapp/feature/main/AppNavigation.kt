@@ -48,7 +48,8 @@ fun AppNavigation(
     uiState: MainUiState,
     currentLanguage: String,
     onSelectLanguage: (String) -> Unit,
-    onReconfigure: () -> Unit,
+    /** Applies the apartment the owner picked in the admin dialog. */
+    onApartmentSelected: (String) -> Unit,
     onNavigateToApartment: () -> Unit,
     onNavigateToPlace: (Place) -> Unit,
     onNavigateToCategory: (PlaceCategory) -> Unit,
@@ -314,9 +315,9 @@ fun AppNavigation(
 
     if (showAdminDialog) {
         AdminDialog(
-            onApartmentSelected = {
+            onApartmentSelected = { apartmentId ->
                 showAdminDialog = false
-                onReconfigure()
+                onApartmentSelected(apartmentId)
             },
             onDismiss = { showAdminDialog = false },
             onLockout = {

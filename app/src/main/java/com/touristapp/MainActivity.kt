@@ -103,7 +103,7 @@ class MainActivity : ComponentActivity() {
                                 uiState = uiState,
                                 currentLanguage = uiState.language,
                                 onSelectLanguage = viewModel::setLanguage,
-                                onReconfigure = viewModel::reconfigure,
+                                onApartmentSelected = viewModel::selectApartment,
                                 onNavigateToApartment = viewModel::navigateToApartment,
                                 onNavigateToPlace = viewModel::navigateToPlace,
                                 onNavigateToCategory = viewModel::navigateToCategory,

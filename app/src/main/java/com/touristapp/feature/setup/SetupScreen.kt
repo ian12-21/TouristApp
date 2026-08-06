@@ -14,6 +14,11 @@ fun SetupScreen(
     onApartmentSelected: (String) -> Unit
 ) {
     val viewModel: AdminViewModel = hiltViewModel()
+    // AdminViewModel is activity-scoped, so this is the same instance the admin
+    // dialog uses. Resetting on entry — as AdminDialog does — guarantees setup
+    // always starts at the password prompt and can never inherit an
+    // isAuthenticated=true left over from an earlier admin session.
+    LaunchedEffect(Unit) { viewModel.lock() }
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background

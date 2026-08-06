@@ -1,7 +1,9 @@
 package com.touristapp.core.di
 
+import com.touristapp.data.repository.AdminRepositoryImpl
 import com.touristapp.data.repository.TouristRepositoryImpl
 import com.touristapp.data.repository.WeatherRepositoryImpl
+import com.touristapp.domain.repository.AdminRepository
 import com.touristapp.domain.repository.TouristRepository
 import com.touristapp.domain.repository.WeatherRepository
 import dagger.Binds
@@ -20,4 +22,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindWeatherRepository(impl: WeatherRepositoryImpl): WeatherRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAdminRepository(impl: AdminRepositoryImpl): AdminRepository
 }

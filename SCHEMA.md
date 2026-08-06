@@ -271,6 +271,7 @@ becomes a rename + migration + rules change in both repos.
 | `stayId` | `string` | FK → `stays`. |
 | `guestId` | `string` | FK → `guests` (ID only — the tablet never reads that collection). |
 | `guestName` | `string` | Denormalized from `stays.guestNames`. |
+| `authorUid` | `string` | Firebase uid of the tablet that created the review. Set by `TouristRepositoryImpl.createReview`, **never** by the UI. Immutable, and the sole gate on who may edit the document later. Absent on reviews predating this field — those are owner-editable only. |
 | `cleanliness` | `number` | 1–10. |
 | `location` | `number` | 1–10. |
 | `comfort` | `number` | 1–10. |
@@ -289,8 +290,17 @@ becomes a rename + migration + rules change in both repos.
 > permitted field. **Adding a field to this table without adding it to that list will make
 > every write fail with `PERMISSION_DENIED`.** Rules must never trust client validation.
 
-**Rules:** read if signed in; create/update if signed in **and** payload passes
-`validReview()`; on update, `apartmentId` and `guestId` are immutable; delete owner-only.
+**Rules:** read if signed in; create if signed in **and** payload passes `validReview()`
+**and** `authorUid == request.auth.uid`; update if owner, or if the caller's uid matches the
+stored `authorUid` — on update `authorUid`, `apartmentId` and `guestId` are immutable;
+delete owner-only.
+
+> ⚠️ **`isSignedIn()` is not authorization on this collection.** Tablets authenticate with
+> `signInAnonymously()`, which hands a fresh uid to anyone holding the API key (extractable
+> from the .apk), so "is signed in" is free to obtain. `authorUid` is what actually binds a
+> review to a writer. Note it identifies the **tablet**, not the guest: guests sharing a
+> kiosk can technically edit each other's reviews, which is accepted because the UI only
+> surfaces the review matching the current `guestId` + `stayId`.
 
 ---
 
