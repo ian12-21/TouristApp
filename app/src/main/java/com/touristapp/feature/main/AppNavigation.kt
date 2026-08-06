@@ -270,6 +270,7 @@ fun AppNavigation(
                     )
                     2 -> ReviewsSlide(
                         apartmentId = uiState.apartmentId.orEmpty(),
+                        ownerUid = uiState.apartment?.ownerUid.orEmpty(),
                         currentStay = uiState.currentStay,
                         guests = uiState.guests
                     )

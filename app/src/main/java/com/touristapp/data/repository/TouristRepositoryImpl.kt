@@ -271,12 +271,23 @@ class TouristRepositoryImpl @Inject constructor(
             // Fail here instead, where we can give the guest a real message.
             val authorUid = auth.currentUser?.uid
                 ?: return Resource.Error("Not signed in — cannot submit review")
+
+            // Tenant key. Rules re-read this off the apartment document rather than
+            // trusting the payload, so sending a wrong one fails the write — but
+            // sending none at all fails it too, since `ownerUid` is now required by
+            // validReview(). The caller passes the apartment it has already loaded,
+            // so this costs no extra read.
+            val ownerUid = review.ownerUid.ifBlank {
+                return Resource.Error("Apartment not loaded — cannot submit review")
+            }
+
             val data = hashMapOf(
                 "apartmentId" to review.apartmentId,
                 "stayId" to review.stayId,
                 "guestId" to review.guestId,
                 "guestName" to review.guestName,
                 "authorUid" to authorUid,
+                "ownerUid" to ownerUid,
                 "cleanliness" to review.cleanliness,
                 "location" to review.location,
                 "comfort" to review.comfort,
@@ -301,8 +312,10 @@ class TouristRepositoryImpl @Inject constructor(
     override suspend fun updateReview(reviewId: String, review: Review): Resource<Unit> {
         return try {
             ensureAnonymousAuth()
-            // authorUid is deliberately absent from this map: it is immutable per
-            // security rules, and a partial update leaves the stored value intact.
+            // authorUid and ownerUid are deliberately absent from this map: both are
+            // immutable per security rules, and a partial update leaves the stored
+            // values intact. Rules evaluate the *merged* document, so validReview()
+            // still sees them even though this payload doesn't carry them.
             val data = mapOf(
                 "cleanliness" to review.cleanliness,
                 "location" to review.location,

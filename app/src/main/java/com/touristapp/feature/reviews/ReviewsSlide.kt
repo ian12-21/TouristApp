@@ -61,6 +61,12 @@ private fun qualitativeLabelRes(score: Double): Int = when {
 @Composable
 fun ReviewsSlide(
     apartmentId: String,
+    /**
+     * Tenant key, taken from the loaded apartment and stamped onto any review
+     * created here. Empty until the apartment finishes loading, which the submit
+     * path treats as "not ready" rather than writing a review rules would reject.
+     */
+    ownerUid: String,
     currentStay: Stay?,
     guests: List<Guest>
 ) {
@@ -163,6 +169,7 @@ fun ReviewsSlide(
     if (state.showCreateSheet) {
         CreateReviewSheet(
             apartmentId = apartmentId,
+            ownerUid = ownerUid,
             currentStay = currentStay,
             guests = guests,
             viewModel = viewModel

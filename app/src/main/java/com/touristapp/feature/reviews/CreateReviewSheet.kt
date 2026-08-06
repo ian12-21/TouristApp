@@ -49,6 +49,7 @@ private fun scoreColor(score: Double): Color = when {
 @Composable
 fun CreateReviewSheet(
     apartmentId: String,
+    ownerUid: String,
     currentStay: Stay?,
     guests: List<Guest>,
     viewModel: ReviewsViewModel
@@ -374,7 +375,7 @@ fun CreateReviewSheet(
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
                         onClick = {
-                            viewModel.submitReview(apartmentId, currentStay?.id ?: "")
+                            viewModel.submitReview(apartmentId, ownerUid, currentStay?.id ?: "")
                         },
                         modifier = Modifier
                             .fillMaxWidth()

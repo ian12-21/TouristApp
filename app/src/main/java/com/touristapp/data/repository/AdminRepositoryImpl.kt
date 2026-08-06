@@ -26,9 +26,22 @@ class AdminRepositoryImpl @Inject constructor(
         }
     }
 
+    /**
+     * The owner's own apartments, for the pairing screen.
+     *
+     * Scoped by `ownerUid`: without the filter this listed every apartment in the
+     * project, so a second owner setting up their tablet would see — and could
+     * pair with — someone else's properties. Security rules now reject an
+     * unscoped list outright, so this filter is required for the query to run at
+     * all, not merely to tidy the results.
+     */
     override suspend fun getAllApartments(): Resource<List<Pair<String, String>>> {
         return try {
+            val ownerUid = auth.currentUser?.uid
+                ?: return Resource.Error("Not signed in")
+
             val apartments = db.collection("apartments")
+                .whereEqualTo("ownerUid", ownerUid)
                 .get()
                 .await()
                 .documents

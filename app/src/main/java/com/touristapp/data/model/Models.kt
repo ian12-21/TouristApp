@@ -63,6 +63,12 @@ data class Apartment(
     @get:Exclude val transportation: List<TransportationItem> = emptyList(),
     val currentStayId: String? = null,
     val emergencyContactGroupId: String? = null,
+    /**
+     * Tenant key — the uid of the owner this apartment belongs to. The tablet only
+     * reads it, to stamp onto reviews it creates; the pairing screen also filters
+     * the apartment list by it while the owner is signed in.
+     */
+    val ownerUid: String = "",
     val updatedAt: Timestamp? = null
 )
 
@@ -132,6 +138,13 @@ data class Review(
      * which only let this uid edit the document afterwards.
      */
     val authorUid: String = "",
+    /**
+     * Tenant key — the uid of the owner whose apartment is being reviewed, copied
+     * from the loaded [Apartment] on create. Security rules verify it against the
+     * apartment document rather than trusting the payload, so a tablet cannot file
+     * a review into another owner's tenant.
+     */
+    val ownerUid: String = "",
     val cleanliness: Int = 5,
     val location: Int = 5,
     val comfort: Int = 5,

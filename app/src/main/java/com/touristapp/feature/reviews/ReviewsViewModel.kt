@@ -200,9 +200,20 @@ class ReviewsViewModel @Inject constructor(
         }
     }
 
-    fun submitReview(apartmentId: String, stayId: String) {
+    fun submitReview(apartmentId: String, ownerUid: String, stayId: String) {
         val state = _uiState.value
         val guest = state.selectedGuest ?: return
+
+        // Creating a review needs the apartment's ownerUid — security rules check it
+        // against the apartment document. An empty value means the apartment hasn't
+        // finished loading, so fail here with something the guest can act on rather
+        // than letting the write come back as PERMISSION_DENIED. Edits are exempt:
+        // an update leaves the stored ownerUid untouched.
+        val isEdit = (state.foundExistingReview?.id ?: state.editingReview?.id) != null
+        if (ownerUid.isBlank() && !isEdit) {
+            _uiState.update { it.copy(saveError = "Still loading — please try again in a moment.") }
+            return
+        }
 
         _uiState.update { it.copy(isSaving = true, saveError = null) }
         viewModelScope.launch {
@@ -233,6 +244,7 @@ class ReviewsViewModel @Inject constructor(
 
                 val review = Review(
                     apartmentId = apartmentId,
+                    ownerUid = ownerUid,
                     stayId = stayId,
                     guestId = guest.id,
                     guestName = guest.name,
