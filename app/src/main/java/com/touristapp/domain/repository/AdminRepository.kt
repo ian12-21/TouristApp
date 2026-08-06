@@ -21,18 +21,6 @@ interface AdminRepository {
      */
     suspend fun getAllApartments(): Resource<List<Pair<String, String>>>
 
-    /**
-     * Binds this tablet to [apartmentId] by writing `devices/{deviceUid}`.
-     *
-     * This is what gives the anonymous guest session an apartment to be scoped
-     * to: security rules read that document to decide which apartment's content
-     * the tablet may see. Writing it requires owner rights, which is why pairing
-     * can only happen here, while an owner is signed into the admin session.
-     *
-     * Re-pairing to a different apartment is just an overwrite.
-     */
-    suspend fun pairDevice(apartmentId: String): Resource<Unit>
-
     /** Ends the admin session. The guest session keeps running untouched. */
     fun signOut()
 }
