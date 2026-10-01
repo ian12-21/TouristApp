@@ -51,6 +51,8 @@ The app uses Android **Lock Task Mode** as **device owner** to lock guests into 
 3. Install the app: `adb install app-release.apk`
 4. Provision the app as device owner:
    `adb shell dpm set-device-owner com.touristapp/.admin.KioskAdminReceiver`
+   (staging build: `adb shell dpm set-device-owner com.touristapp.staging/com.touristapp.admin.KioskAdminReceiver`
+   — the short `.admin...` form resolves against the applicationId, which differs from the code package in staging)
 5. Launch the app and complete apartment setup.
 6. Open the admin dialog (10s long-press the home icon → log in) → **Enable kiosk mode**.
 
