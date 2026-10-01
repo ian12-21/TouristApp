@@ -26,9 +26,13 @@ class AdminRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun currentOwnerId(): String? = auth.currentUser?.uid
+
     override suspend fun getAllApartments(): Resource<List<Pair<String, String>>> {
         return try {
-            val apartments = db.collection("apartments")
+            val ownerId = currentOwnerId() ?: return Resource.Error("Not signed in")
+            val apartments = db.collection("owners").document(ownerId)
+                .collection("apartments")
                 .get()
                 .await()
                 .documents

@@ -63,7 +63,10 @@ class MainViewModel @Inject constructor(
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
     init {
-        val savedId = prefs.getApartmentId()
+        // Tablets paired before the multi-owner layout have an apartment id but no
+        // owner id, and can't build any path. Treat them as unpaired so the owner
+        // simply pairs again from the setup screen.
+        val savedId = prefs.getApartmentId()?.takeIf { prefs.getOwnerId() != null }
         val savedName = prefs.getApartmentName() ?: ""
         _uiState.update {
             it.copy(

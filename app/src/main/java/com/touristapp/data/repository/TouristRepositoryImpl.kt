@@ -33,6 +33,18 @@ class TouristRepositoryImpl @Inject constructor(
     private val lang: String get() = prefs.getLanguage()
 
     /**
+     * `owners/{ownerId}` — root of everything this tablet shows (apartment, rooms,
+     * stays, places, transportation, reviews). The owner id is saved at pairing time.
+     * Throws if the tablet isn't paired; every caller runs inside a try/catch that
+     * turns it into [Resource.Error].
+     */
+    private fun ownerDoc(): DocumentReference {
+        val ownerId = prefs.getOwnerId()
+            ?: throw IllegalStateException("Tablet is not paired to an owner")
+        return db.collection("owners").document(ownerId)
+    }
+
+    /**
      * Server-first read: when online, fetches fresh data from the server (and updates the local
      * cache); when offline, [Source.DEFAULT] transparently falls back to the cache. This keeps the
      * tablet in sync with admin edits while staying usable on a flaky connection. [forceServer]
@@ -70,7 +82,7 @@ class TouristRepositoryImpl @Inject constructor(
     @Suppress("UNCHECKED_CAST")
     override suspend fun getApartment(apartmentId: String, forceServer: Boolean): Resource<Apartment> {
         return try {
-            val doc = fetchDoc(db.collection("apartments").document(apartmentId), forceServer)
+            val doc = fetchDoc(ownerDoc().collection("apartments").document(apartmentId), forceServer)
             val apartment = doc.toObject(Apartment::class.java)?.copy(id = doc.id)
                 ?: return Resource.Error("Apartment not found")
 
@@ -122,8 +134,9 @@ class TouristRepositoryImpl @Inject constructor(
             val services = coroutineScope {
                 serviceIds.chunked(30).map { chunk ->
                     async {
-                        val refs = chunk.map { db.collection("transportation").document(it) }
-                        val query = db.collection("transportation").whereIn("__name__", refs)
+                        val transportation = ownerDoc().collection("transportation")
+                        val refs = chunk.map { transportation.document(it) }
+                        val query = transportation.whereIn("__name__", refs)
                         fetch(query, forceServer)
                             .documents
                             .mapNotNull { doc ->
@@ -162,7 +175,7 @@ class TouristRepositoryImpl @Inject constructor(
 
     override suspend fun getCurrentStay(stayId: String, forceServer: Boolean): Resource<Stay> {
         return try {
-            val doc = fetchDoc(db.collection("stays").document(stayId), forceServer)
+            val doc = fetchDoc(ownerDoc().collection("stays").document(stayId), forceServer)
             val stay = doc.toObject(Stay::class.java)?.copy(
                 id = doc.id,
                 welcomeMessage = localize(doc.get("welcomeMessage"), lang),
@@ -177,7 +190,7 @@ class TouristRepositoryImpl @Inject constructor(
 
     override suspend fun getPlacesForApartment(apartmentId: String, forceServer: Boolean): Resource<List<Place>> {
         return try {
-            var query: Query = db.collection("places")
+            var query: Query = ownerDoc().collection("places")
                 .whereArrayContains("apartmentIds", apartmentId)
             if (USE_IS_ACTIVE_INDEX) {
                 query = query.whereEqualTo("isActive", true)
@@ -203,6 +216,7 @@ class TouristRepositoryImpl @Inject constructor(
     override suspend fun getEmergencyContacts(groupId: String?, forceServer: Boolean): Resource<List<Contact>> {
         if (groupId.isNullOrBlank()) return Resource.Success(emptyList())
         return try {
+            // Shared reference data — the one collection that is NOT per-owner.
             val doc = fetchDoc(
                 db.collection("emergency_contacts_croatia").document(groupId),
                 forceServer
@@ -228,7 +242,7 @@ class TouristRepositoryImpl @Inject constructor(
     override suspend fun getReviewsForApartment(apartmentId: String): Resource<List<Review>> {
         return try {
             ensureAnonymousAuth()
-            val reviews = db.collection("reviews")
+            val reviews = ownerDoc().collection("reviews")
                 .whereEqualTo("apartmentId", apartmentId)
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
@@ -247,7 +261,7 @@ class TouristRepositoryImpl @Inject constructor(
     override suspend fun getReviewForGuestAndStay(guestId: String, stayId: String): Resource<Review?> {
         return try {
             ensureAnonymousAuth()
-            val docs = db.collection("reviews")
+            val docs = ownerDoc().collection("reviews")
                 .whereEqualTo("guestId", guestId)
                 .whereEqualTo("stayId", stayId)
                 .get()
@@ -290,7 +304,7 @@ class TouristRepositoryImpl @Inject constructor(
                 "createdAt" to Timestamp.now(),
                 "updatedAt" to Timestamp.now()
             )
-            db.collection("reviews").add(data).await()
+            ownerDoc().collection("reviews").add(data).await()
             Resource.Success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "Error creating review", e)
@@ -316,7 +330,7 @@ class TouristRepositoryImpl @Inject constructor(
                 "doodleBase64" to review.doodleBase64,
                 "updatedAt" to Timestamp.now()
             )
-            db.collection("reviews").document(reviewId).update(data).await()
+            ownerDoc().collection("reviews").document(reviewId).update(data).await()
             Resource.Success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "Error updating review $reviewId", e)
@@ -328,7 +342,7 @@ class TouristRepositoryImpl @Inject constructor(
         return try {
             @Suppress("UNCHECKED_CAST")
             val rooms = fetch(
-                db.collection("apartments").document(apartmentId).collection("rooms"),
+                ownerDoc().collection("apartments").document(apartmentId).collection("rooms"),
                 forceServer
             )
                 .documents

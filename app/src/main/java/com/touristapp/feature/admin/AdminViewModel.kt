@@ -3,6 +3,7 @@ package com.touristapp.feature.admin
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.touristapp.core.util.Resource
+import com.touristapp.data.local.AppPreferences
 import com.touristapp.domain.repository.AdminRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +34,8 @@ data class AdminUiState(
  */
 @HiltViewModel
 class AdminViewModel @Inject constructor(
-    private val adminRepository: AdminRepository
+    private val adminRepository: AdminRepository,
+    private val prefs: AppPreferences
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AdminUiState())
@@ -107,6 +109,10 @@ class AdminViewModel @Inject constructor(
      * across as many switches as the owner cares to make.
      */
     fun selectApartment(id: String, onSelected: (String) -> Unit) {
+        // Remember whose apartment this is *before* signing out — afterwards the uid
+        // is gone. The guest session needs it to build `owners/{ownerId}/...` paths.
+        // Saved before onSelected(), which starts loading the apartment immediately.
+        adminRepository.currentOwnerId()?.let(prefs::setOwnerId)
         adminRepository.signOut()
         // Deliberately leaves isAuthenticated alone. AdminLoginFlow draws the login
         // form whenever that flag is false, so clearing it here would re-show the

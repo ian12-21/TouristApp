@@ -14,9 +14,15 @@ interface AdminRepository {
     suspend fun signIn(email: String, password: String): Resource<Unit>
 
     /**
-     * Every apartment, as `id to "name — address"`.
+     * Uid of the signed-in owner, or null when nobody is signed in. This is the
+     * `{ownerId}` in `owners/{ownerId}/...`, which the tablet stores at pairing time.
+     */
+    fun currentOwnerId(): String?
+
+    /**
+     * The signed-in owner's apartments, as `id to "name — address"`.
      *
-     * Listing `apartments` is owner-only in the security rules, so this must run
+     * Listing apartments is owner-only in the security rules, so this must run
      * on the admin session; the guest session would be denied.
      */
     suspend fun getAllApartments(): Resource<List<Pair<String, String>>>

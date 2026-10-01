@@ -24,6 +24,17 @@ class AppPreferences @Inject constructor(
         prefs.edit().putString("apartment_id", id).apply()
     }
 
+    /**
+     * Uid of the owner this tablet is paired to. All of the owner's data lives under
+     * `owners/{ownerId}/...` in Firestore, so the tablet needs it to build every path.
+     * Saved together with the apartment id at pairing time; cleared by [clear].
+     */
+    fun getOwnerId(): String? = prefs.getString("owner_id", null)
+
+    fun setOwnerId(id: String) {
+        prefs.edit().putString("owner_id", id).apply()
+    }
+
     fun getApartmentName(): String? = prefs.getString("apartment_name", null)
 
     fun setApartmentName(name: String) {

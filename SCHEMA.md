@@ -71,14 +71,36 @@ in Kotlin). Never write an `id` field into a document body.
 
 ---
 
-## 2. Access model
+## 2. Data layout & access model
+
+**Every owner's data lives under their own subtree** (multi-owner, see tourist-admin/PLAN.md §2):
+
+```
+owners/{ownerId}                         profile doc — ID is the owner's Auth uid,
+                                         created by hand in the Firebase Console
+owners/{ownerId}/apartments/{apartmentId}       (+ rooms subcollection)
+owners/{ownerId}/places/{placeId}
+owners/{ownerId}/stays/{stayId}
+owners/{ownerId}/guests/{guestId}
+owners/{ownerId}/transportation/{serviceId}
+owners/{ownerId}/reviews/{reviewId}
+emergency_contacts_croatia/{groupId}     shared by all owners (NOT per-owner)
+admins/{uid}                             superadmin allowlist, console-only
+```
+
+The collection paths in §3 are relative to `owners/{ownerId}/`, except
+`emergency_contacts_croatia`. Storage mirrors this: `owners/{ownerId}/<folder>/...`.
+
+Who builds the `{ownerId}`:
+- **Admin web app** — `AuthService.ownerPath()` (the signed-in owner's uid).
+- **Tablet** — `AppPreferences.getOwnerId()`, saved when the owner pairs the tablet.
 
 Two kinds of authenticated client, enforced by `firestore.rules`:
 
-- **Owner** — email/password sign-in, the admin web app. Read + write.
+- **Owner** — email/password sign-in. Read + write **only inside `owners/{theirUid}/`**.
+  `isTenant(ownerId)` = signed-in uid equals `{ownerId}` in the path AND
+  `owners/{ownerId}` exists (so a self-registered account is not an owner).
 - **Tablet** — anonymous sign-in (`signInAnonymously()`). Read-only, except reviews.
-
-`isOwner()` is defined as *signed in AND provider is not anonymous*.
 
 There is deliberately **no catch-all `match /{document=**}` rule**. Every collection is
 listed explicitly in `firestore.rules`; anything not listed is denied by default.
