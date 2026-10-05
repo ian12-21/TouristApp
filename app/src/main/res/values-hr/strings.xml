@@ -69,6 +69,7 @@
     <string name="review_doodle_clear">Obriši</string>
     <string name="review_doodle_cd">Gostov crtež</string>
     <string name="review_doodle_replace">Dodirnite Obriši za ponovno crtanje</string>
+    <string name="review_privacy_notice">Vaša recenzija, ime i crtež pohranjuju se i prikazuju vlasniku apartmana te kasnijim gostima na ovom tabletu.</string>
     <string name="review_quality_exceptional">Iznimno</string>
     <string name="review_quality_excellent">Izvrsno</string>
     <string name="review_quality_very_good">Vrlo dobro</string>

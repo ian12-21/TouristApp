@@ -69,6 +69,7 @@
     <string name="review_doodle_clear">Cancella</string>
     <string name="review_doodle_cd">Scarabocchio dell\'ospite</string>
     <string name="review_doodle_replace">Tocca Cancella per ridisegnare</string>
+    <string name="review_privacy_notice">La tua recensione, il nome e il disegno vengono conservati e mostrati al proprietario dell\'appartamento e agli ospiti successivi su questo tablet.</string>
     <string name="review_quality_exceptional">Eccezionale</string>
     <string name="review_quality_excellent">Eccellente</string>
     <string name="review_quality_very_good">Molto buono</string>

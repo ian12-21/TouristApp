@@ -372,6 +372,15 @@ fun CreateReviewSheet(
                 // Submit button
                 if (state.selectedGuest != null && !state.isCheckingExisting) {
                     Spacer(modifier = Modifier.height(16.dp))
+                    // Outside the scrolling column, so it is always visible next to the button.
+                    Text(
+                        text = stringResource(R.string.review_privacy_notice),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
                     Button(
                         onClick = {
                             viewModel.submitReview(apartmentId, currentStay?.id ?: "")

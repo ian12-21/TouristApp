@@ -69,6 +69,7 @@
     <string name="review_doodle_clear">Löschen</string>
     <string name="review_doodle_cd">Zeichnung des Gastes</string>
     <string name="review_doodle_replace">Tippen Sie auf Löschen zum Neuzeichnen</string>
+    <string name="review_privacy_notice">Ihre Bewertung, Ihr Name und Ihre Zeichnung werden gespeichert und dem Eigentümer der Wohnung sowie späteren Gästen auf diesem Tablet angezeigt.</string>
     <string name="review_quality_exceptional">Außergewöhnlich</string>
     <string name="review_quality_excellent">Ausgezeichnet</string>
     <string name="review_quality_very_good">Sehr gut</string>
