@@ -2,26 +2,39 @@
 
 ## Project Overview
 
-This is an Android project built with **Kotlin** and **Jetpack Compose**. Follow the conventions below for all code generation, refactoring, and reviews.
+**Tourist App** is the guest-facing kiosk tablet app for apartment rentals, built with
+**Kotlin** and **Jetpack Compose**. It reads one apartment's content from **Firebase
+Firestore** (under `owners/{ownerId}/…`) and writes only guest reviews. The content is
+entered in the companion Angular app, `tourist-admin`.
+
+- `README.md` — setup, build flavors (`dev` / `staging`), kiosk mode.
+- `SCHEMA.md` — the Firestore contract shared with `tourist-admin`. **Change it first, then
+  both repos**, and keep the file identical in both.
+
+Follow the conventions below for all code generation, refactoring, and reviews.
 
 ---
 
 ## Architecture
 
-Use **MVVM + Clean Architecture** with a clear layer separation:
+**MVVM** with the layers as top-level packages under `com.touristapp` — not one
+`data/domain/presentation` triple per feature:
 
 ```
-feature/
-├── data/          # Repositories, data sources, DTOs, mappers
-├── domain/        # Use cases, domain models, repository interfaces
-└── presentation/  # ViewModels, UI state, Compose screens & components
+data/      # Firestore/weather models, repository implementations, AppPreferences
+domain/    # Repository interfaces only
+feature/   # One package per screen area: composables + its ViewModel
+core/      # DI, i18n, theme, shared composables, utilities
 ```
 
-- **Presentation → Domain → Data.** Dependencies point inward. Domain never depends on Data or Presentation.
-- Each feature is a self-contained package. Shared code lives in `core/`.
+- **Feature → Domain ← Data.** ViewModels depend on the repository interfaces in
+  `domain/repository/`; the implementations in `data/repository/` are bound in
+  `core/di/RepositoryModule.kt`.
+- There is no use-case layer and no separate domain model: the classes in `data/model/`
+  are used all the way up to the UI. Don't add either for a single call site.
 - ViewModels expose UI state via `StateFlow`. Never expose `MutableStateFlow` publicly.
-- Use cases contain **single business operations** — one public `operator fun invoke()` per use case.
-- Repository interfaces live in `domain/`. Implementations live in `data/`.
+- `MainViewModel` owns the app-wide state (apartment, stay, places, language, overlay);
+  feature ViewModels own what is local to their screen.
 
 ---
 
@@ -78,10 +91,12 @@ feature/
 - Preview functions: `PreviewProfileScreen`
 
 ### Navigation
-- Use Compose Navigation with type-safe routes.
-- Define routes as `sealed interface` or `@Serializable` data classes.
-- Keep NavHost in a single `AppNavigation` composable at the app level.
-- ViewModels are scoped to navigation destinations — never share a ViewModel across unrelated screens by hacking scopes.
+- There is no `NavHost`. `feature/main/AppNavigation.kt` is a `HorizontalPager` of four
+  slides (home, places, reviews, transport) with full-screen overlays on top.
+- The open overlay is the `OverlayScreen` sealed interface in `MainViewModel`'s UI state.
+  Add a screen by adding a case there and rendering it in `AppNavigation`.
+- Screens navigate by calling lambdas that end in a `MainViewModel` function — never by
+  holding navigation state themselves.
 
 ### Theming
 - Use Material 3 (`MaterialTheme`) for colors, typography, and shapes.
@@ -95,18 +110,24 @@ feature/
 
 - Use **Hilt** for DI.
 - Annotate ViewModels with `@HiltViewModel` + `@Inject constructor`.
-- Provide repository implementations and data sources via `@Module` / `@Provides` or `@Binds`.
+- Provide repository implementations via `@Binds` in `core/di/RepositoryModule.kt`; the Firebase instances and the Ktor client come from `core/di/AppModule.kt`.
 - Use `@Singleton` for app-wide dependencies, `@ViewModelScoped` only when truly needed.
-- Keep modules organized per feature or layer — don't put everything in one god module.
 
 ---
 
 ## Networking & Data
 
-- Use **Retrofit** + **Kotlin Serialization** (or Moshi) for API calls.
-- DTOs stay in `data/` and get mapped to domain models at the repository level. Never leak DTOs into the domain or presentation layers.
-- Use `Result` or a custom `sealed interface` (e.g., `Resource<T>`) for representing success/failure from repositories.
-- Room for local persistence. DAOs return `Flow<List<T>>` for observable queries.
+- **Firestore** is the backend. All reads and the review writes go through
+  `TouristRepositoryImpl`; paths are built from the owner id saved in `AppPreferences`.
+- **Two Firebase sessions.** The guest session is anonymous (`ensureAnonymousAuth()`); the
+  owner signs in on a separate `FirebaseApp` (`@AdminScope`, `AdminRepositoryImpl`) so that
+  pairing never replaces the tablet's anonymous uid — that uid is what lets it edit its reviews.
+- **Localized fields** are Firestore maps (`{ en, hr, it, de }`). Model properties for them
+  are `@get:Exclude` and resolved by hand in the repository — see `SCHEMA.md` §1.2.
+- **Ktor** + kotlinx.serialization is used only for the weather API (`WeatherRepositoryImpl`).
+- Local persistence is `AppPreferences` (SharedPreferences) plus Firestore's offline cache.
+  There is no Room database and no Retrofit.
+- Repositories return `Resource<T>` (`core/util/Resource.kt`) for success/failure.
 
 ---
 
@@ -120,38 +141,50 @@ feature/
 
 ## Testing
 
-- **Unit tests:** Test ViewModels and use cases with JUnit 5 + Turbine (for Flow testing) + MockK.
-- **UI tests:** Use Compose Testing (`createComposeRule`) for screen-level tests.
+There are no tests in this repo yet. When adding them:
+
+- **Unit tests:** ViewModels with JUnit + Turbine (for Flow testing), using fakes of the
+  repository interfaces rather than mocks.
+- **UI tests:** Compose Testing (`createComposeRule`) for screen-level tests.
 - Test naming: `should [expected] when [condition]` — e.g., `should show error when login fails`.
 - Don't test implementation details. Test behavior and outcomes.
-- Fakes over mocks when practical — especially for repositories in ViewModel tests.
+- The Firestore security rules are tested in `tourist-admin` (`npm run test:rules`).
 
 ---
 
 ## Project Structure
 
 ```
-app/src/main/java/com/example/app/
+app/src/main/java/com/touristapp/
+├── MainActivity.kt      # Setup screen vs. guest UI, kiosk on/off
+├── TouristApp.kt        # @HiltAndroidApp Application class
+├── admin/               # KioskAdminReceiver
+├── kiosk/               # KioskManager (Lock Task mode)
 ├── core/
-│   ├── di/              # App-level Hilt modules
-│   ├── network/         # API client setup, interceptors
-│   ├── database/        # Room database, type converters
+│   ├── di/              # AppModule, RepositoryModule, AdminScope
+│   ├── i18n/            # Localized-field resolution, per-app language
 │   ├── ui/
-│   │   ├── theme/       # Color, Type, Theme, Shape
-│   │   └── components/  # Shared composables (buttons, cards, etc.)
-│   └── util/            # Extensions, constants, helpers
-├── feature/
-│   ├── auth/
-│   │   ├── data/
-│   │   ├── domain/
-│   │   └── presentation/
-│   ├── home/
-│   │   ├── data/
-│   │   ├── domain/
-│   │   └── presentation/
-│   └── ...
-└── App.kt              # Application class
+│   │   ├── theme/       # Theme
+│   │   └── components/  # Shared composables (dialogs, DoodleCanvas, …)
+│   └── util/            # Resource, serializers, DoodleEncoder
+├── data/
+│   ├── local/           # AppPreferences
+│   ├── model/           # Models.kt, WeatherModels.kt
+│   └── repository/      # *RepositoryImpl
+├── domain/
+│   └── repository/      # Repository interfaces
+└── feature/
+    ├── admin/           # Owner login, apartment picker, kiosk menu
+    ├── apartment/
+    ├── home/
+    ├── main/            # AppNavigation, MainViewModel
+    ├── places/
+    ├── reviews/
+    └── setup/
 ```
+
+Per-flavor Firebase config lives in `app/src/dev/` and `app/src/staging/`
+(`google-services.json`, git-ignored).
 
 ---
 
@@ -171,7 +204,6 @@ When reviewing or generating code, verify:
 
 ## Common Pitfalls to Avoid
 
-- **Don't** pass `NavController` into ViewModels. Handle navigation via events.
 - **Don't** use `mutableStateOf` in the ViewModel — use `MutableStateFlow` + `.stateIn()`.
 - **Don't** create god ViewModels with 15 functions. Split by responsibility.
 - **Don't** nest composables 10 levels deep. Extract and name components.

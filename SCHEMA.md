@@ -73,11 +73,11 @@ in Kotlin). Never write an `id` field into a document body.
 
 ## 2. Data layout & access model
 
-**Every owner's data lives under their own subtree** (multi-owner, see tourist-admin/PLAN.md §2):
+**Every owner's data lives under their own subtree** (multi-owner):
 
 ```
 owners/{ownerId}                         profile doc — ID is the owner's Auth uid,
-                                         created by hand in the Firebase Console
+                                         created when we provision the owner (§3.8)
 owners/{ownerId}/apartments/{apartmentId}       (+ rooms subcollection)
 owners/{ownerId}/places/{placeId}
 owners/{ownerId}/stays/{stayId}
@@ -87,6 +87,10 @@ owners/{ownerId}/reviews/{reviewId}
 emergency_contacts_croatia/{groupId}     shared by all owners (NOT per-owner)
 admins/{uid}                             superadmin allowlist, console-only
 ```
+
+No client can create `owners/{ownerId}` or `admins/{uid}` — no rule grants the write.
+Owners are provisioned from outside the app; the procedure is in the `tourist-admin`
+README ("Owner provisioning").
 
 The collection paths in §3 are relative to `owners/{ownerId}/`, except
 `emergency_contacts_croatia`. Storage mirrors this: `owners/{ownerId}/<folder>/...`.
@@ -101,6 +105,8 @@ Two kinds of authenticated client, enforced by `firestore.rules`:
   `isTenant(ownerId)` = signed-in uid equals `{ownerId}` in the path AND
   `owners/{ownerId}` exists (so a self-registered account is not an owner).
 - **Tablet** — anonymous sign-in (`signInAnonymously()`). Read-only, except reviews.
+- **Superadmin** (us) — an account with an `admins/{uid}` doc. The only writer of the
+  shared `emergency_contacts_croatia` collection, and may read any owner profile.
 
 There is deliberately **no catch-all `match /{document=**}` rule**. Every collection is
 listed explicitly in `firestore.rules`; anything not listed is denied by default.
@@ -137,7 +143,8 @@ The central document. Read by both apps; written only by the owner.
 | `emergencyContactGroupId` | `string \| null` | FK → `emergency_contacts_croatia`. |
 | `updatedAt` | `Timestamp` | Server-set on every write. |
 
-**Rules:** read if signed in; write if owner. Subcollections inherit the same access.
+**Rules:** `get` if signed in; `list` and write owner-only (a tablet fetches its apartment
+by ID and never enumerates). The `rooms` subcollection is read if signed in, write if owner.
 
 #### `apartments/{apartmentId}/rooms/{roomName}`
 
@@ -223,7 +230,8 @@ point at each other. Both `checkIn()` (transaction) and `checkOut()` (batch) in
 may not overlap in date range. Enforced client-side inside `StayService.checkIn()`'s
 transaction — **not** enforced by security rules.
 
-**Rules:** read if signed in; write if owner.
+**Rules:** `get` if signed in; `list` and write owner-only — an enumerable `stays`
+collection would be a roster of every guest who ever stayed.
 
 ---
 
@@ -268,6 +276,8 @@ Private transfer providers (taxi, shuttle).
 ### 3.6 `emergency_contacts_croatia/{groupId}`
 
 A named group of emergency numbers, referenced by `apartments.emergencyContactGroupId`.
+**Shared reference data:** one top-level collection for all owners, not under
+`owners/{ownerId}/`. An owner picks a group for an apartment but cannot change the groups.
 
 | Field | Type | Notes |
 |---|---|---|
@@ -279,7 +289,8 @@ A named group of emergency numbers, referenced by `apartments.emergencyContactGr
 The collection name hardcodes `_croatia`. If the app ever expands beyond Croatia this
 becomes a rename + migration + rules change in both repos.
 
-**Rules:** read if signed in; write if owner.
+**Rules:** read if signed in; write superadmin only (`admins/{uid}`). An owner's own extra
+numbers belong in `apartments.contacts`, not here.
 
 ---
 
@@ -323,6 +334,22 @@ delete owner-only.
 > review to a writer. Note it identifies the **tablet**, not the guest: guests sharing a
 > kiosk can technically edit each other's reviews, which is accepted because the UI only
 > surfaces the review matching the current `guestId` + `stayId`.
+
+### 3.8 `owners/{ownerId}` (profile)
+
+Not under the owner subtree — this is the root doc the subtree hangs from. Its
+**existence** is what makes an Auth account an owner (`isTenant()`); the admin app reads
+it once on entry (`OwnerService.load`) and shows an "account not activated" page when
+it is missing. The tablet never reads it.
+
+| Field | Type | Notes |
+|---|---|---|
+| `name` | `string` | Shown in the admin sidebar. |
+| `email` | `string` | Copy of the Auth email, for display. |
+| `createdAt` | `Timestamp` | Optional on docs created by hand. |
+
+**Rules:** `get` by that owner (or a superadmin); `list` superadmin only; no client
+writes. A missing doc therefore reads as `permission-denied`, not as "not found".
 
 ---
 
