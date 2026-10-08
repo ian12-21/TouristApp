@@ -102,9 +102,11 @@ Who builds the `{ownerId}`:
 Two kinds of authenticated client, enforced by `firestore.rules`:
 
 - **Owner** — email/password sign-in. Read + write **only inside `owners/{theirUid}/`**.
-  `isTenant(ownerId)` = signed-in uid equals `{ownerId}` in the path AND
-  `owners/{ownerId}` exists (so a self-registered account is not an owner).
-- **Tablet** — anonymous sign-in (`signInAnonymously()`). Read-only, except reviews.
+  `isTenant(ownerId)` = signed-in uid equals `{ownerId}` in the path AND the sign-in
+  provider is `password` AND `owners/{ownerId}` exists (so a self-registered account is
+  not an owner).
+- **Tablet** — anonymous sign-in (`signInAnonymously()`). Read-only, except reviews, and
+  review writes are accepted **only** from the `anonymous` provider (§3.7).
 - **Superadmin** (us) — an account with an `admins/{uid}` doc. The only writer of the
   shared `emergency_contacts_croatia` collection, and may read any owner profile.
 
@@ -145,6 +147,13 @@ The central document. Read by both apps; written only by the owner.
 
 **Rules:** `get` if signed in; `list` and write owner-only (a tablet fetches its apartment
 by ID and never enumerates). The `rooms` subcollection is read if signed in, write if owner.
+
+Owner writes are shape-checked (`validApartment()`): every field above must have the type
+listed when present (**Localized** = map, or the legacy string), `capacity` /
+`renovationYear` may be `null`, and `coordinates` must hold numeric `lat` / `lng`. A new
+apartment must carry `name`, `photos`, `houseRules`, `contacts`, `transportation`,
+`currentStayId` and `updatedAt`; an update cannot remove them. The `rooms` body is not
+validated.
 
 #### `apartments/{apartmentId}/rooms/{roomName}`
 
@@ -194,7 +203,10 @@ Points of interest near an apartment.
 > objects. **If you write `apartments[]`, you must rewrite `apartmentIds` in the same
 > operation** or the place silently disappears from the tablet.
 
-**Rules:** read if signed in; write if owner.
+**Rules:** read if signed in; write if owner. Owner writes are shape-checked
+(`validPlace()`): field types as above, `category` must be one of §4.4, and `apartments`
+and `apartmentIds` must have the same length. A new place must carry `name`, `category`,
+`isActive`, `apartments` and `apartmentIds`.
 
 ---
 
@@ -231,7 +243,15 @@ may not overlap in date range. Enforced client-side inside `StayService.checkIn(
 transaction — **not** enforced by security rules.
 
 **Rules:** `get` if signed in; `list` and write owner-only — an enumerable `stays`
-collection would be a roster of every guest who ever stayed.
+collection would be a roster of every guest who ever stayed. Owner writes are
+shape-checked (`validStay()`): field types as above, `guestIds` non-empty, `status` one of
+the three values. A new stay must carry `guestIds`, `guestNames`, `apartmentId`,
+`checkIn`, `checkOut` and `status`, and its `apartmentId` must be an apartment of the same
+owner (re-checked on update only if `apartmentId` changes).
+
+> **`status` and `apartments.currentStayId` gate reviews.** A tablet can write a review
+> only while the stay is `active` *and* is its apartment's `currentStayId` (§3.7). Check-out
+> flips both, which closes the stay's reviews for editing.
 
 ---
 
@@ -298,12 +318,16 @@ numbers belong in `apartments.contacts`, not here.
 
 **The only collection tablets write to.** Created by anonymous guests.
 
+**The document ID is `{stayId}_{guestId}`** — one review per guest per stay. Rules reject
+any other ID on create, so `add()` cannot be used. Reviews written before this rule keep
+their random IDs.
+
 | Field | Type | Notes |
 |---|---|---|
-| `apartmentId` | `string` | FK → `apartments`. |
-| `stayId` | `string` | FK → `stays`. |
-| `guestId` | `string` | FK → `guests` (ID only — the tablet never reads that collection). |
-| `guestName` | `string` | Denormalized from `stays.guestNames`. |
+| `apartmentId` | `string` | FK → `apartments`. **Rule-enforced:** must be the stay's `apartmentId`. |
+| `stayId` | `string` | FK → `stays`. **Rule-enforced:** must exist, be `active`, and be the apartment's `currentStayId`. |
+| `guestId` | `string` | FK → `guests` (ID only — the tablet never reads that collection). **Rule-enforced:** must be in the stay's `guestIds`. |
+| `guestName` | `string` | Denormalized from `stays.guestNames`. **Rule-enforced** on create: must equal `stay.guestNames[guestId]`. |
 | `authorUid` | `string` | Firebase uid of the tablet that created the review. Set by `TouristRepositoryImpl.createReview`, **never** by the UI. Immutable, and the sole gate on who may edit the document later. Absent on reviews predating this field — those are owner-editable only. |
 | `cleanliness` | `number` | 1–10. |
 | `location` | `number` | 1–10. |
@@ -312,28 +336,35 @@ numbers belong in `apartments.contacts`, not here.
 | `facilities` | `number` | 1–10. |
 | `communication` | `number` | 1–10. |
 | `wifi` | `number` | 1–10. |
-| `overallScore` | `number` | 1–10. **Rule-enforced range.** |
+| `overallScore` | `number` | Mean of the seven scores, rounded to one decimal. **Rule-enforced** against the scores (±0.05). |
 | `comment` | `string` | **Rule-enforced max 500 chars.** |
 | `doodleBase64` | `string?` | Guest signature drawing, stored inline as base64 — *not* in Storage, because tablets are anonymous and Storage denies anonymous writes. |
-| `createdAt` | `Timestamp` | |
-| `updatedAt` | `Timestamp` | |
+| `createdAt` | `Timestamp` | `FieldValue.serverTimestamp()`. **Rule-enforced:** must be the server time; immutable. |
+| `updatedAt` | `Timestamp` | `FieldValue.serverTimestamp()` on every write. **Rule-enforced:** must be the server time. |
 
 > 🔒 **This collection's shape is enforced by security rules, not just convention.**
 > `firestore.rules` has a `validReview()` function with `hasOnly([...])` listing every
 > permitted field. **Adding a field to this table without adding it to that list will make
 > every write fail with `PERMISSION_DENIED`.** Rules must never trust client validation.
 
-**Rules:** read if signed in; create if signed in **and** payload passes `validReview()`
-**and** `authorUid == request.auth.uid`; update if owner, or if the caller's uid matches the
-stored `authorUid` — on update `authorUid`, `apartmentId` and `guestId` are immutable;
-delete owner-only.
+**Rules:** read if signed in. Writes other than delete are accepted only from an
+**anonymous** sign-in:
+
+- **create** — payload passes `validReview()`, `authorUid == request.auth.uid`, the document
+  ID is `{stayId}_{guestId}`, both timestamps are the server time, the stay is the
+  apartment's current active stay, and the guest is on that stay under that name.
+- **update** — the caller's uid matches the stored `authorUid`, the stay is still current,
+  `updatedAt` is the server time, and only the seven scores, `overallScore`, `comment`,
+  `doodleBase64` and `updatedAt` change. Everything else is immutable.
+- **delete** — owner only. **Owners cannot edit a review**; moderation means deleting it.
 
 > ⚠️ **`isSignedIn()` is not authorization on this collection.** Tablets authenticate with
 > `signInAnonymously()`, which hands a fresh uid to anyone holding the API key (extractable
 > from the .apk), so "is signed in" is free to obtain. `authorUid` is what actually binds a
 > review to a writer. Note it identifies the **tablet**, not the guest: guests sharing a
 > kiosk can technically edit each other's reviews, which is accepted because the UI only
-> surfaces the review matching the current `guestId` + `stayId`.
+> surfaces the review matching the current `guestId` + `stayId`. A review without
+> `authorUid` (written before the field existed) cannot be edited by anyone.
 
 ### 3.8 `owners/{ownerId}` (profile)
 
@@ -396,11 +427,13 @@ never sorts places by creation date. Add the field if that changes.
 Both are handled in both repos. Each is safe to delete only after verifying no remaining
 documents use the old shape.
 
-### 5.4 No schema validation on write
-Only `reviews` is validated by security rules. Every other collection trusts the admin app
-completely. A bug in the admin app can write a malformed document that breaks the tablet at
-runtime with no error anywhere. Extending rule-level validation to `apartments` and `places`
-is the highest-value hardening left.
+### 5.4 Schema validation on write is shallow
+`reviews` is fully validated by security rules. `apartments`, `places` and `stays` get a
+basic check — required keys on create and top-level field types (§3.1–3.3) — so an admin
+bug can no longer store, say, a string where the tablet expects a list. Not checked: the
+*contents* of arrays and maps (`houseRules`, `contacts`, `transportation`, `apartments[]`,
+localized maps), the `rooms` subcollection, `guests` and `transportation`. A malformed
+element inside one of those still reaches the tablet.
 
 ---
 
@@ -411,7 +444,10 @@ is the highest-value hardening left.
 3. Update `Models.kt` (Kotlin) — add `@get:Exclude` if the field is **Localized**, and
    resolve it manually in `TouristRepositoryImpl`.
 4. If the field is on `reviews`, add it to `validReview()`'s `hasOnly([...])` in
-   `firestore.rules` **and deploy the rules**, or writes will start failing.
+   `firestore.rules` **and deploy the rules**, or writes will start failing. If the tablet
+   may edit it, add it to the `affectedKeys()` list on `allow update` too. If it is on
+   `apartments`, `places` or `stays`, add a type check to that collection's `valid…()`
+   function.
 5. If it's a new collection, add an explicit `match` block to `firestore.rules`.
 6. Decide what existing documents without the field should do. Both repos default to
    `""` / `emptyList()` / `null` — confirm that is actually acceptable for this field.

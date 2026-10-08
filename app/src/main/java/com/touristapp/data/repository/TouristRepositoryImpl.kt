@@ -4,11 +4,11 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.Source
-import com.google.firebase.Timestamp
 import com.touristapp.core.i18n.localize
 import com.touristapp.core.i18n.localizeList
 import com.touristapp.core.util.Resource
@@ -301,10 +301,17 @@ class TouristRepositoryImpl @Inject constructor(
                 "overallScore" to review.overallScore,
                 "comment" to review.comment,
                 "doodleBase64" to review.doodleBase64,
-                "createdAt" to Timestamp.now(),
-                "updatedAt" to Timestamp.now()
+                // Server time, not the device clock — security rules require both
+                // to equal request.time.
+                "createdAt" to FieldValue.serverTimestamp(),
+                "updatedAt" to FieldValue.serverTimestamp()
             )
-            ownerDoc().collection("reviews").add(data).await()
+            // One review per guest per stay: the rules only accept this exact ID,
+            // so a second submission can never add a second document.
+            ownerDoc().collection("reviews")
+                .document(reviewDocId(review.stayId, review.guestId))
+                .set(data)
+                .await()
             Resource.Success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "Error creating review", e)
@@ -328,7 +335,7 @@ class TouristRepositoryImpl @Inject constructor(
                 "overallScore" to review.overallScore,
                 "comment" to review.comment,
                 "doodleBase64" to review.doodleBase64,
-                "updatedAt" to Timestamp.now()
+                "updatedAt" to FieldValue.serverTimestamp()
             )
             ownerDoc().collection("reviews").document(reviewId).update(data).await()
             Resource.Success(Unit)
@@ -379,5 +386,8 @@ class TouristRepositoryImpl @Inject constructor(
          * client-side isActive filter is used to avoid a FAILED_PRECONDITION crash.
          */
         private const val USE_IS_ACTIVE_INDEX = false
+
+        /** `{stayId}_{guestId}` — the only review ID security rules accept (SCHEMA.md §3.7). */
+        private fun reviewDocId(stayId: String, guestId: String) = "${stayId}_$guestId"
     }
 }
