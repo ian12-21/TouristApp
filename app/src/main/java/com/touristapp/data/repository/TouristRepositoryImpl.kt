@@ -218,7 +218,7 @@ class TouristRepositoryImpl @Inject constructor(
         return try {
             // Shared reference data — the one collection that is NOT per-owner.
             val doc = fetchDoc(
-                db.collection("emergency_contacts_croatia").document(groupId),
+                db.collection("emergency_contacts").document(groupId),
                 forceServer
             )
             val contactsList = doc.get("contacts") as? List<Map<String, Any?>> ?: emptyList()

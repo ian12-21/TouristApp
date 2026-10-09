@@ -74,9 +74,8 @@ All three are on the apartment's **Contacts & Rules** tab.
 - **Contacts** — your own numbers (you, the cleaner, maintenance).
 - **Emergency services** — choose a group under **Assigned contact group** and click
   **Save**. The groups (police, ambulance…) are shared by all owners and maintained by us.
-  The **Emergency Contacts** page in the menu shows buttons for adding and editing groups;
-  for owners they end in a "no permission" message. That is known — use the picker on the
-  apartment. If the list is empty, tell us.
+  The **Emergency Contacts** page in the menu lists the groups by country; you can look
+  but not change them — use the picker on the apartment. If the list is empty, tell us.
 - **House rules** — **+ Add group** (for example "Quiet hours"), then the rules in it.
 
 ## 3. Add a guest and check in a stay

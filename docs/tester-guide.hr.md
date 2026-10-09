@@ -76,9 +76,9 @@ Sve troje nalazi se na kartici **Kontakti i pravila** u apartmanu.
 - **Kontakti** — vaši brojevi (vi, čistačica, održavanje).
 - **Hitne službe** — pod **Dodijeljena kontaktna grupa** odaberite grupu i kliknite
   **Spremi**. Grupe (policija, hitna pomoć…) zajedničke su svim vlasnicima i održavamo ih
-  mi. Stranica **Hitni kontakti** u izborniku prikazuje gumbe za dodavanje i uređivanje
-  grupa; vlasnicima oni završavaju porukom da nemaju dopuštenje. To je poznato — koristite
-  odabir na apartmanu. Ako je popis prazan, javite nam.
+  mi. Stranica **Hitni kontakti** u izborniku prikazuje grupe po državama; možete ih
+  pregledati, ali ne i mijenjati — koristite odabir na apartmanu. Ako je popis prazan,
+  javite nam.
 - **Kućni red** — **+ Dodaj grupu** (npr. „Vrijeme tišine”), zatim pravila u njoj.
 
 ## 3. Dodavanje gosta i prijava boravka

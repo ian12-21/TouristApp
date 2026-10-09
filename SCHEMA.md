@@ -84,7 +84,7 @@ owners/{ownerId}/stays/{stayId}
 owners/{ownerId}/guests/{guestId}
 owners/{ownerId}/transportation/{serviceId}
 owners/{ownerId}/reviews/{reviewId}
-emergency_contacts_croatia/{groupId}     shared by all owners (NOT per-owner)
+emergency_contacts/{groupId}             shared by all owners (NOT per-owner)
 admins/{uid}                             superadmin allowlist, console-only
 ```
 
@@ -93,7 +93,7 @@ Owners are provisioned from outside the app; the procedure is in the `tourist-ad
 README ("Owner provisioning").
 
 The collection paths in §3 are relative to `owners/{ownerId}/`, except
-`emergency_contacts_croatia`. Storage mirrors this: `owners/{ownerId}/<folder>/...`.
+`emergency_contacts`. Storage mirrors this: `owners/{ownerId}/<folder>/...`.
 
 Who builds the `{ownerId}`:
 - **Admin web app** — `AuthService.ownerPath()` (the signed-in owner's uid).
@@ -108,7 +108,7 @@ Two kinds of authenticated client, enforced by `firestore.rules`:
 - **Tablet** — anonymous sign-in (`signInAnonymously()`). Read-only, except reviews, and
   review writes are accepted **only** from the `anonymous` provider (§3.7).
 - **Superadmin** (us) — an account with an `admins/{uid}` doc. The only writer of the
-  shared `emergency_contacts_croatia` collection, and may read any owner profile.
+  shared `emergency_contacts` collection, and may read any owner profile.
 
 There is deliberately **no catch-all `match /{document=**}` rule**. Every collection is
 listed explicitly in `firestore.rules`; anything not listed is denied by default.
@@ -139,10 +139,11 @@ The central document. Read by both apps; written only by the owner.
 | `checkoutInstructions` | **Localized** | |
 | `welcomeMessage` | **Localized** | |
 | `houseRules` | `HouseRuleGroup[]` | See §4.1. |
-| `contacts` | `Contact[]` | See §4.2. |
+| `countryCode` | `string` | The country the numbers are for: ISO 3166-1 alpha-2, upper case (`HR`). Required by the rules. The admin shows its flag and localized name; the tablet does not read it. |
+| `contacts` | `Contact[]` | See §4.2. Names are `LocalizedString`s, translated by the superadmin. |
 | `transportation` | `TransportationItem[]` | See §4.3. |
 | `currentStayId` | `string \| null` | FK → `stays`. `null` when vacant. |
-| `emergencyContactGroupId` | `string \| null` | FK → `emergency_contacts_croatia`. |
+| `emergencyContactGroupId` | `string \| null` | FK → `emergency_contacts`. |
 | `updatedAt` | `Timestamp` | Server-set on every write. |
 
 **Rules:** `get` if signed in; `list` and write owner-only (a tablet fetches its apartment
@@ -295,7 +296,7 @@ Private transfer providers (taxi, shuttle).
 
 ---
 
-### 3.6 `emergency_contacts_croatia/{groupId}`
+### 3.6 `emergency_contacts/{groupId}`
 
 A named group of emergency numbers, referenced by `apartments.emergencyContactGroupId`.
 **Shared reference data:** one top-level collection for all owners, not under
@@ -303,16 +304,20 @@ A named group of emergency numbers, referenced by `apartments.emergencyContactGr
 
 | Field | Type | Notes |
 |---|---|---|
-| `contacts` | `Contact[]` | See §4.2. |
+| `countryCode` | `string` | The country the numbers are for: ISO 3166-1 alpha-2, upper case (`HR`). Required by the rules. The admin shows its flag and localized name; the tablet does not read it. |
+| `contacts` | `Contact[]` | See §4.2. Names are `LocalizedString`s, translated by the superadmin. |
 
 > ⚠️ **Legacy tolerance:** the phone field may be `phone` **or** `number`. Both repos read
 > `phone ?? number`. Always write `phone`.
 
-The collection name hardcodes `_croatia`. If the app ever expands beyond Croatia this
-becomes a rename + migration + rules change in both repos.
+The collection was called `emergency_contacts_croatia` before groups carried a country;
+documents under the old name are not read by either app.
 
-**Rules:** read if signed in; write superadmin only (`admins/{uid}`). An owner's own extra
-numbers belong in `apartments.contacts`, not here.
+**Rules:** read if signed in; write superadmin only (`admins/{uid}`), and a write must
+carry a valid `countryCode` and a `contacts` list. An account may `get` its own
+`admins/{uid}` entry — that is how the admin decides whether to show the edit controls;
+nobody can list or write the allowlist. An owner's own extra numbers belong in
+`apartments.contacts`, not here.
 
 ---
 
@@ -425,7 +430,7 @@ Admin writes it; the tablet's `Place` data class omits it. Currently harmless �
 never sorts places by creation date. Add the field if that changes.
 
 ### 5.3 Two legacy read paths
-`transportation` (nested format) and `emergency_contacts_croatia` (`number` vs `phone`).
+`transportation` (nested format) and `emergency_contacts` (`number` vs `phone`).
 Both are handled in both repos. Each is safe to delete only after verifying no remaining
 documents use the old shape.
 
