@@ -242,8 +242,10 @@ point at each other. Both `checkIn()` (transaction) and `checkOut()` (batch) in
 may not overlap in date range. Enforced client-side inside `StayService.checkIn()`'s
 transaction — **not** enforced by security rules.
 
-**Rules:** `get` if signed in; `list` and write owner-only — an enumerable `stays`
-collection would be a roster of every guest who ever stayed. Owner writes are
+**Rules:** `get` by the owner, or by any signed-in client **while `status` is `active`**
+(the tablet only reads the current stay; past stays stay private); `list` and write
+owner-only — an enumerable `stays` collection would be a roster of every guest who ever
+stayed. Owner writes are
 shape-checked (`validStay()`): field types as above, `guestIds` non-empty, `status` one of
 the three values. A new stay must carry `guestIds`, `guestNames`, `apartmentId`,
 `checkIn`, `checkOut` and `status`, and its `apartmentId` must be an apartment of the same
