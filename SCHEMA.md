@@ -89,8 +89,9 @@ admins/{uid}                             superadmin allowlist, console-only
 ```
 
 No client can create `owners/{ownerId}` or `admins/{uid}` — no rule grants the write.
-Owners are provisioned from outside the app; the procedure is in the `tourist-admin`
-README ("Owner provisioning").
+Owners are provisioned with admin rights: by the `createOwner` Cloud Function behind the
+admin app's superadmin-only Owners page, or by hand in the console. The procedure is in
+the `tourist-admin` README ("Owner provisioning").
 
 The collection paths in §3 are relative to `owners/{ownerId}/`, except
 `emergency_contacts`. Storage mirrors this: `owners/{ownerId}/<folder>/...`.
@@ -108,7 +109,8 @@ Two kinds of authenticated client, enforced by `firestore.rules`:
 - **Tablet** — anonymous sign-in (`signInAnonymously()`). Read-only, except reviews, and
   review writes are accepted **only** from the `anonymous` provider (§3.7).
 - **Superadmin** (us) — an account with an `admins/{uid}` doc. The only writer of the
-  shared `emergency_contacts` collection, and may read any owner profile.
+  shared `emergency_contacts` collection, may read any owner profile, and is the only
+  caller the `createOwner` function accepts.
 
 There is deliberately **no catch-all `match /{document=**}` rule**. Every collection is
 listed explicitly in `firestore.rules`; anything not listed is denied by default.
@@ -310,9 +312,6 @@ A named group of emergency numbers, referenced by `apartments.emergencyContactGr
 > ⚠️ **Legacy tolerance:** the phone field may be `phone` **or** `number`. Both repos read
 > `phone ?? number`. Always write `phone`.
 
-The collection was called `emergency_contacts_croatia` before groups carried a country;
-documents under the old name are not read by either app.
-
 **Rules:** read if signed in; write superadmin only (`admins/{uid}`), and a write must
 carry a valid `countryCode` and a `contacts` list. An account may `get` its own
 `admins/{uid}` entry — that is how the admin decides whether to show the edit controls;
@@ -383,11 +382,12 @@ it is missing. The tablet never reads it.
 | Field | Type | Notes |
 |---|---|---|
 | `name` | `string` | Shown in the admin sidebar. |
-| `email` | `string` | Copy of the Auth email, for display. |
-| `createdAt` | `Timestamp` | Optional on docs created by hand. |
+| `email` | `string` | Copy of the Auth email, for display. Lower-cased by `createOwner`. |
+| `createdAt` | `Timestamp` | Server-set by `createOwner`. Optional on docs created by hand. |
 
-**Rules:** `get` by that owner (or a superadmin); `list` superadmin only; no client
-writes. A missing doc therefore reads as `permission-denied`, not as "not found".
+**Rules:** `get` by that owner (or a superadmin); `list` superadmin only (the admin app's
+Owners page); no client writes — `createOwner` writes it with the Admin SDK, together
+with the Auth user. A missing doc therefore reads as `permission-denied`, not as "not found".
 
 ---
 
