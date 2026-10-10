@@ -334,7 +334,7 @@ their random IDs.
 | `stayId` | `string` | FK → `stays`. **Rule-enforced:** must exist, be `active`, and be the apartment's `currentStayId`. |
 | `guestId` | `string` | FK → `guests` (ID only — the tablet never reads that collection). **Rule-enforced:** must be in the stay's `guestIds`. |
 | `guestName` | `string` | Denormalized from `stays.guestNames`. **Rule-enforced** on create: must equal `stay.guestNames[guestId]`. |
-| `authorUid` | `string` | Firebase uid of the tablet that created the review. Set by `TouristRepositoryImpl.createReview`, **never** by the UI. Immutable, and the sole gate on who may edit the document later. Absent on reviews predating this field — those are owner-editable only. |
+| `authorUid` | `string` | Firebase uid of the tablet that created the review. Set by `TouristRepositoryImpl.createReview`, **never** by the UI. Immutable, and the sole gate on who may edit the document later. Absent on reviews predating this field — those cannot be edited by anyone; the owner can only delete them. |
 | `cleanliness` | `number` | 1–10. |
 | `location` | `number` | 1–10. |
 | `comfort` | `number` | 1–10. |
