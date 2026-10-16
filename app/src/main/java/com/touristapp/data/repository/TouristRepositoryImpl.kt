@@ -2,6 +2,7 @@ package com.touristapp.data.repository
 
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
@@ -15,6 +16,7 @@ import com.touristapp.core.util.Resource
 import com.touristapp.data.local.AppPreferences
 import com.touristapp.data.model.*
 import com.touristapp.domain.repository.TouristRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -67,6 +69,7 @@ class TouristRepositoryImpl @Inject constructor(
     }
 
     override suspend fun ensureAnonymousAuth(): Resource<Unit> {
+        dropDeletedSession()
         if (auth.currentUser == null) {
             return try {
                 auth.signInAnonymously().await()
@@ -77,6 +80,29 @@ class TouristRepositoryImpl @Inject constructor(
             }
         }
         return Resource.Success(Unit)
+    }
+
+    /**
+     * Anonymous accounts that stay unused for 20 days are deleted server-side (the admin
+     * repo's `cleanupAnonymousUsers` function). A tablet that was switched off that long
+     * still holds the deleted user locally, and every read would fail with
+     * PERMISSION_DENIED. Asking for the ID token costs nothing while the cached one is
+     * valid; once it has to be refreshed, a deleted account surfaces here and is signed
+     * out so [ensureAnonymousAuth] can create a new one. Offline and other failures are
+     * left alone — the cache may still serve the read.
+     */
+    private suspend fun dropDeletedSession() {
+        val user = auth.currentUser ?: return
+        try {
+            user.getIdToken(false).await()
+        } catch (e: FirebaseAuthInvalidUserException) {
+            Log.w(TAG, "Anonymous session no longer exists, signing in again", e)
+            auth.signOut()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not verify the session", e)
+        }
     }
 
     @Suppress("UNCHECKED_CAST")
