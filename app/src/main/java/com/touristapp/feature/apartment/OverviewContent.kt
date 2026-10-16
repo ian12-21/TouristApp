@@ -99,7 +99,7 @@ internal fun OverviewContent(apartment: Apartment) {
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (apartment.size.isNotBlank()) {
+            if (apartment.size > 0) {
                 DetailChip(
                     icon = Icons.Default.SquareFoot,
                     label = stringResource(R.string.apartment_overview_size),

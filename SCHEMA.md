@@ -132,7 +132,7 @@ The central document. Read by both apps; written only by the owner.
 | `description` | **Localized** | |
 | `coordinates` | `{ lat: number, lng: number }` | Used for the weather lookup. Missing ⇒ tablet skips weather entirely. |
 | `photos` | `string[]` | Storage download URLs. |
-| `size` | `string` | Free text, e.g. `"65 m²"`. |
+| `size` | `number` (int64) | Floor area in m², e.g. `65`. Must be a whole number — the tablet reads it as a `Long`. `0` means unknown and is not shown. |
 | `capacity` | `number` | Defaults to `4` on create. |
 | `renovationYear` | `number` | |
 | `wifiName` | `string` | |

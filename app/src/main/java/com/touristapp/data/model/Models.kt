@@ -48,7 +48,7 @@ data class Apartment(
     @get:Exclude val description: String = "",
     val coordinates: Map<String, Double> = emptyMap(),
     val photos: List<String> = emptyList(),
-    val size: String = "",
+    val size: Long = 0,
     val capacity: Int = 0,
     val renovationYear: Int = 0,
     val wifiName: String = "",

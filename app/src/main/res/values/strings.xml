@@ -99,7 +99,7 @@
     <string name="apartment_overview_size">Size</string>
     <string name="apartment_overview_capacity">Capacity</string>
     <string name="apartment_overview_renovated">Renovated</string>
-    <string name="apartment_overview_size_value">%1$s m\u00B2</string>
+    <string name="apartment_overview_size_value">%1$d m\u00B2</string>
     <string name="apartment_overview_capacity_value">%1$d guests</string>
     <string name="apartment_rooms_empty">No rooms listed.</string>
     <string name="apartment_rooms_no_appliances">No appliances listed.</string>

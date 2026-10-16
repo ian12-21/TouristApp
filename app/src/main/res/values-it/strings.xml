@@ -99,7 +99,7 @@
     <string name="apartment_overview_size">Dimensioni</string>
     <string name="apartment_overview_capacity">Capacità</string>
     <string name="apartment_overview_renovated">Ristrutturato</string>
-    <string name="apartment_overview_size_value">%1$s m²</string>
+    <string name="apartment_overview_size_value">%1$d m²</string>
     <string name="apartment_overview_capacity_value">%1$d ospiti</string>
     <string name="apartment_rooms_empty">Nessuna stanza indicata.</string>
     <string name="apartment_rooms_no_appliances">Nessun elettrodomestico indicato.</string>

@@ -99,7 +99,7 @@
     <string name="apartment_overview_size">Veličina</string>
     <string name="apartment_overview_capacity">Kapacitet</string>
     <string name="apartment_overview_renovated">Obnovljeno</string>
-    <string name="apartment_overview_size_value">%1$s m²</string>
+    <string name="apartment_overview_size_value">%1$d m²</string>
     <string name="apartment_overview_capacity_value">%1$d gostiju</string>
     <string name="apartment_rooms_empty">Nema navedenih soba.</string>
     <string name="apartment_rooms_no_appliances">Nema navedenih uređaja.</string>
