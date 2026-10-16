@@ -370,7 +370,9 @@ their random IDs.
 > review to a writer. Note it identifies the **tablet**, not the guest: guests sharing a
 > kiosk can technically edit each other's reviews, which is accepted because the UI only
 > surfaces the review matching the current `guestId` + `stayId`. A review without
-> `authorUid` (written before the field existed) cannot be edited by anyone.
+> `authorUid` (written before the field existed) cannot be edited by anyone. Neither can one
+> whose tablet lost its anonymous account: those are deleted after 20 days without use
+> (SECURITY.md §6.3), and the tablet then signs in under a new uid.
 
 ### 3.8 `owners/{ownerId}` (profile)
 
