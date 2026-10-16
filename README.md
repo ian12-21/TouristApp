@@ -56,11 +56,14 @@ The two have different application ids, so both can be installed on one tablet.
    it first if it is not there — the package name must match exactly).
 3. Download `google-services.json` and put it at the path from the table.
 
-The variants are `devDebug`, `stagingDebug`, `devRelease` and `stagingRelease`. The Gradle
-wrapper script is not committed, so build from Android Studio, or with a local Gradle
-install: `gradle assembleStagingDebug` writes
-`app/build/outputs/apk/staging/debug/app-staging-debug.apk`. Release builds have no signing
-config yet (#8), so only debug APKs are installable today.
+The variants are `devDebug`, `stagingDebug`, `devRelease` and `stagingRelease`. Build from
+Android Studio, or from the command line with the Gradle wrapper:
+`./gradlew assembleStagingDebug` writes
+`app/build/outputs/apk/staging/debug/app-staging-debug.apk`, and
+`./gradlew installStagingDebug` installs it on the connected device or emulator. The
+wrapper runs Gradle 8.11.1, which needs `JAVA_HOME` pointing at JDK 17 or 21 — it does not
+start on newer JDKs. Release builds have no signing config yet (#8), so only debug APKs
+are installable today.
 
 > The `dev` project still holds its data in the old top-level layout, while this branch
 > reads `owners/{ownerId}/…` — a `dev` build pairs but shows an empty apartment list until
