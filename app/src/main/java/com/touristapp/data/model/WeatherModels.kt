@@ -66,3 +66,16 @@ data class DailyForecast(
     val iconCode: String,
     val condition: String
 )
+
+/**
+ * Today's row covers only the 3-hour slots still ahead, so late in the day the temperature
+ * right now can fall outside it ("12°–12°" while it's 11°). Widen today's range to include it.
+ */
+fun List<DailyForecast>.includingCurrent(tempCelsius: Double, today: LocalDate): List<DailyForecast> =
+    map { day ->
+        if (day.date != today) day
+        else day.copy(
+            minTempCelsius = minOf(day.minTempCelsius, tempCelsius),
+            maxTempCelsius = maxOf(day.maxTempCelsius, tempCelsius)
+        )
+    }

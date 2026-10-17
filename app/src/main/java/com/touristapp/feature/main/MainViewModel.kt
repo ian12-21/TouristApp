@@ -13,6 +13,7 @@ import com.touristapp.data.model.Pairing
 import com.touristapp.data.model.Place
 import com.touristapp.data.model.Stay
 import com.touristapp.data.model.DailyForecast
+import com.touristapp.data.model.includingCurrent
 import com.touristapp.data.model.TransportationService
 import com.touristapp.data.model.WeatherInfo
 import com.touristapp.data.model.location
@@ -29,6 +30,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 sealed interface OverlayScreen {
@@ -394,7 +396,13 @@ class MainViewModel @Inject constructor(
             else -> {}
         }
         when (val result = weatherRepository.getWeekForecast(lat, lon)) {
-            is Resource.Success -> _uiState.update { it.copy(weekForecast = result.data) }
+            is Resource.Success -> _uiState.update { state ->
+                val currentTemp = state.weatherInfo?.tempCelsius
+                state.copy(
+                    weekForecast = if (currentTemp == null) result.data
+                    else result.data.includingCurrent(currentTemp, LocalDate.now())
+                )
+            }
             else -> {}
         }
     }

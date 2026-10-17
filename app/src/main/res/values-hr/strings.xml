@@ -87,6 +87,14 @@
     <string name="review_quality_average">Prosječno</string>
     <string name="review_quality_below_average">Ispod prosjeka</string>
     <string name="weather_forecast_title">PROGNOZA ZA 5 DANA</string>
+    <string name="weather_clear">Vedro</string>
+    <string name="weather_partly_cloudy">Djelomično oblačno</string>
+    <string name="weather_cloudy">Oblačno</string>
+    <string name="weather_showers">Pljuskovi</string>
+    <string name="weather_rain">Kiša</string>
+    <string name="weather_thunderstorm">Grmljavina</string>
+    <string name="weather_snow">Snijeg</string>
+    <string name="weather_fog">Magla</string>
     <string name="weather_feels_like">Osjećaj</string>
     <string name="weather_humidity">Vlažnost</string>
     <string name="weather_today">Danas</string>

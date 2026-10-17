@@ -29,6 +29,7 @@ import com.touristapp.R
 import com.touristapp.core.i18n.AppLanguage
 import com.touristapp.core.ui.components.LocationNotSetDialog
 import com.touristapp.core.ui.components.WeatherDialog
+import com.touristapp.core.ui.components.weatherConditionLabel
 import com.touristapp.core.ui.components.weatherIconFor
 import com.touristapp.data.model.Pairing
 import com.touristapp.data.model.Place
@@ -249,7 +250,7 @@ fun AppNavigation(
                             } else if (weatherInfo != null) {
                                 Icon(
                                     imageVector = weatherIconFor(weatherInfo.iconCode),
-                                    contentDescription = weatherInfo.condition,
+                                    contentDescription = weatherConditionLabel(weatherInfo.iconCode, weatherInfo.condition),
                                     modifier = Modifier.size(18.dp)
                                 )
                             }

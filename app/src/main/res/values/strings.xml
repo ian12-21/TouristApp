@@ -86,6 +86,14 @@
     <string name="review_quality_average">Average</string>
     <string name="review_quality_below_average">Below Average</string>
     <string name="weather_forecast_title">5-DAY FORECAST</string>
+    <string name="weather_clear">Clear sky</string>
+    <string name="weather_partly_cloudy">Partly cloudy</string>
+    <string name="weather_cloudy">Cloudy</string>
+    <string name="weather_showers">Showers</string>
+    <string name="weather_rain">Rain</string>
+    <string name="weather_thunderstorm">Thunderstorm</string>
+    <string name="weather_snow">Snow</string>
+    <string name="weather_fog">Fog</string>
     <string name="weather_feels_like">Feels like</string>
     <string name="weather_humidity">Humidity</string>
     <string name="weather_today">Today</string>

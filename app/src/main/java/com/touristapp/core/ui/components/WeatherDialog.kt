@@ -1,5 +1,6 @@
 package com.touristapp.core.ui.components
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -188,7 +189,7 @@ private fun WeatherHero(weatherInfo: WeatherInfo, onDismiss: () -> Unit) {
                 ) {
                     Icon(
                         imageVector = weatherIconFor(weatherInfo.iconCode),
-                        contentDescription = weatherInfo.condition,
+                        contentDescription = null,
                         modifier = Modifier.size(56.dp),
                         tint = Color.White
                     )
@@ -201,7 +202,7 @@ private fun WeatherHero(weatherInfo: WeatherInfo, onDismiss: () -> Unit) {
                             color = Color.White
                         )
                         Text(
-                            text = weatherInfo.description.replaceFirstChar { it.uppercase() },
+                            text = weatherConditionLabel(weatherInfo.iconCode, weatherInfo.description),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.White.copy(alpha = 0.9f)
                         )
@@ -293,7 +294,7 @@ private fun ForecastRow(
 
         Icon(
             imageVector = weatherIconFor(forecast.iconCode),
-            contentDescription = forecast.condition,
+            contentDescription = weatherConditionLabel(forecast.iconCode, forecast.condition),
             modifier = Modifier.size(24.dp),
             tint = MaterialTheme.colorScheme.primary
         )
@@ -366,6 +367,28 @@ private fun skyGradientFor(iconCode: String): List<Color> {
         iconCode.startsWith("50") -> listOf(Color(0xFF607D8B), Color(0xFF90A4AE))
         else -> listOf(Color(0xFF2196F3), Color(0xFF64B5F6))
     }
+}
+
+/**
+ * The condition in the app's language, from the same icon code as [weatherIconFor]. The API's
+ * own text is English (and cached across language switches), so it's only the fallback.
+ */
+@Composable
+fun weatherConditionLabel(iconCode: String, apiText: String): String =
+    weatherConditionRes(iconCode)?.let { stringResource(it) }
+        ?: apiText.replaceFirstChar { it.uppercase() }
+
+@StringRes
+private fun weatherConditionRes(iconCode: String): Int? = when (iconCode.take(2)) {
+    "01" -> R.string.weather_clear
+    "02", "03" -> R.string.weather_partly_cloudy
+    "04" -> R.string.weather_cloudy
+    "09" -> R.string.weather_showers
+    "10" -> R.string.weather_rain
+    "11" -> R.string.weather_thunderstorm
+    "13" -> R.string.weather_snow
+    "50" -> R.string.weather_fog
+    else -> null
 }
 
 fun weatherIconFor(iconCode: String): ImageVector {

@@ -86,6 +86,14 @@
     <string name="review_quality_average">Durchschnittlich</string>
     <string name="review_quality_below_average">Unterdurchschnittlich</string>
     <string name="weather_forecast_title">5-TAGE-VORHERSAGE</string>
+    <string name="weather_clear">Klar</string>
+    <string name="weather_partly_cloudy">Teilweise bewölkt</string>
+    <string name="weather_cloudy">Bewölkt</string>
+    <string name="weather_showers">Schauer</string>
+    <string name="weather_rain">Regen</string>
+    <string name="weather_thunderstorm">Gewitter</string>
+    <string name="weather_snow">Schnee</string>
+    <string name="weather_fog">Nebel</string>
     <string name="weather_feels_like">Gefühlt</string>
     <string name="weather_humidity">Luftfeuchtigkeit</string>
     <string name="weather_today">Heute</string>

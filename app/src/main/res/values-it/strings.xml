@@ -86,6 +86,14 @@
     <string name="review_quality_average">Nella media</string>
     <string name="review_quality_below_average">Sotto la media</string>
     <string name="weather_forecast_title">PREVISIONI A 5 GIORNI</string>
+    <string name="weather_clear">Sereno</string>
+    <string name="weather_partly_cloudy">Parzialmente nuvoloso</string>
+    <string name="weather_cloudy">Nuvoloso</string>
+    <string name="weather_showers">Rovesci</string>
+    <string name="weather_rain">Pioggia</string>
+    <string name="weather_thunderstorm">Temporale</string>
+    <string name="weather_snow">Neve</string>
+    <string name="weather_fog">Nebbia</string>
     <string name="weather_feels_like">Percepita</string>
     <string name="weather_humidity">Umidità</string>
     <string name="weather_today">Oggi</string>

@@ -115,6 +115,8 @@ class WeatherRepositoryImpl @Inject constructor(
                         condition = condition?.main ?: ""
                     )
                 }
+                // The 40 slots start now, so the sixth day is only its first few hours.
+                .take(FORECAST_DAYS)
 
             prefs.setLastForecast(dailyForecasts)
             Resource.Success(dailyForecasts)
@@ -127,5 +129,7 @@ class WeatherRepositoryImpl @Inject constructor(
 
     companion object {
         private const val TAG = "WeatherRepo"
+        /** Today plus four days, to match the dialog's "5-day forecast". */
+        private const val FORECAST_DAYS = 5
     }
 }
