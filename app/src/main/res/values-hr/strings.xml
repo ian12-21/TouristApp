@@ -59,6 +59,7 @@
     <string name="review_edit_title">Uredi recenziju</string>
     <string name="review_who_reviewing">Tko piše recenziju?</string>
     <string name="review_existing_notice">%1$s već ima recenziju za ovaj boravak. Možete je urediti u nastavku.</string>
+    <string name="review_existing_locked_notice">%1$s već ima recenziju za ovaj boravak. Na ovom tabletu ne može se mijenjati.</string>
     <string name="review_rate_experience">Ocijenite svoje iskustvo</string>
     <string name="review_overall">Ukupno: </string>
     <string name="review_out_of_ten"> / 10</string>

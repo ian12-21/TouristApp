@@ -166,7 +166,22 @@ fun CreateReviewSheet(
                         Spacer(modifier = Modifier.height(20.dp))
                     }
 
-                    if (state.selectedGuest != null && !state.isCheckingExisting) {
+                    if (state.selectedGuest != null && !state.isCheckingExisting && state.isExistingLocked) {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.review_existing_locked_notice, state.selectedGuest!!.name),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.padding(14.dp)
+                            )
+                        }
+                    }
+
+                    if (state.selectedGuest != null && !state.isCheckingExisting && !state.isExistingLocked) {
                         if (state.foundExistingReview != null && !state.isEditMode) {
                             Surface(
                                 modifier = Modifier.fillMaxWidth(),
@@ -350,7 +365,7 @@ fun CreateReviewSheet(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                    } else {
+                    } else if (state.isCheckingExisting) {
                         Box(
                             modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
                             contentAlignment = Alignment.Center
@@ -364,7 +379,7 @@ fun CreateReviewSheet(
                 }
 
                 // Submit button
-                if (state.selectedGuest != null && !state.isCheckingExisting) {
+                if (state.selectedGuest != null && !state.isCheckingExisting && !state.isExistingLocked) {
                     Spacer(modifier = Modifier.height(16.dp))
                     // Like the privacy notice, outside the scrolling column: a failed save
                     // must be visible without scrolling down past the doodle.

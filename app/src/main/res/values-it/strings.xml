@@ -58,6 +58,7 @@
     <string name="review_edit_title">Modifica recensione</string>
     <string name="review_who_reviewing">Chi sta recensendo?</string>
     <string name="review_existing_notice">%1$s ha già una recensione per questo soggiorno. Puoi modificarla qui sotto.</string>
+    <string name="review_existing_locked_notice">%1$s ha già una recensione per questo soggiorno. Non può essere modificata su questo tablet.</string>
     <string name="review_rate_experience">Valuta la tua esperienza</string>
     <string name="review_overall">Totale: </string>
     <string name="review_out_of_ten"> / 10</string>

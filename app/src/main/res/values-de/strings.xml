@@ -58,6 +58,7 @@
     <string name="review_edit_title">Bewertung bearbeiten</string>
     <string name="review_who_reviewing">Wer bewertet?</string>
     <string name="review_existing_notice">%1$s hat bereits eine Bewertung für diesen Aufenthalt. Sie können sie unten bearbeiten.</string>
+    <string name="review_existing_locked_notice">%1$s hat bereits eine Bewertung für diesen Aufenthalt. Sie kann auf diesem Tablet nicht geändert werden.</string>
     <string name="review_rate_experience">Bewerten Sie Ihre Erfahrung</string>
     <string name="review_overall">Gesamt: </string>
     <string name="review_out_of_ten"> / 10</string>

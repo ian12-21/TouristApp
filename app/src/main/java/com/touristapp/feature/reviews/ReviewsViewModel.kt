@@ -77,6 +77,14 @@ data class ReviewsUiState(
      */
     fun canEdit(review: Review): Boolean =
         currentUid != null && review.authorUid == currentUid
+
+    /**
+     * The picked guest already has a review that this tablet can't edit (see [canEdit]).
+     * The sheet says so straight away instead of letting the guest fill in the form for a
+     * save the rules will reject.
+     */
+    val isExistingLocked: Boolean
+        get() = foundExistingReview?.let { !canEdit(it) } ?: false
 }
 
 @HiltViewModel

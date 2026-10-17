@@ -58,6 +58,7 @@
     <string name="review_edit_title">Edit Review</string>
     <string name="review_who_reviewing">Who is reviewing?</string>
     <string name="review_existing_notice">%1$s already has a review for this stay. You can edit it below.</string>
+    <string name="review_existing_locked_notice">%1$s already has a review for this stay. It can\'t be changed on this tablet.</string>
     <string name="review_rate_experience">Rate your experience</string>
     <string name="review_overall">Overall: </string>
     <string name="review_out_of_ten"> / 10</string>
