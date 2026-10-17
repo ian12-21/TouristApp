@@ -24,8 +24,13 @@ fun SetupScreen(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
+        // The app is edge-to-edge, so the keyboard doesn't shrink the window: imePadding keeps the
+        // card above it, or it covers the password field and the button on a landscape tablet.
+        // Below API 30 the inset only arrives with adjustResize (set in the manifest).
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding(),
             contentAlignment = Alignment.Center
         ) {
             Card(
