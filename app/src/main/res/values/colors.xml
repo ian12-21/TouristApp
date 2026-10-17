@@ -2,4 +2,6 @@
 <resources>
     <!-- The dark scheme's background in core/ui/theme/Theme.kt. Shown behind the first frame. -->
     <color name="window_background">#FF1C1E2A</color>
+    <!-- The light scheme's primary. The staging flavor overrides it. -->
+    <color name="ic_launcher_background">#FF2C5A8F</color>
 </resources>

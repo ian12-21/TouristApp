@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Tourist App</string>
 
     <!-- Home Screen -->
     <string name="home_welcome">Dobrodošli!</string>
