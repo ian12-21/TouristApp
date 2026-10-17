@@ -115,6 +115,8 @@ data class Place(
     @get:Exclude val tips: String = "",
     val phone: String = "",
     val address: String = "",
+    // Set by hand in the repository: toObject() maps the getter isActive() to a field
+    // named "active", so the stored "isActive" would be dropped and this stay true.
     val isActive: Boolean = true,
     val apartments: List<ApartmentLink> = emptyList(),
     val apartmentIds: List<String> = emptyList()

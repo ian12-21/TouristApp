@@ -261,7 +261,8 @@ class TouristRepositoryImpl @Inject constructor(
                     doc.toObject(Place::class.java)?.copy(
                         id = doc.id,
                         description = localize(doc.get("description"), lang),
-                        tips = localize(doc.get("tips"), lang)
+                        tips = localize(doc.get("tips"), lang),
+                        isActive = doc.getBoolean("isActive") ?: true
                     )
                 }
                 .filter { USE_IS_ACTIVE_INDEX || it.isActive }
