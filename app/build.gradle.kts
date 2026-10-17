@@ -34,20 +34,14 @@ android {
     }
 
     // One build flavor per Firebase project. Each flavor reads its own config from
-    // app/src/<flavor>/google-services.json, so switching environments is just picking
-    // a build variant in Android Studio (Build > Select Build Variant) — no file swapping.
+    // app/src/<flavor>/google-services.json. tourist-app-staging is the only project.
     flavorDimensions += "environment"
     productFlavors {
-        create("dev") {
-            dimension = "environment"
-            // tourist-app-ifbb26 — day-to-day development, keeps applicationId com.touristapp
-        }
         create("staging") {
             dimension = "environment"
             // tourist-app-staging — testing phase with real apartment owners.
             // Becomes com.touristapp.staging — must match the package name registered in
-            // the Firebase console exactly. A different applicationId also lets dev and
-            // staging sit side by side on one tablet.
+            // the Firebase console exactly.
             applicationIdSuffix = ".staging"
             versionNameSuffix = "-staging"
         }

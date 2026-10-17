@@ -14,7 +14,7 @@ local.properties
 Thumbs.db
 
 # Firebase config contains API keys — keep out of public repos
-# (matches every flavor: app/src/dev/, app/src/staging/, ...)
+# (matches every flavor: app/src/staging/, ...)
 google-services.json
 
 # Java heap dumps

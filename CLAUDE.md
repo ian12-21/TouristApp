@@ -7,7 +7,7 @@
 Firestore** (under `owners/{ownerId}/…`) and writes only guest reviews. The content is
 entered in the companion Angular app, `tourist-admin`.
 
-- `README.md` — setup, build flavors (`dev` / `staging`), kiosk mode.
+- `README.md` — setup, the `staging` build flavor, kiosk mode.
 - `SCHEMA.md` — the Firestore contract shared with `tourist-admin`. **Change it first, then
   both repos**, and keep the file identical in both.
 
@@ -183,8 +183,7 @@ app/src/main/java/com/touristapp/
     └── setup/
 ```
 
-Per-flavor Firebase config lives in `app/src/dev/` and `app/src/staging/`
-(`google-services.json`, git-ignored).
+The Firebase config lives in `app/src/staging/` (`google-services.json`, git-ignored).
 
 ---
 

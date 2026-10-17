@@ -25,12 +25,11 @@ exists in staging (#4).
 ## Setup
 
 1. Open the project in **Android Studio** (Ladybug or newer) and sync Gradle.
-2. Add the Firebase config for the flavor you want to build — see
-   [Build flavors](#build-flavors). The build fails without it.
+2. Add the Firebase config — see [Build flavors](#build-flavors). The build fails
+   without it.
 3. Optional: add `WEATHER_API_KEY=<OpenWeatherMap key>` to `local.properties`. Without it
    the app builds and runs, but shows no weather.
-4. Pick a build variant (**Build → Select Build Variant**) and run on a tablet or emulator
-   (API 26+).
+4. Run the `stagingDebug` variant on a tablet or emulator (API 26+).
 
 On first launch the app shows a setup screen: the owner signs in with the same email and
 password as in the web admin and picks which apartment this tablet displays. The tablet
@@ -38,25 +37,21 @@ stores the owner id and apartment id locally; the owner's session is not kept.
 
 ## Build flavors
 
-One flavor per Firebase project, so switching environments is picking a build variant —
-no file swapping.
+One flavor per Firebase project. There is a single project, so a single flavor:
 
 | Flavor | Firebase project | `applicationId` | Config file |
 |---|---|---|---|
-| `dev` | `tourist-app-ifbb26` | `com.touristapp` | `app/src/dev/google-services.json` |
 | `staging` | `tourist-app-staging` | `com.touristapp.staging` | `app/src/staging/google-services.json` |
 
-The two have different application ids, so both can be installed on one tablet.
-
-`google-services.json` is git-ignored for every flavor, so a fresh clone has none. To get one:
+`google-services.json` is git-ignored, so a fresh clone has none. To get one:
 
 1. Firebase Console → open the project from the table → **Project settings → General →
    Your apps**.
-2. Select the Android app whose package name matches the flavor's `applicationId` (register
+2. Select the Android app whose package name matches the `applicationId` above (register
    it first if it is not there — the package name must match exactly).
 3. Download `google-services.json` and put it at the path from the table.
 
-The variants are `devDebug`, `stagingDebug`, `devRelease` and `stagingRelease`. Build from
+The variants are `stagingDebug` and `stagingRelease`. Build from
 Android Studio, or from the command line with the Gradle wrapper:
 `./gradlew assembleStagingDebug` writes
 `app/build/outputs/apk/staging/debug/app-staging-debug.apk`, and
@@ -64,10 +59,6 @@ Android Studio, or from the command line with the Gradle wrapper:
 wrapper runs Gradle 8.11.1, which needs `JAVA_HOME` pointing at JDK 17 or 21 — it does not
 start on newer JDKs. Release builds have no signing config yet (#8), so only debug APKs
 are installable today.
-
-> The `dev` project still holds its data in the old top-level layout, while this branch
-> reads `owners/{ownerId}/…` — a `dev` build pairs but shows an empty apartment list until
-> #13 is done. Use `staging` for anything real.
 
 ## Project Structure
 
@@ -97,8 +88,7 @@ app/src/main/java/com/touristapp/
     └── reviews/             — review list and the create/edit sheet
 ```
 
-Flavor-specific files (only `google-services.json`) live in `app/src/dev/` and
-`app/src/staging/`. UI strings are in `app/src/main/res/values*/strings.xml`
+Flavor-specific files (only `google-services.json`) live in `app/src/staging/`. UI strings are in `app/src/main/res/values*/strings.xml`
 (English, Croatian, Italian, German).
 
 ## Hidden Admin Access
@@ -127,11 +117,10 @@ home, recents, or notification shade). This requires a one-time ADB provisioning
 2. Enable **Developer Options → USB Debugging**.
 3. Install the app: `adb install <the .apk>`
 4. Provision the app as device owner:
-   - staging build: `adb shell dpm set-device-owner com.touristapp.staging/com.touristapp.admin.KioskAdminReceiver`
-   - dev build: `adb shell dpm set-device-owner com.touristapp/.admin.KioskAdminReceiver`
+   `adb shell dpm set-device-owner com.touristapp.staging/com.touristapp.admin.KioskAdminReceiver`
 
-   The short `.admin…` form resolves against the applicationId, which differs from the code
-   package in staging — so the staging command needs the fully qualified receiver.
+   The short `.admin…` form would resolve against the applicationId, which differs from the
+   code package — so the receiver has to be fully qualified.
 5. Launch the app and complete apartment setup.
 6. Open the admin dialog (hold the home icon 5 seconds → sign in) → **Enable kiosk mode**.
 
@@ -143,5 +132,5 @@ stays off until the owner enables it from the admin dialog, then stays on across
 Exiting kiosk mode leaves the app provisioned as device owner. There is no in-app way to
 give that up; a factory reset clears it.
 
-On a device that is **not** provisioned as device owner (e.g. a normal dev build), the
+On a device that is **not** provisioned as device owner (e.g. an emulator), the
 kiosk calls are safely no-ops and "Enable kiosk mode" does not lock anything.
