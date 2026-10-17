@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.touristapp.R
+import com.touristapp.core.i18n.formatScore
 import com.touristapp.core.i18n.rememberLocalizedDateFormat
 import com.touristapp.core.ui.components.ErrorContent
 import com.touristapp.core.util.ErrorReason
@@ -210,7 +211,7 @@ private fun AggregateScoreCard(reviews: List<Review>) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
-                    text = String.format("%.1f", avgScore),
+                    text = formatScore(avgScore),
                     style = MaterialTheme.typography.headlineLarge.copy(fontSize = 48.sp),
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -287,7 +288,7 @@ private fun CategoryBar(name: String, score: Double) {
         }
         Spacer(modifier = Modifier.width(10.dp))
         Text(
-            text = String.format("%.1f", score),
+            text = formatScore(score),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.width(32.dp)
@@ -358,7 +359,7 @@ private fun ReviewCard(
                         color = badgeColor.copy(alpha = 0.15f)
                     ) {
                         Text(
-                            text = String.format("%.1f", review.overallScore),
+                            text = formatScore(review.overallScore),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = badgeColor,

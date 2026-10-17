@@ -33,6 +33,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.draw.clip
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.touristapp.R
+import com.touristapp.core.i18n.formatScore
 import com.touristapp.core.ui.components.AppDialog
 import com.touristapp.core.ui.components.DoodleCanvas
 import com.touristapp.core.util.decodeDoodle
@@ -219,7 +220,7 @@ fun CreateReviewSheet(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                text = String.format("%.1f", animatedScore),
+                                text = formatScore(animatedScore.toDouble()),
                                 style = MaterialTheme.typography.headlineLarge.copy(fontSize = 36.sp),
                                 fontWeight = FontWeight.Bold,
                                 color = animatedScoreColor
