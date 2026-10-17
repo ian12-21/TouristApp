@@ -13,7 +13,8 @@ import com.google.firebase.firestore.Source
 import com.touristapp.core.i18n.localize
 import com.touristapp.core.i18n.localizeList
 import com.touristapp.core.util.Resource
-import com.touristapp.core.util.isOfflineError
+import com.touristapp.core.util.ErrorReason
+import com.touristapp.core.util.toErrorReason
 import com.touristapp.data.local.AppPreferences
 import com.touristapp.data.model.*
 import com.touristapp.domain.repository.TouristRepository
@@ -112,11 +113,12 @@ class TouristRepositoryImpl @Inject constructor(
     }
 
     /**
-     * Snapshot listener on the apartment document, reduced to its `currentStayId`. A listener
-     * error (e.g. the rules start denying the read) ends the flow; the caller keeps whatever
-     * stay it already shows.
+     * Snapshot listener on the apartment document, reduced to [ApartmentStatus]. A missing
+     * document counts as deleted only when the server says so: a cache miss (e.g. a first
+     * start offline) is not a deletion. A listener error (e.g. the rules start denying the
+     * read) ends the flow; the caller keeps whatever it already shows.
      */
-    override fun observeCurrentStayId(apartmentId: String): Flow<String?> = callbackFlow {
+    override fun observeApartmentStatus(apartmentId: String): Flow<ApartmentStatus> = callbackFlow {
         ensureAnonymousAuth()
         val registration = ownerDoc().collection("apartments").document(apartmentId)
             .addSnapshotListener { snapshot, error ->
@@ -124,21 +126,23 @@ class TouristRepositoryImpl @Inject constructor(
                     close(error)
                     return@addSnapshotListener
                 }
-                if (snapshot != null && snapshot.exists()) {
-                    trySend(snapshot.getString("currentStayId"))
+                when {
+                    snapshot == null -> Unit
+                    snapshot.exists() -> trySend(ApartmentStatus.Present(snapshot.getString("currentStayId")))
+                    !snapshot.metadata.isFromCache -> trySend(ApartmentStatus.Deleted)
                 }
             }
         awaitClose { registration.remove() }
     }
         .distinctUntilChanged()
-        .catch { e -> Log.e(TAG, "Stopped watching the stay of apartment $apartmentId", e) }
+        .catch { e -> Log.e(TAG, "Stopped watching apartment $apartmentId", e) }
 
     @Suppress("UNCHECKED_CAST")
     override suspend fun getApartment(apartmentId: String, forceServer: Boolean): Resource<Apartment> {
         return try {
             val doc = fetchDoc(ownerDoc().collection("apartments").document(apartmentId), forceServer)
             val apartment = doc.toObject(Apartment::class.java)?.copy(id = doc.id)
-                ?: return Resource.Error("Apartment not found")
+                ?: return Resource.Error("Apartment not found", reason = ErrorReason.NOT_FOUND)
 
             val rawTransport = doc.get("transportation") as? List<Map<String, Any>> ?: emptyList()
             val transportItems = rawTransport.map { map ->
@@ -177,7 +181,7 @@ class TouristRepositoryImpl @Inject constructor(
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching apartment $apartmentId", e)
-            Resource.Error("Failed to load apartment", e, isOffline = e.isOfflineError())
+            Resource.Error("Failed to load apartment", e, reason = e.toErrorReason())
         }
     }
 

@@ -135,6 +135,8 @@
     <string name="error_generic">Something went wrong</string>
     <string name="error_retry">Retry</string>
     <string name="error_no_internet">No internet connection. Check the tablet\'s Wi‑Fi and tap Retry.</string>
+    <string name="error_apartment_removed">This apartment is no longer available on this tablet. Please contact your host.</string>
+    <string name="owner_sign_in">Owner sign-in</string>
 
     <!-- Emergency Contacts Dialog -->
     <string name="contacts_title">Emergency Contacts</string>

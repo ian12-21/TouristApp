@@ -5,7 +5,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.touristapp.core.di.AdminScope
 import com.touristapp.core.util.Resource
-import com.touristapp.core.util.isOfflineError
+import com.touristapp.core.util.toErrorReason
 import com.touristapp.domain.repository.AdminRepository
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -23,7 +23,7 @@ class AdminRepositoryImpl @Inject constructor(
             Resource.Success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "Admin sign-in failed", e)
-            Resource.Error("Sign-in failed", e, isOffline = e.isOfflineError())
+            Resource.Error("Sign-in failed", e, reason = e.toErrorReason())
         }
     }
 
@@ -45,7 +45,7 @@ class AdminRepositoryImpl @Inject constructor(
             Resource.Success(apartments)
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching apartments", e)
-            Resource.Error("Failed to load apartments", e, isOffline = e.isOfflineError())
+            Resource.Error("Failed to load apartments", e, reason = e.toErrorReason())
         }
     }
 

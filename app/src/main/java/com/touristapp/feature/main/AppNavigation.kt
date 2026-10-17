@@ -16,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,7 +26,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.touristapp.R
 import com.touristapp.core.i18n.AppLanguage
-import com.touristapp.core.ui.components.ErrorContent
 import com.touristapp.core.ui.components.WeatherDialog
 import com.touristapp.core.ui.components.weatherIconFor
 import com.touristapp.data.model.Place
@@ -62,18 +60,47 @@ fun AppNavigation(
     onExitKiosk: () -> Unit,
     onEnableKiosk: () -> Unit
 ) {
-    if (uiState.apartment == null && uiState.error != null) {
+    var showAdminDialog by remember { mutableStateOf(false) }
+    var cooldownUntil by remember { mutableLongStateOf(0L) }
+    // After a lockout the owner dialog stays closed until the cooldown ends.
+    val openAdminDialog: () -> Unit = {
+        if (System.currentTimeMillis() > cooldownUntil) {
+            showAdminDialog = true
+        }
+    }
+
+    if (showAdminDialog) {
+        AdminDialog(
+            onApartmentSelected = { apartmentId ->
+                showAdminDialog = false
+                onApartmentSelected(apartmentId)
+            },
+            onDismiss = { showAdminDialog = false },
+            onLockout = {
+                cooldownUntil = System.currentTimeMillis() + 60_000
+                showAdminDialog = false
+            },
+            isKioskEnabled = isKioskEnabled,
+            onExitKiosk = {
+                showAdminDialog = false
+                onExitKiosk()
+            },
+            onEnableKiosk = {
+                showAdminDialog = false
+                onEnableKiosk()
+            }
+        )
+    }
+
+    val loadError = uiState.loadError
+    if (uiState.apartment == null && loadError != null) {
         // Drawn outside the Scaffold, so it needs its own themed background.
         Surface(modifier = Modifier.fillMaxSize()) {
-            if (uiState.isOffline) {
-                ErrorContent(
-                    message = stringResource(R.string.error_no_internet),
-                    icon = Icons.Default.WifiOff,
-                    onRetry = onRetryLoad
-                )
-            } else {
-                ErrorContent(message = uiState.error, onRetry = onRetryLoad)
-            }
+            ApartmentLoadError(
+                reason = loadError,
+                onRetry = onRetryLoad,
+                onOwnerSignIn = openAdminDialog
+            )
         }
         return
     }
@@ -86,10 +113,8 @@ fun AppNavigation(
         }
     }
 
-    var showAdminDialog by remember { mutableStateOf(false) }
     var showWeatherDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
-    var cooldownUntil by remember { mutableLongStateOf(0L) }
 
     val pageCount = 4
     val pagerState = rememberPagerState(pageCount = { pageCount })
@@ -163,9 +188,7 @@ fun AppNavigation(
                                             val released = tryAwaitRelease()
                                             val pressDuration = System.currentTimeMillis() - pressStartTime
                                             if (released && pressDuration >= 5_000) {
-                                                if (System.currentTimeMillis() > cooldownUntil) {
-                                                    showAdminDialog = true
-                                                }
+                                                openAdminDialog()
                                             }
                                         }
                                     )
@@ -323,29 +346,6 @@ fun AppNavigation(
                 }
             }
         }
-    }
-
-    if (showAdminDialog) {
-        AdminDialog(
-            onApartmentSelected = { apartmentId ->
-                showAdminDialog = false
-                onApartmentSelected(apartmentId)
-            },
-            onDismiss = { showAdminDialog = false },
-            onLockout = {
-                cooldownUntil = System.currentTimeMillis() + 60_000
-                showAdminDialog = false
-            },
-            isKioskEnabled = isKioskEnabled,
-            onExitKiosk = {
-                showAdminDialog = false
-                onExitKiosk()
-            },
-            onEnableKiosk = {
-                showAdminDialog = false
-                onEnableKiosk()
-            }
-        )
     }
 
     if (showWeatherDialog && uiState.weatherInfo != null) {

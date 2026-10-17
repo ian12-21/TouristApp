@@ -135,6 +135,8 @@
     <string name="error_generic">Nešto je pošlo po krivu</string>
     <string name="error_retry">Pokušaj ponovno</string>
     <string name="error_no_internet">Nema internetske veze. Provjerite Wi‑Fi na tabletu i dodirnite Pokušaj ponovno.</string>
+    <string name="error_apartment_removed">Ovaj apartman više nije dostupan na ovom tabletu. Molimo kontaktirajte domaćina.</string>
+    <string name="owner_sign_in">Prijava vlasnika</string>
 
     <!-- Emergency Contacts Dialog -->
     <string name="contacts_title">Hitni kontakti</string>

@@ -2,9 +2,11 @@ package com.touristapp.feature.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.touristapp.core.util.ErrorReason
 import com.touristapp.core.util.Resource
 import com.touristapp.data.local.AppPreferences
 import com.touristapp.data.model.Apartment
+import com.touristapp.data.model.ApartmentStatus
 import com.touristapp.data.model.Contact
 import com.touristapp.data.model.Guest
 import com.touristapp.data.model.Place
@@ -43,9 +45,8 @@ data class MainUiState(
     val weatherInfo: WeatherInfo? = null,
     val weekForecast: List<DailyForecast> = emptyList(),
     val isLoading: Boolean = true,
-    val error: String? = null,
-    /** The last load failed because the tablet has no network. */
-    val isOffline: Boolean = false,
+    /** Why the apartment couldn't be loaded; shown full screen while [apartment] is null. */
+    val loadError: ErrorReason? = null,
     val overlayScreen: OverlayScreen = OverlayScreen.None,
     val cachedPlaces: List<Place> = emptyList(),
     val cachedEmergencyContacts: List<Contact> = emptyList(),
@@ -68,7 +69,7 @@ class MainViewModel @Inject constructor(
 
     /** The latest [loadApartmentData]; a newer load (or a re-pair) cancels it. */
     private var loadJob: Job? = null
-    private var stayWatchJob: Job? = null
+    private var apartmentWatchJob: Job? = null
 
     init {
         // Tablets paired before the multi-owner layout have an apartment id but no
@@ -90,7 +91,7 @@ class MainViewModel @Inject constructor(
         }
         if (savedId != null) {
             loadApartmentData(savedId)
-            watchCurrentStay(savedId)
+            watchApartment(savedId)
         }
     }
 
@@ -104,12 +105,12 @@ class MainViewModel @Inject constructor(
         prefs.setApartmentId(id)
         _uiState.value = deviceSettingsState().copy(apartmentId = id, isLoading = true)
         loadApartmentData(id)
-        watchCurrentStay(id)
+        watchApartment(id)
     }
 
     fun retryLoad() {
         val id = _uiState.value.apartmentId ?: return
-        _uiState.update { it.copy(isLoading = true, error = null, isOffline = false) }
+        _uiState.update { it.copy(isLoading = true, loadError = null) }
         loadApartmentData(id)
     }
 
@@ -124,7 +125,7 @@ class MainViewModel @Inject constructor(
 
     fun reconfigure() {
         loadJob?.cancel()
-        stayWatchJob?.cancel()
+        apartmentWatchJob?.cancel()
         prefs.clear()
         _uiState.value = deviceSettingsState()
     }
@@ -219,28 +220,20 @@ class MainViewModel @Inject constructor(
                             apartmentName = apartment.name,
                             isLoading = false,
                             isSwitchingLanguage = false,
-                            error = null,
-                            isOffline = false
+                            loadError = null
                         )
                     }
                     launch { loadStayAndGuests(apartment.currentStayId, forceServer) }
                     prefetchSecondaryData(apartmentId, apartment, forceServer)
                 }
-                is Resource.Error -> {
+                is Resource.Error -> when {
+                    result.reason == ErrorReason.NOT_FOUND -> showApartmentDeleted()
                     // Keep any cached data already on screen during a silent refresh.
-                    if (!forceServer) {
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                isSwitchingLanguage = false,
-                                error = result.message,
-                                isOffline = result.isOffline
-                            )
-                        }
-                    } else {
-                        // A failed language-switch refresh must still drop the overlay.
-                        _uiState.update { it.copy(isSwitchingLanguage = false) }
+                    !forceServer -> _uiState.update {
+                        it.copy(isLoading = false, isSwitchingLanguage = false, loadError = result.reason)
                     }
+                    // A failed language-switch refresh must still drop the overlay.
+                    else -> _uiState.update { it.copy(isSwitchingLanguage = false) }
                 }
                 is Resource.Loading -> {}
             }
@@ -268,19 +261,45 @@ class MainViewModel @Inject constructor(
     }
 
     /**
-     * Follows check-out and check-in while the app stays in the foreground, which is the
-     * normal state of a kiosk; [refresh] alone only runs on resume. The first emission is
-     * left to [loadApartmentData], which reads the same field.
+     * Follows check-out, check-in and deletion while the app stays in the foreground, which
+     * is the normal state of a kiosk; [refresh] alone only runs on resume. The first stay id
+     * is left to [loadApartmentData], which reads the same field.
      */
-    private fun watchCurrentStay(apartmentId: String) {
-        stayWatchJob?.cancel()
-        stayWatchJob = viewModelScope.launch {
-            touristRepository.observeCurrentStayId(apartmentId).collect { stayId ->
-                val apartment = _uiState.value.apartment ?: return@collect
-                if (stayId == apartment.currentStayId) return@collect
-                _uiState.update { it.copy(apartment = apartment.copy(currentStayId = stayId)) }
-                loadStayAndGuests(stayId, forceServer = false)
+    private fun watchApartment(apartmentId: String) {
+        apartmentWatchJob?.cancel()
+        apartmentWatchJob = viewModelScope.launch {
+            touristRepository.observeApartmentStatus(apartmentId).collect { status ->
+                when (status) {
+                    ApartmentStatus.Deleted -> {
+                        loadJob?.cancel()
+                        showApartmentDeleted()
+                    }
+                    is ApartmentStatus.Present -> {
+                        val apartment = _uiState.value.apartment ?: return@collect
+                        if (status.currentStayId == apartment.currentStayId) return@collect
+                        _uiState.update {
+                            it.copy(apartment = apartment.copy(currentStayId = status.currentStayId))
+                        }
+                        loadStayAndGuests(status.currentStayId, forceServer = false)
+                    }
+                }
             }
+        }
+    }
+
+    /**
+     * The paired apartment was deleted in the admin. None of its content or guests stay on
+     * screen; the pairing is kept so the owner can sign in from the error screen and pick
+     * another apartment.
+     */
+    private fun showApartmentDeleted() {
+        prefs.clearApartmentCache()
+        _uiState.update {
+            deviceSettingsState().copy(
+                apartmentId = it.apartmentId,
+                isLoading = false,
+                loadError = ErrorReason.NOT_FOUND
+            )
         }
     }
 

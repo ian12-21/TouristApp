@@ -2,6 +2,7 @@ package com.touristapp.feature.admin
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.touristapp.core.util.ErrorReason
 import com.touristapp.core.util.Resource
 import com.touristapp.data.local.AppPreferences
 import com.touristapp.domain.repository.AdminRepository
@@ -60,7 +61,7 @@ class AdminViewModel @Inject constructor(
                 password = _uiState.value.password
             )
             if (signInResult is Resource.Error) {
-                if (signInResult.isOffline) {
+                if (signInResult.reason == ErrorReason.OFFLINE) {
                     // Not a wrong password, so it must not count toward the lockout.
                     _uiState.update { it.copy(error = AdminError.NO_NETWORK, isLoading = false) }
                 } else {
@@ -83,7 +84,7 @@ class AdminViewModel @Inject constructor(
                 // for being offline.
                 is Resource.Error -> {
                     adminRepository.signOut()
-                    val error = if (apartments.isOffline) {
+                    val error = if (apartments.reason == ErrorReason.OFFLINE) {
                         AdminError.NO_NETWORK
                     } else {
                         AdminError.LOAD_APARTMENTS_FAILED

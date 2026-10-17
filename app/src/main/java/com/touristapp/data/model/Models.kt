@@ -66,6 +66,13 @@ data class Apartment(
     val updatedAt: Timestamp? = null
 )
 
+/** What the tablet follows live on its apartment document. */
+sealed interface ApartmentStatus {
+    data class Present(val currentStayId: String?) : ApartmentStatus
+    /** Deleted in the admin while the tablet was paired to it. */
+    data object Deleted : ApartmentStatus
+}
+
 data class Stay(
     val id: String = "",
     val guestIds: List<String> = emptyList(),

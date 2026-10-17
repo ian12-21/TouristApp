@@ -13,3 +13,7 @@ fun Throwable.isOfflineError(): Boolean = when (this) {
     is FirebaseFirestoreException -> code == FirebaseFirestoreException.Code.UNAVAILABLE
     else -> false
 }
+
+/** [ErrorReason] for an exception caught at a repository boundary. */
+fun Throwable.toErrorReason(): ErrorReason =
+    if (isOfflineError()) ErrorReason.OFFLINE else ErrorReason.OTHER

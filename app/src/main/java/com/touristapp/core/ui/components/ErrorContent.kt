@@ -27,7 +27,9 @@ fun ErrorContent(
     message: String?,
     modifier: Modifier = Modifier,
     icon: ImageVector = Icons.Default.ErrorOutline,
-    onRetry: (() -> Unit)? = null
+    onRetry: (() -> Unit)? = null,
+    /** Extra action below the retry button. */
+    footer: (@Composable () -> Unit)? = null
 ) {
     Column(
         modifier = modifier
@@ -53,6 +55,10 @@ fun ErrorContent(
             Button(onClick = onRetry) {
                 Text(stringResource(R.string.error_retry))
             }
+        }
+        if (footer != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+            footer()
         }
     }
 }
