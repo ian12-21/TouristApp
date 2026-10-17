@@ -40,9 +40,6 @@ import com.touristapp.data.model.Contact
 import com.touristapp.data.model.Stay
 import com.touristapp.feature.places.PlaceCategory
 
-/** Share of the free height for the stay info; the space under the buttons gets 1. */
-private const val STAY_INFO_WEIGHT = 3f
-
 @Composable
 fun HomeSlide(
     apartment: ApartmentModel?,
@@ -68,11 +65,11 @@ fun HomeSlide(
             .fillMaxSize()
             .padding(horizontal = 20.dp, vertical = 24.dp)
     ) {
-        // The info gets a fixed share of the height, so the buttons below stay put when the
-        // spinner is replaced by the (taller) content. It scrolls if a long welcome overflows.
+        // The info takes all the height the buttons leave, so the buttons stay at the bottom when
+        // the spinner is replaced by the (taller) content. It scrolls if a long welcome overflows.
         Box(
             modifier = Modifier
-                .weight(STAY_INFO_WEIGHT)
+                .weight(1f)
                 .fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
@@ -145,8 +142,6 @@ fun HomeSlide(
                 }
             )
         }
-
-        Spacer(modifier = Modifier.weight(1f))
     }
 
     if (showContactsDialog) {
