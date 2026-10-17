@@ -23,7 +23,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -388,7 +387,6 @@ private fun ReviewCard(
                 val bitmap = remember(b64) { decodeDoodle(b64) }
                 bitmap?.let {
                     Spacer(modifier = Modifier.height(12.dp))
-                    val isLightTheme = MaterialTheme.colorScheme.background.luminance() > 0.5f
                     Image(
                         bitmap = it,
                         contentDescription = stringResource(R.string.review_doodle_cd),
@@ -398,7 +396,9 @@ private fun ReviewCard(
                             .clip(RoundedCornerShape(12.dp))
                             .background(MaterialTheme.colorScheme.surface),
                         contentScale = ContentScale.Fit,
-                        colorFilter = if (isLightTheme) ColorFilter.tint(Color.Black, BlendMode.SrcIn) else null
+                        // The PNG is strokes on transparent, in the theme's colour at drawing
+                        // time; tinting keeps a light-theme drawing visible in the dark theme.
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface, BlendMode.SrcIn)
                     )
                 }
             }

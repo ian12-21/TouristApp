@@ -21,7 +21,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -328,7 +330,9 @@ fun CreateReviewSheet(
                                             .fillMaxWidth()
                                             .aspectRatio(3f)
                                             .clip(RoundedCornerShape(12.dp)),
-                                        contentScale = ContentScale.Fit
+                                        contentScale = ContentScale.Fit,
+                                        // Same tint as the review list, so it shows in either theme.
+                                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface, BlendMode.SrcIn)
                                     )
                                 } else {
                                     DoodleCanvas(
