@@ -135,4 +135,4 @@ Exiting kiosk mode leaves the app provisioned as device owner. There is no in-ap
 give that up; a factory reset clears it.
 
 On a device that is **not** provisioned as device owner (e.g. an emulator), the
-kiosk calls are safely no-ops and "Enable kiosk mode" does not lock anything.
+kiosk calls are safely no-ops, and the owner menu shows a note in place of "Enable kiosk mode".

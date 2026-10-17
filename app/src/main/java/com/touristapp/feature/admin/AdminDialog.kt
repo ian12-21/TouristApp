@@ -18,6 +18,7 @@ fun AdminDialog(
     onDismiss: () -> Unit,
     onLockout: () -> Unit,
     isKioskEnabled: Boolean,
+    canUseKiosk: Boolean,
     onExitKiosk: () -> Unit,
     onEnableKiosk: () -> Unit,
     pairedApartmentId: String? = null
@@ -37,6 +38,7 @@ fun AdminDialog(
                 onDismiss = onDismiss,
                 onLockout = onLockout,
                 isKioskEnabled = isKioskEnabled,
+                canUseKiosk = canUseKiosk,
                 onExitKiosk = onExitKiosk,
                 onEnableKiosk = onEnableKiosk,
                 pairedApartmentId = pairedApartmentId,

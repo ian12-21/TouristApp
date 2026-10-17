@@ -111,6 +111,8 @@ class MainActivity : ComponentActivity() {
                                 onRetryLoad = viewModel::retryLoad,
                                 onToggleTheme = viewModel::toggleTheme,
                                 isKioskEnabled = uiState.isKioskEnabled,
+                                // Provisioned over adb only, so it can't change while the app runs.
+                                canUseKiosk = remember { kioskManager.isDeviceOwner() },
                                 onExitKiosk = {
                                     viewModel.setKioskEnabled(false)
                                     kioskManager.exitKioskMode()

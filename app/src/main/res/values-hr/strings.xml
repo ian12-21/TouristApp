@@ -156,6 +156,7 @@
     <string name="admin_menu_reconfigure">Ponovno postavi apartman</string>
     <string name="admin_menu_exit_kiosk">Izađi iz kiosk načina</string>
     <string name="admin_menu_enable_kiosk">Omogući kiosk način</string>
+    <string name="admin_menu_kiosk_unavailable">Kiosk način nije dostupan: ovaj tablet nije postavljen kao vlasnik uređaja (vidi README).</string>
 
     <!-- Errors -->
     <string name="error_generic">Nešto je pošlo po krivu</string>

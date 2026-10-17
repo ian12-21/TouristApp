@@ -155,6 +155,7 @@
     <string name="admin_menu_reconfigure">Riconfigura appartamento</string>
     <string name="admin_menu_exit_kiosk">Esci dalla modalità kiosk</string>
     <string name="admin_menu_enable_kiosk">Abilita modalità kiosk</string>
+    <string name="admin_menu_kiosk_unavailable">La modalità kiosk non è disponibile: questo tablet non è configurato come proprietario del dispositivo (vedi il README).</string>
 
     <!-- Errors -->
     <string name="error_generic">Qualcosa è andato storto</string>

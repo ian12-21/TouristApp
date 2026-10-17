@@ -27,6 +27,8 @@ fun AdminLoginFlow(
     onDismiss: (() -> Unit)?,
     onLockout: (() -> Unit)? = null,
     isKioskEnabled: Boolean = false,
+    /** Whether the app is device owner, without which kiosk mode can't lock anything. */
+    canUseKiosk: Boolean = false,
     onExitKiosk: () -> Unit = {},
     onEnableKiosk: () -> Unit = {},
     /** The apartment the tablet shows now; the picker marks it. */
@@ -143,6 +145,7 @@ fun AdminLoginFlow(
             else -> {
                 AdminActionMenu(
                     isKioskEnabled = isKioskEnabled,
+                    canUseKiosk = canUseKiosk,
                     onReconfigure = { showApartmentPicker = true },
                     onExitKiosk = onExitKiosk,
                     onEnableKiosk = onEnableKiosk
@@ -203,6 +206,7 @@ private fun ApartmentChoiceCard(
 @Composable
 private fun AdminActionMenu(
     isKioskEnabled: Boolean,
+    canUseKiosk: Boolean,
     onReconfigure: () -> Unit,
     onExitKiosk: () -> Unit,
     onEnableKiosk: () -> Unit
@@ -222,13 +226,21 @@ private fun AdminActionMenu(
             ) {
                 Text(stringResource(R.string.admin_menu_exit_kiosk))
             }
-        } else {
+        } else if (canUseKiosk) {
             OutlinedButton(
                 onClick = onEnableKiosk,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.admin_menu_enable_kiosk))
             }
+        } else {
+            // Enabling it here would only save the flag: the menu would offer "Exit kiosk mode"
+            // while a guest can still press Home and leave.
+            Text(
+                text = stringResource(R.string.admin_menu_kiosk_unavailable),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

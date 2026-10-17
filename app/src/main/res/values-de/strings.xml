@@ -155,6 +155,7 @@
     <string name="admin_menu_reconfigure">Wohnung neu konfigurieren</string>
     <string name="admin_menu_exit_kiosk">Kiosk-Modus beenden</string>
     <string name="admin_menu_enable_kiosk">Kiosk-Modus aktivieren</string>
+    <string name="admin_menu_kiosk_unavailable">Der Kiosk-Modus ist nicht verfügbar: Dieses Tablet ist nicht als Geräteeigentümer eingerichtet (siehe README).</string>
 
     <!-- Errors -->
     <string name="error_generic">Etwas ist schiefgelaufen</string>

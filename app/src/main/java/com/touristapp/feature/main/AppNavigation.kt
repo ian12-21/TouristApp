@@ -61,6 +61,7 @@ fun AppNavigation(
     onRetryLoad: () -> Unit,
     onToggleTheme: () -> Unit,
     isKioskEnabled: Boolean,
+    canUseKiosk: Boolean,
     onExitKiosk: () -> Unit,
     onEnableKiosk: () -> Unit
 ) {
@@ -85,6 +86,7 @@ fun AppNavigation(
                 showAdminDialog = false
             },
             isKioskEnabled = isKioskEnabled,
+            canUseKiosk = canUseKiosk,
             onExitKiosk = {
                 showAdminDialog = false
                 onExitKiosk()
