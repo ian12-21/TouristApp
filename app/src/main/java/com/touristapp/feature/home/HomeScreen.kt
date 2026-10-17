@@ -175,7 +175,8 @@ private fun StayInfo(
             color = MaterialTheme.colorScheme.onBackground
         )
 
-        apartment?.welcomeMessage?.takeIf { it.isNotBlank() }?.let { msg ->
+        // An owner may copy the apartment's welcome into the stay; don't show it twice.
+        apartment?.welcomeMessage?.takeIf { it.isNotBlank() && it.trim() != welcomeText.trim() }?.let { msg ->
             Spacer(modifier = Modifier.height(10.dp))
             Text(
                 text = msg,
