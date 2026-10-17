@@ -110,9 +110,9 @@ fun AppNavigation(
         return
     }
 
-    // In kiosk mode the system Back button must never let the guest leave the app.
-    // An open overlay still closes on Back; at the root, Back is consumed (no-op).
-    BackHandler(enabled = isKioskEnabled) {
+    // An open overlay closes on Back, in kiosk mode or not; without this, Back on an overlay
+    // finished the activity. At the root, kiosk mode consumes Back so the guest can't leave.
+    BackHandler(enabled = isKioskEnabled || uiState.overlayScreen != OverlayScreen.None) {
         if (uiState.overlayScreen != OverlayScreen.None) {
             onNavigateBack()
         }
