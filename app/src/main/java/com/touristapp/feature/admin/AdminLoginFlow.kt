@@ -109,8 +109,19 @@ fun AdminLoginFlow(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                val apartments = state.apartments.orEmpty()
+                if (apartments.isEmpty()) {
+                    NoApartmentsMessage(
+                        onSignOut = {
+                            viewModel.lock()
+                            // Back to the action menu after the next sign-in, as on open.
+                            showApartmentPicker = onDismiss == null
+                        }
+                    )
+                }
+
                 LazyColumn {
-                    items(state.apartments!!) { choice ->
+                    items(apartments) { choice ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -174,9 +185,31 @@ private fun AdminActionMenu(
     }
 }
 
+/**
+ * Shown instead of the picker when the owner has no apartments yet. The sign-out button
+ * matters on the setup screen, where the flow has no close button: without it the owner
+ * could not switch to another account.
+ */
+@Composable
+private fun NoApartmentsMessage(onSignOut: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = stringResource(R.string.admin_no_apartments),
+            style = MaterialTheme.typography.bodyMedium
+        )
+        OutlinedButton(
+            onClick = onSignOut,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(stringResource(R.string.admin_sign_out))
+        }
+    }
+}
+
 @StringRes
 private fun AdminError.messageRes(): Int = when (this) {
     AdminError.INVALID_CREDENTIALS -> R.string.admin_invalid_credentials
     AdminError.NO_NETWORK -> R.string.admin_no_network
+    AdminError.NOT_ACTIVATED -> R.string.admin_not_activated
     AdminError.LOAD_APARTMENTS_FAILED -> R.string.admin_load_apartments_failed
 }

@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /** Why the last sign-in step failed; the UI shows the matching string resource. */
-enum class AdminError { INVALID_CREDENTIALS, NO_NETWORK, LOAD_APARTMENTS_FAILED }
+enum class AdminError { INVALID_CREDENTIALS, NO_NETWORK, NOT_ACTIVATED, LOAD_APARTMENTS_FAILED }
 
 data class AdminUiState(
     val email: String = "",
@@ -84,10 +84,13 @@ class AdminViewModel @Inject constructor(
                 // for being offline.
                 is Resource.Error -> {
                     adminRepository.signOut()
-                    val error = if (apartments.reason == ErrorReason.OFFLINE) {
-                        AdminError.NO_NETWORK
-                    } else {
-                        AdminError.LOAD_APARTMENTS_FAILED
+                    val error = when (apartments.reason) {
+                        ErrorReason.OFFLINE -> AdminError.NO_NETWORK
+                        // The rules let a password account list its own apartments
+                        // only once owners/{uid} exists, so a denial here means the
+                        // account was never activated (SCHEMA.md §3.8).
+                        ErrorReason.PERMISSION_DENIED -> AdminError.NOT_ACTIVATED
+                        else -> AdminError.LOAD_APARTMENTS_FAILED
                     }
                     _uiState.update { it.copy(error = error, isLoading = false) }
                 }

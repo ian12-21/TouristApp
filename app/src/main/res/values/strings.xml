@@ -136,6 +136,9 @@
     <string name="admin_invalid_credentials">Invalid credentials</string>
     <string name="admin_no_network">No internet connection. Connect the tablet to Wi‑Fi and try again.</string>
     <string name="admin_load_apartments_failed">Failed to load apartments</string>
+    <string name="admin_not_activated">This account is not activated. It is not set up as an apartment owner yet.</string>
+    <string name="admin_no_apartments">This account has no apartments yet. Create one in the web admin first, then sign in again.</string>
+    <string name="admin_sign_out">Sign out</string>
     <string name="admin_menu_reconfigure">Reconfigure apartment</string>
     <string name="admin_menu_exit_kiosk">Exit kiosk mode</string>
     <string name="admin_menu_enable_kiosk">Enable kiosk mode</string>

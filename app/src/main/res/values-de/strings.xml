@@ -136,6 +136,9 @@
     <string name="admin_invalid_credentials">Ungültige Anmeldedaten</string>
     <string name="admin_no_network">Keine Internetverbindung. Verbinden Sie das Tablet mit dem WLAN und versuchen Sie es erneut.</string>
     <string name="admin_load_apartments_failed">Apartments konnten nicht geladen werden</string>
+    <string name="admin_not_activated">Dieses Konto ist nicht aktiviert. Es ist noch nicht als Wohnungseigentümer eingerichtet.</string>
+    <string name="admin_no_apartments">Dieses Konto hat noch keine Wohnungen. Legen Sie zuerst eine in der Web-Verwaltung an und melden Sie sich dann erneut an.</string>
+    <string name="admin_sign_out">Abmelden</string>
     <string name="admin_menu_reconfigure">Wohnung neu konfigurieren</string>
     <string name="admin_menu_exit_kiosk">Kiosk-Modus beenden</string>
     <string name="admin_menu_enable_kiosk">Kiosk-Modus aktivieren</string>
