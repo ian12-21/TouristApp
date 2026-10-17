@@ -30,6 +30,7 @@ import com.touristapp.core.i18n.AppLanguage
 import com.touristapp.core.ui.components.LocationNotSetDialog
 import com.touristapp.core.ui.components.WeatherDialog
 import com.touristapp.core.ui.components.weatherIconFor
+import com.touristapp.data.model.Pairing
 import com.touristapp.data.model.Place
 import com.touristapp.feature.admin.AdminDialog
 import com.touristapp.feature.apartment.ApartmentScreen
@@ -50,7 +51,7 @@ fun AppNavigation(
     currentLanguage: String,
     onSelectLanguage: (String) -> Unit,
     /** Applies the apartment the owner picked in the admin dialog. */
-    onApartmentSelected: (String) -> Unit,
+    onApartmentSelected: (Pairing) -> Unit,
     onNavigateToApartment: () -> Unit,
     onNavigateToPlace: (Place) -> Unit,
     onNavigateToCategory: (PlaceCategory) -> Unit,
@@ -73,9 +74,9 @@ fun AppNavigation(
 
     if (showAdminDialog) {
         AdminDialog(
-            onApartmentSelected = { apartmentId ->
+            onApartmentSelected = { pairing ->
                 showAdminDialog = false
-                onApartmentSelected(apartmentId)
+                onApartmentSelected(pairing)
             },
             onDismiss = { showAdminDialog = false },
             onLockout = {

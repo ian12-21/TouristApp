@@ -16,11 +16,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.touristapp.R
+import com.touristapp.data.model.Pairing
 
 @Composable
 fun AdminLoginFlow(
     viewModel: AdminViewModel,
-    onApartmentSelected: (String) -> Unit,
+    onApartmentSelected: (Pairing) -> Unit,
     onDismiss: (() -> Unit)?,
     onLockout: (() -> Unit)? = null,
     isKioskEnabled: Boolean = false,
@@ -109,17 +110,17 @@ fun AdminLoginFlow(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 LazyColumn {
-                    items(state.apartments!!) { (id, displayName) ->
+                    items(state.apartments!!) { choice ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
                                 .clickable {
-                                    viewModel.selectApartment(id, onApartmentSelected)
+                                    viewModel.selectApartment(choice.pairing, onApartmentSelected)
                                 }
                         ) {
                             Text(
-                                text = displayName,
+                                text = choice.label,
                                 modifier = Modifier.padding(16.dp),
                                 style = MaterialTheme.typography.bodyLarge
                             )

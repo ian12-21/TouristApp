@@ -66,6 +66,15 @@ data class Apartment(
     val updatedAt: Timestamp? = null
 )
 
+/**
+ * Which owner's apartment the tablet shows. Saved as one unit at pairing time: every
+ * Firestore path is `owners/{ownerId}/...`, so an apartment id alone is unusable.
+ */
+data class Pairing(val ownerId: String, val apartmentId: String)
+
+/** An apartment in the owner's pairing picker, with the label shown for it. */
+data class ApartmentChoice(val pairing: Pairing, val label: String)
+
 data class LatLng(val lat: Double, val lng: Double)
 
 /**

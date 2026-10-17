@@ -2,6 +2,7 @@ package com.touristapp.data.local
 
 import android.content.Context
 import com.touristapp.data.model.DailyForecast
+import com.touristapp.data.model.Pairing
 import com.touristapp.data.model.WeatherInfo
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.serialization.KSerializer
@@ -20,19 +21,19 @@ class AppPreferences @Inject constructor(
 
     fun getApartmentId(): String? = prefs.getString("apartment_id", null)
 
-    fun setApartmentId(id: String) {
-        prefs.edit().putString("apartment_id", id).apply()
-    }
-
     /**
      * Uid of the owner this tablet is paired to. All of the owner's data lives under
      * `owners/{ownerId}/...` in Firestore, so the tablet needs it to build every path.
-     * Saved together with the apartment id at pairing time; cleared by [clear].
+     * Saved together with the apartment id by [setPairing]; cleared by [clear].
      */
     fun getOwnerId(): String? = prefs.getString("owner_id", null)
 
-    fun setOwnerId(id: String) {
-        prefs.edit().putString("owner_id", id).apply()
+    /** Saves both ids in one write, so the owner and apartment can never disagree. */
+    fun setPairing(pairing: Pairing) {
+        prefs.edit()
+            .putString("owner_id", pairing.ownerId)
+            .putString("apartment_id", pairing.apartmentId)
+            .apply()
     }
 
     fun getApartmentName(): String? = prefs.getString("apartment_name", null)

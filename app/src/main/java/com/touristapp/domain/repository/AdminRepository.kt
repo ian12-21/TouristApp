@@ -1,6 +1,7 @@
 package com.touristapp.domain.repository
 
 import com.touristapp.core.util.Resource
+import com.touristapp.data.model.ApartmentChoice
 
 /**
  * Owner-only operations performed from the admin dialog on the tablet.
@@ -14,18 +15,16 @@ interface AdminRepository {
     suspend fun signIn(email: String, password: String): Resource<Unit>
 
     /**
-     * Uid of the signed-in owner, or null when nobody is signed in. This is the
-     * `{ownerId}` in `owners/{ownerId}/...`, which the tablet stores at pairing time.
-     */
-    fun currentOwnerId(): String?
-
-    /**
-     * The signed-in owner's apartments, as `id to "name — address"`.
+     * The signed-in owner's apartments, each labelled "name — address".
+     *
+     * Each choice carries the owner's uid along with the apartment id, read while the
+     * session is known to be signed in, so pairing never depends on the session still
+     * being alive when the owner taps one.
      *
      * Listing apartments is owner-only in the security rules, so this must run
      * on the admin session; the guest session would be denied.
      */
-    suspend fun getAllApartments(): Resource<List<Pair<String, String>>>
+    suspend fun getAllApartments(): Resource<List<ApartmentChoice>>
 
     /** Ends the admin session. The guest session keeps running untouched. */
     fun signOut()

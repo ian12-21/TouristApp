@@ -9,6 +9,7 @@ import com.touristapp.data.model.Apartment
 import com.touristapp.data.model.ApartmentStatus
 import com.touristapp.data.model.Contact
 import com.touristapp.data.model.Guest
+import com.touristapp.data.model.Pairing
 import com.touristapp.data.model.Place
 import com.touristapp.data.model.Stay
 import com.touristapp.data.model.DailyForecast
@@ -103,9 +104,10 @@ class MainViewModel @Inject constructor(
      * the device settings carry over), so the previous apartment's stay, guests, weather and
      * open overlay can't stay on screen next to the new apartment.
      */
-    fun selectApartment(id: String) {
+    fun selectApartment(pairing: Pairing) {
         prefs.clearApartmentCache()
-        prefs.setApartmentId(id)
+        prefs.setPairing(pairing)
+        val id = pairing.apartmentId
         _uiState.value = deviceSettingsState().copy(apartmentId = id, isLoading = true)
         loadApartmentData(id)
         watchApartment(id)

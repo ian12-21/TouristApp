@@ -6,6 +6,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.touristapp.core.di.AdminScope
 import com.touristapp.core.util.Resource
 import com.touristapp.core.util.toErrorReason
+import com.touristapp.data.model.ApartmentChoice
+import com.touristapp.data.model.Pairing
 import com.touristapp.domain.repository.AdminRepository
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -27,11 +29,9 @@ class AdminRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun currentOwnerId(): String? = auth.currentUser?.uid
-
-    override suspend fun getAllApartments(): Resource<List<Pair<String, String>>> {
+    override suspend fun getAllApartments(): Resource<List<ApartmentChoice>> {
         return try {
-            val ownerId = currentOwnerId() ?: return Resource.Error("Not signed in")
+            val ownerId = auth.currentUser?.uid ?: return Resource.Error("Not signed in")
             val apartments = db.collection("owners").document(ownerId)
                 .collection("apartments")
                 .get()
@@ -40,7 +40,7 @@ class AdminRepositoryImpl @Inject constructor(
                 .mapNotNull { doc ->
                     val name = doc.getString("name") ?: return@mapNotNull null
                     val address = doc.getString("address") ?: ""
-                    doc.id to "$name — $address"
+                    ApartmentChoice(Pairing(ownerId, doc.id), label = "$name — $address")
                 }
             Resource.Success(apartments)
         } catch (e: Exception) {

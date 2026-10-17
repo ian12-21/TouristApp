@@ -7,11 +7,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.touristapp.data.model.Pairing
 import com.touristapp.feature.admin.AdminViewModel
 import com.touristapp.feature.admin.AdminLoginFlow
 @Composable
 fun SetupScreen(
-    onApartmentSelected: (String) -> Unit
+    onApartmentSelected: (Pairing) -> Unit
 ) {
     val viewModel: AdminViewModel = hiltViewModel()
     // AdminViewModel is activity-scoped, so this is the same instance the admin

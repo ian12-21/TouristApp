@@ -4,7 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.touristapp.core.util.ErrorReason
 import com.touristapp.core.util.Resource
-import com.touristapp.data.local.AppPreferences
+import com.touristapp.data.model.ApartmentChoice
+import com.touristapp.data.model.Pairing
 import com.touristapp.domain.repository.AdminRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +24,7 @@ data class AdminUiState(
     val isLoading: Boolean = false,
     val error: AdminError? = null,
     val failedAttempts: Int = 0,
-    val apartments: List<Pair<String, String>>? = null,
+    val apartments: List<ApartmentChoice>? = null,
     val isLockedOut: Boolean = false,
     val isAuthenticated: Boolean = false
 )
@@ -38,8 +39,7 @@ data class AdminUiState(
  */
 @HiltViewModel
 class AdminViewModel @Inject constructor(
-    private val adminRepository: AdminRepository,
-    private val prefs: AppPreferences
+    private val adminRepository: AdminRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AdminUiState())
@@ -120,18 +120,15 @@ class AdminViewModel @Inject constructor(
      * guest session is never re-authenticated, so the tablet keeps the same uid
      * across as many switches as the owner cares to make.
      */
-    fun selectApartment(id: String, onSelected: (String) -> Unit) {
-        // Remember whose apartment this is *before* signing out — afterwards the uid
-        // is gone. The guest session needs it to build `owners/{ownerId}/...` paths.
-        // Saved before onSelected(), which starts loading the apartment immediately.
-        adminRepository.currentOwnerId()?.let(prefs::setOwnerId)
+    fun selectApartment(pairing: Pairing, onSelected: (Pairing) -> Unit) {
+        // The owner id travels inside the pairing, so signing out first loses nothing.
         adminRepository.signOut()
         // Deliberately leaves isAuthenticated alone. AdminLoginFlow draws the login
         // form whenever that flag is false, so clearing it here would re-show the
         // form during the frame between this call and onSelected navigating away.
         // Clearing state is AdminDialog's job — it calls lock() on open, so the next
         // admin session starts from a blank form either way.
-        onSelected(id)
+        onSelected(pairing)
     }
 
     fun lock() {

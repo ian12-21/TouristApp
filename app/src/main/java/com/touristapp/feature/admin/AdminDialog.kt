@@ -9,10 +9,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.touristapp.core.ui.components.AppDialog
+import com.touristapp.data.model.Pairing
 import com.touristapp.feature.admin.AdminViewModel
 @Composable
 fun AdminDialog(
-    onApartmentSelected: (String) -> Unit,
+    onApartmentSelected: (Pairing) -> Unit,
     onDismiss: () -> Unit,
     onLockout: () -> Unit,
     isKioskEnabled: Boolean,
