@@ -75,6 +75,8 @@ class TouristRepositoryImpl @Inject constructor(
         return ref.get(source).await()
     }
 
+    override fun currentUid(): String? = auth.currentUser?.uid
+
     override suspend fun ensureAnonymousAuth(): Resource<Unit> {
         dropDeletedSession()
         if (auth.currentUser == null) {

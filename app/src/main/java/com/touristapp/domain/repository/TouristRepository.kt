@@ -6,6 +6,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface TouristRepository {
     suspend fun ensureAnonymousAuth(): Resource<Unit>
+    /** Uid of the tablet's guest session; the rules only let it edit reviews it wrote. */
+    fun currentUid(): String?
     suspend fun getApartment(apartmentId: String, forceServer: Boolean = false): Resource<Apartment>
     /** Live state of the apartment document: emits on check-in, check-out and deletion. */
     fun observeApartmentStatus(apartmentId: String): Flow<ApartmentStatus>

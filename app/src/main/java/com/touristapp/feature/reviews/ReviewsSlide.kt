@@ -138,7 +138,7 @@ fun ReviewsSlide(
                     Column(modifier = Modifier.animateItem()) {
                         ReviewCard(
                             review = review,
-                            isEditable = currentGuestIds.contains(review.guestId),
+                            isEditable = currentGuestIds.contains(review.guestId) && state.canEdit(review),
                             onEdit = {
                                 viewModel.openEditSheet(review, guests.find { it.id == review.guestId })
                             }

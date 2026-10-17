@@ -35,6 +35,8 @@ data class ReviewsUiState(
     val reviews: List<Review> = emptyList(),
     val isLoading: Boolean = true,
     val loadError: ErrorReason? = null,
+    /** The guest session's uid when the reviews were loaded; see [canEdit]. */
+    val currentUid: String? = null,
     val showCreateSheet: Boolean = false,
     val editingReview: Review? = null,
     val selectedGuest: Guest? = null,
@@ -62,6 +64,14 @@ data class ReviewsUiState(
             .let { Math.round(it * 10) / 10.0 }
 
     val isEditMode: Boolean get() = editingReview != null
+
+    /**
+     * The rules let a tablet edit only the reviews its own guest session wrote. After a
+     * reinstall or a cleared session the uid is new, so older reviews (and legacy ones
+     * without an authorUid) can no longer be edited here.
+     */
+    fun canEdit(review: Review): Boolean =
+        currentUid != null && review.authorUid == currentUid
 }
 
 @HiltViewModel
@@ -76,8 +86,9 @@ class ReviewsViewModel @Inject constructor(
         _uiState.update { it.copy(isLoading = true, loadError = null) }
         viewModelScope.launch {
             when (val result = repository.getReviewsForApartment(apartmentId)) {
+                // Read after the load, which signs the guest session in first.
                 is Resource.Success -> _uiState.update {
-                    it.copy(reviews = result.data, isLoading = false)
+                    it.copy(reviews = result.data, currentUid = repository.currentUid(), isLoading = false)
                 }
                 is Resource.Error -> _uiState.update {
                     it.copy(isLoading = false, loadError = result.reason)
