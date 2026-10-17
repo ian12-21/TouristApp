@@ -14,6 +14,8 @@ import com.touristapp.data.model.Review
 import com.touristapp.data.model.ReviewWriteStatus
 import com.touristapp.domain.repository.TouristRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -85,9 +87,39 @@ class ReviewsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ReviewsUiState())
     val uiState: StateFlow<ReviewsUiState> = _uiState.asStateFlow()
 
-    fun loadReviews(apartmentId: String) {
-        _uiState.update { it.copy(isLoading = true, loadError = null) }
+    private var loadJob: Job? = null
+    private var saveJob: Job? = null
+    /** The [TouristRepository.pairingVersion] that [uiState] was loaded for. */
+    private var pairingVersion = repository.pairingVersion.value
+
+    init {
         viewModelScope.launch {
+            repository.pairingVersion.collect { dropPreviousPairing() }
+        }
+    }
+
+    /**
+     * A re-pair drops the previous apartment's reviews and closes an open sheet, which
+     * lists the previous stay's guests. A save still running is abandoned too: on
+     * success it would reload the previous apartment's reviews.
+     *
+     * Also called before every load, so it doesn't matter whether the screen's reload or
+     * the [init] collector sees the new pairing first.
+     */
+    private fun dropPreviousPairing() {
+        val version = repository.pairingVersion.value
+        if (version == pairingVersion) return
+        pairingVersion = version
+        loadJob?.cancel()
+        saveJob?.cancel()
+        _uiState.value = ReviewsUiState()
+    }
+
+    fun loadReviews(apartmentId: String) {
+        dropPreviousPairing()
+        _uiState.update { it.copy(isLoading = true, loadError = null) }
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             when (val result = repository.getReviewsForApartment(apartmentId)) {
                 // Read after the load, which signs the guest session in first.
                 is Resource.Success -> _uiState.update {
@@ -235,7 +267,7 @@ class ReviewsViewModel @Inject constructor(
         val guest = state.selectedGuest ?: return
 
         _uiState.update { it.copy(isSaving = true, saveError = null) }
-        viewModelScope.launch {
+        saveJob = viewModelScope.launch {
             try {
                 repository.ensureAnonymousAuth()
 
@@ -300,6 +332,8 @@ class ReviewsViewModel @Inject constructor(
                     }
                     _uiState.update { it.copy(saveError = error) }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.update { it.copy(isSaving = false, saveError = ReviewSaveError.FAILED) }
             }

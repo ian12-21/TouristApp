@@ -3,8 +3,16 @@ package com.touristapp.domain.repository
 import com.touristapp.core.util.Resource
 import com.touristapp.data.model.*
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 interface TouristRepository {
+    /**
+     * Bumped on every pairing, even to the same apartment again. Screens drop what they
+     * loaded for the previous pairing when it changes, so a re-pair reloads everything.
+     */
+    val pairingVersion: StateFlow<Int>
+    /** Saves the owner and apartment that every later read is built from. */
+    fun setPairing(pairing: Pairing)
     suspend fun ensureAnonymousAuth(): Resource<Unit>
     /** Uid of the tablet's guest session; the rules only let it edit reviews it wrote. */
     fun currentUid(): String?

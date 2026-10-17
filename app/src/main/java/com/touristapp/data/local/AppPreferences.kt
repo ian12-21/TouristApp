@@ -24,7 +24,7 @@ class AppPreferences @Inject constructor(
     /**
      * Uid of the owner this tablet is paired to. All of the owner's data lives under
      * `owners/{ownerId}/...` in Firestore, so the tablet needs it to build every path.
-     * Saved together with the apartment id by [setPairing]; cleared by [clear].
+     * Saved together with the apartment id by [setPairing].
      */
     fun getOwnerId(): String? = prefs.getString("owner_id", null)
 
@@ -101,19 +101,6 @@ class AppPreferences @Inject constructor(
             .remove("apartment_name")
             .remove(KEY_WEATHER)
             .remove(KEY_FORECAST)
-            .apply()
-    }
-
-    fun clear() {
-        // Preserve device-level settings the owner controls; reconfiguring an apartment
-        // must not silently flip them.
-        val theme = isDarkTheme()
-        val kiosk = isKioskEnabled()
-        val language = getLanguage()
-        prefs.edit().clear()
-            .putBoolean("dark_theme", theme)
-            .putBoolean("kiosk_enabled", kiosk)
-            .putString("language", language)
             .apply()
     }
 

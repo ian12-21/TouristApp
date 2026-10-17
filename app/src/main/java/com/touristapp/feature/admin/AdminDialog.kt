@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Card
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -22,6 +23,8 @@ fun AdminDialog(
 ) {
     val viewModel: AdminViewModel = hiltViewModel()
     LaunchedEffect(Unit) { viewModel.lock() }
+    // Closing with X keeps the tablet as it was, and must not leave the owner signed in.
+    DisposableEffect(Unit) { onDispose { viewModel.lock() } }
     // Admin is an owner-facing, English-only surface.
     AppDialog(onDismissRequest = onDismiss, forceLanguage = "en") {
         Card(

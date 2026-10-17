@@ -85,12 +85,14 @@ fun PlacesSlide(
     cachedPlaces: List<Place> = emptyList(),
     onSeeAll: (PlaceCategory) -> Unit = {},
     onPlaceClick: (Place) -> Unit = {},
-    onPlacesLoaded: (List<Place>) -> Unit = {}
+    onPlacesLoaded: (List<Place>) -> Unit = {},
+    /** Changes on every re-pair, so picking the same apartment again still reloads. */
+    pairingVersion: Int = 0
 ) {
     val viewModel: PlacesViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(apartmentId, cachedPlaces) {
+    LaunchedEffect(apartmentId, cachedPlaces, pairingVersion) {
         viewModel.seed(cachedPlaces)
         viewModel.loadPlaces(apartmentId)
     }

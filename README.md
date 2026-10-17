@@ -108,6 +108,12 @@ open the admin dialog. After signing in, the owner can **Reconfigure apartment**
 different one) or turn kiosk mode on or off. Three failed sign-ins close the dialog and
 silently ignore the gesture for 60 seconds.
 
+Any owner account can sign in here, not only the one the tablet is paired to. Picking an
+apartment — the same one again, or one of another owner's — pairs the tablet with it and
+reloads everything from scratch, so nothing of the previous apartment stays on screen.
+Closing the dialog with **✕** changes nothing: the tablet keeps its pairing and data, and
+the owner is signed out.
+
 The owner signs in on a separate Firebase session, so opening the dialog never disturbs the
 tablet's anonymous identity — that identity is what lets the tablet edit the reviews it wrote.
 

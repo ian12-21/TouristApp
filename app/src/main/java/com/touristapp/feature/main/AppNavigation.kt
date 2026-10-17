@@ -311,12 +311,14 @@ fun AppNavigation(
                         cachedPlaces = uiState.cachedPlaces,
                         onSeeAll = onNavigateToCategory,
                         onPlaceClick = onNavigateToPlace,
-                        onPlacesLoaded = onPlacesLoaded
+                        onPlacesLoaded = onPlacesLoaded,
+                        pairingVersion = uiState.pairingVersion
                     )
                     2 -> ReviewsSlide(
                         apartmentId = uiState.apartmentId.orEmpty(),
                         currentStay = uiState.currentStay,
-                        guests = uiState.guests
+                        guests = uiState.guests,
+                        pairingVersion = uiState.pairingVersion
                     )
                     3 -> TransportationSlide(
                         apartment = uiState.apartment,

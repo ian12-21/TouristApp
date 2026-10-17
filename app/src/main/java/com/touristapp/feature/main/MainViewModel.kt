@@ -60,7 +60,9 @@ data class MainUiState(
     val isDarkTheme: Boolean = true,
     val isKioskEnabled: Boolean = false,
     val language: String = "en",
-    val isSwitchingLanguage: Boolean = false
+    val isSwitchingLanguage: Boolean = false,
+    /** [TouristRepository.pairingVersion] of this state; slides reload when it changes. */
+    val pairingVersion: Int = 0
 )
 
 @HiltViewModel
@@ -108,9 +110,13 @@ class MainViewModel @Inject constructor(
      */
     fun selectApartment(pairing: Pairing) {
         prefs.clearApartmentCache()
-        prefs.setPairing(pairing)
+        touristRepository.setPairing(pairing)
         val id = pairing.apartmentId
-        _uiState.value = deviceSettingsState().copy(apartmentId = id, isLoading = true)
+        _uiState.value = deviceSettingsState().copy(
+            apartmentId = id,
+            isLoading = true,
+            pairingVersion = touristRepository.pairingVersion.value
+        )
         loadApartmentData(id)
         watchApartment(id)
     }
@@ -128,13 +134,6 @@ class MainViewModel @Inject constructor(
     fun refresh() {
         val id = _uiState.value.apartmentId ?: return
         loadApartmentData(id, forceServer = true)
-    }
-
-    fun reconfigure() {
-        loadJob?.cancel()
-        apartmentWatchJob?.cancel()
-        prefs.clear()
-        _uiState.value = deviceSettingsState()
     }
 
     /** A blank state that keeps only the owner's device-level settings. */

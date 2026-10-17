@@ -24,9 +24,13 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeoutOrNull
@@ -39,6 +43,14 @@ class TouristRepositoryImpl @Inject constructor(
     private val auth: FirebaseAuth,
     private val prefs: AppPreferences
 ) : TouristRepository {
+
+    private val _pairingVersion = MutableStateFlow(0)
+    override val pairingVersion: StateFlow<Int> = _pairingVersion.asStateFlow()
+
+    override fun setPairing(pairing: Pairing) {
+        prefs.setPairing(pairing)
+        _pairingVersion.update { it + 1 }
+    }
 
     /** The language currently selected by the guest, used to resolve localized content. */
     private val lang: String get() = prefs.getLanguage()

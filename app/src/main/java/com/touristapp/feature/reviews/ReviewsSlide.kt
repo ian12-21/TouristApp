@@ -63,14 +63,16 @@ private fun qualitativeLabelRes(score: Double): Int = when {
 fun ReviewsSlide(
     apartmentId: String,
     currentStay: Stay?,
-    guests: List<Guest>
+    guests: List<Guest>,
+    /** Changes on every re-pair, so picking the same apartment again still reloads. */
+    pairingVersion: Int = 0
 ) {
     val viewModel: ReviewsViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     val currentGuestIds = currentStay?.guestIds ?: emptyList()
 
-    LaunchedEffect(apartmentId) {
+    LaunchedEffect(apartmentId, pairingVersion) {
         viewModel.loadReviews(apartmentId)
     }
 

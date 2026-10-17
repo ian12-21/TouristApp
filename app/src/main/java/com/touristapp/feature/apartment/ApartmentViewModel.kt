@@ -6,6 +6,7 @@ import com.touristapp.core.util.Resource
 import com.touristapp.data.model.Room
 import com.touristapp.domain.repository.TouristRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,24 +29,50 @@ class ApartmentViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ApartmentUiState())
     val uiState: StateFlow<ApartmentUiState> = _uiState.asStateFlow()
 
+    private var loadJob: Job? = null
+    /** The [TouristRepository.pairingVersion] that [uiState] was loaded for. */
+    private var pairingVersion = repository.pairingVersion.value
+
+    init {
+        viewModelScope.launch {
+            repository.pairingVersion.collect { dropPreviousPairing() }
+        }
+    }
+
+    /**
+     * A re-pair drops the previous apartment's rooms, so the next open shows a spinner
+     * and loads the new ones instead of keeping the old owner's on screen.
+     *
+     * Also called before every load, so it doesn't matter whether the screen's reload or
+     * the [init] collector sees the new pairing first.
+     */
+    private fun dropPreviousPairing() {
+        val version = repository.pairingVersion.value
+        if (version == pairingVersion) return
+        pairingVersion = version
+        loadJob?.cancel()
+        _uiState.value = ApartmentUiState()
+    }
+
     /**
      * Re-fetches rooms every time the screen opens (the repository is server-first, so this picks
      * up admin edits and the current language). Only blocks while a load is already in flight.
      * Existing rooms stay on screen during the refresh; the spinner shows only on the first load.
      */
     fun loadData(apartmentId: String) {
+        dropPreviousPairing()
         if (_uiState.value.isLoading) return
         if (_uiState.value.rooms.isEmpty()) {
             _uiState.update { it.copy(isLoading = true, error = null) }
         }
-        viewModelScope.launch {
+        loadJob = viewModelScope.launch {
             when (val result = repository.getRooms(apartmentId)) {
-                is Resource.Success -> _uiState.update { it.copy(rooms = result.data, error = null) }
-                is Resource.Error -> _uiState.update { it.copy(error = result.message) }
+                is Resource.Success -> _uiState.update {
+                    it.copy(rooms = result.data, error = null, isLoading = false)
+                }
+                is Resource.Error -> _uiState.update { it.copy(error = result.message, isLoading = false) }
                 is Resource.Loading -> {}
             }
-        }.invokeOnCompletion {
-            _uiState.update { it.copy(isLoading = false) }
         }
     }
 
