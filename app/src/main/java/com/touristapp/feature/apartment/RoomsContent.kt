@@ -222,10 +222,6 @@ private fun ApplianceDetailPage(
     appliance: Appliance,
     onBack: () -> Unit
 ) {
-    val (resolvedIcon, resolvedColor) = remember(name, appliance.icon) {
-        resolveApplianceIcon(name, appliance)
-    }
-
     Column(modifier = Modifier.fillMaxSize()) {
         // Simple toolbar: back button + title
         Row(
@@ -324,7 +320,7 @@ private fun ApplianceDetailPage(
                 }
             }
 
-            // Image carousel or colored placeholder boxes
+            // Photo carousel; nothing when the owner hasn't added photos
             if (appliance.images.isNotEmpty()) {
                 val pagerState = rememberPagerState(pageCount = { appliance.images.size })
                 Column(
@@ -366,58 +362,6 @@ private fun ApplianceDetailPage(
                                         )
                                 )
                             }
-                        }
-                    }
-                }
-            } else {
-                // Colored placeholder boxes simulating images
-                val placeholderColors = listOf(
-                    resolvedColor.copy(alpha = 0.25f),
-                    resolvedColor.copy(alpha = 0.15f),
-                    resolvedColor.copy(alpha = 0.20f)
-                )
-                val pagerState = rememberPagerState(pageCount = { placeholderColors.size })
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    HorizontalPager(
-                        state = pagerState,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(16f / 9f)
-                            .clip(RoundedCornerShape(16.dp))
-                    ) { page ->
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(placeholderColors[page]),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = resolvedIcon,
-                                contentDescription = null,
-                                tint = resolvedColor.copy(alpha = 0.5f),
-                                modifier = Modifier.size(64.dp)
-                            )
-                        }
-                    }
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        repeat(placeholderColors.size) { index ->
-                            Box(
-                                modifier = Modifier
-                                    .size(if (pagerState.currentPage == index) 8.dp else 6.dp)
-                                    .clip(CircleShape)
-                                    .background(
-                                        if (pagerState.currentPage == index)
-                                            MaterialTheme.colorScheme.primary
-                                        else
-                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
-                                    )
-                            )
                         }
                     }
                 }
