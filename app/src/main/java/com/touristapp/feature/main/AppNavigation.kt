@@ -292,6 +292,7 @@ fun AppNavigation(
                     0 -> HomeSlide(
                         apartment = uiState.apartment,
                         currentStay = uiState.currentStay,
+                        isLoading = uiState.isLoading || uiState.isStayLoading,
                         cachedEmergencyContacts = uiState.cachedEmergencyContacts,
                         onNavigateToReviews = {
                             coroutineScope.launch { pagerState.animateScrollToPage(2) }

@@ -43,6 +43,8 @@ data class MainUiState(
     val apartmentName: String = "",
     val apartment: Apartment? = null,
     val currentStay: Stay? = null,
+    /** A different stay than [currentStay] is being read; the home screen waits for it. */
+    val isStayLoading: Boolean = false,
     val guests: List<Guest> = emptyList(),
     val weatherInfo: WeatherInfo? = null,
     val weekForecast: List<DailyForecast> = emptyList(),
@@ -231,6 +233,10 @@ class MainViewModel @Inject constructor(
                             weatherInfo = if (isLocationMissing) null else it.weatherInfo,
                             weekForecast = if (isLocationMissing) emptyList() else it.weekForecast,
                             isLoading = false,
+                            // Set together with the apartment, so no frame shows it
+                            // without its stay before loadStayAndGuests starts.
+                            isStayLoading = apartment.currentStayId != null &&
+                                it.currentStay?.id != apartment.currentStayId,
                             isSwitchingLanguage = false,
                             loadError = null
                         )
@@ -242,10 +248,16 @@ class MainViewModel @Inject constructor(
                     result.reason == ErrorReason.NOT_FOUND -> showApartmentDeleted()
                     // Keep any cached data already on screen during a silent refresh.
                     !forceServer -> _uiState.update {
-                        it.copy(isLoading = false, isSwitchingLanguage = false, loadError = result.reason)
+                        it.copy(
+                            isLoading = false,
+                            isStayLoading = false,
+                            isSwitchingLanguage = false,
+                            loadError = result.reason
+                        )
                     }
                     // A failed language-switch refresh must still drop the overlay.
-                    else -> _uiState.update { it.copy(isSwitchingLanguage = false) }
+                    // A cancelled earlier load may have left the stay spinner on.
+                    else -> _uiState.update { it.copy(isSwitchingLanguage = false, isStayLoading = false) }
                 }
                 is Resource.Loading -> {}
             }
@@ -255,20 +267,29 @@ class MainViewModel @Inject constructor(
     private suspend fun loadStayAndGuests(stayId: String?, forceServer: Boolean) {
         if (stayId == null) {
             // Checked out: nothing of the previous guests may stay on screen.
-            _uiState.update { it.copy(currentStay = null, guests = emptyList()) }
+            _uiState.update { it.copy(currentStay = null, guests = emptyList(), isStayLoading = false) }
             return
         }
-        when (val stayResult = touristRepository.getCurrentStay(stayId, forceServer)) {
-            is Resource.Success -> {
-                val stay = stayResult.data
-                // Guest names are denormalized onto the stay, so the tablet no longer
-                // reads the private `guests` collection. Preserve guestIds order.
-                val guests = stay.guestIds.map { id ->
-                    Guest(id = id, name = stay.guestNames[id] ?: "")
+        // A resume refresh re-reads the stay already shown; only a new one is worth a spinner.
+        if (_uiState.value.currentStay?.id != stayId) {
+            _uiState.update { it.copy(isStayLoading = true) }
+        }
+        try {
+            when (val stayResult = touristRepository.getCurrentStay(stayId, forceServer)) {
+                is Resource.Success -> {
+                    val stay = stayResult.data
+                    // Guest names are denormalized onto the stay, so the tablet no longer
+                    // reads the private `guests` collection. Preserve guestIds order.
+                    val guests = stay.guestIds.map { id ->
+                        Guest(id = id, name = stay.guestNames[id] ?: "")
+                    }
+                    _uiState.update { it.copy(currentStay = stay, guests = guests) }
                 }
-                _uiState.update { it.copy(currentStay = stay, guests = guests) }
+                else -> {}
             }
-            else -> {}
+        } finally {
+            // Also on failure or cancellation, so the home screen never spins for good.
+            _uiState.update { it.copy(isStayLoading = false) }
         }
     }
 

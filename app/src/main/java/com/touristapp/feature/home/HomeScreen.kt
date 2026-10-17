@@ -1,5 +1,6 @@
 package com.touristapp.feature.home
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -42,6 +43,7 @@ import java.util.Locale
 fun HomeSlide(
     apartment: ApartmentModel?,
     currentStay: Stay?,
+    isLoading: Boolean = false,
     cachedEmergencyContacts: List<Contact> = emptyList(),
     onNavigateToReviews: () -> Unit = {},
     onNavigateToApartment: () -> Unit = {},
@@ -62,146 +64,17 @@ fun HomeSlide(
             .fillMaxSize()
             .padding(horizontal = 20.dp, vertical = 24.dp)
     ) {
-        val welcomeText = currentStay?.welcomeMessage?.takeIf { it.isNotBlank() }
-            ?: stringResource(R.string.home_welcome)
-
         Spacer(modifier = Modifier.weight(1f))
 
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.Start
-        ) {
-            Text(
-                text = welcomeText,
-                style = MaterialTheme.typography.headlineLarge.copy(fontSize = 34.sp),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-
-            apartment?.welcomeMessage?.takeIf { it.isNotBlank() }?.let { msg ->
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = msg,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Wifi,
-                        contentDescription = stringResource(R.string.cd_wifi),
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(22.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
-                        val wifiName = apartment?.wifiName?.takeIf { it.isNotBlank() }
-                            ?: stringResource(R.string.home_wifi_not_configured)
-                        Text(
-                            text = stringResource(R.string.home_wifi_label, wifiName),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        apartment?.wifiPassword?.takeIf { it.isNotBlank() }?.let { password ->
-                            Text(
-                                text = stringResource(R.string.home_wifi_password, password),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
+        // Until the apartment and its current stay are in, these cards would read "Wi‑Fi: Not
+        // configured" and the generic welcome, which a guest could take for the real thing.
+        Crossfade(targetState = isLoading, label = "stayInfo") { loading ->
+            if (loading) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Logout,
-                        contentDescription = stringResource(R.string.cd_checkout),
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(22.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
-                        val checkoutTime = apartment?.checkoutTime?.takeIf { it.isNotBlank() }
-                        val checkoutDate = currentStay?.checkOut?.let {
-                            SimpleDateFormat("d MMM", Locale.getDefault()).format(it.toDate())
-                        }
-                        val text = when {
-                            checkoutTime != null && checkoutDate != null ->
-                                stringResource(R.string.home_checkout_by_time_and_date, checkoutTime, checkoutDate)
-                            checkoutTime != null ->
-                                stringResource(R.string.home_checkout_by_time, checkoutTime)
-                            checkoutDate != null ->
-                                stringResource(R.string.home_checkout_on_date, checkoutDate)
-                            else -> stringResource(R.string.home_checkout_not_set)
-                        }
-                        Text(
-                            text = text,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                }
-            }
-
-            val apartmentContacts = apartment?.contacts ?: emptyList()
-            if (apartmentContacts.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = stringResource(R.string.home_contacts),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    apartmentContacts.forEach { contact ->
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = contact.name,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                    maxLines = 1
-                                )
-                                Text(
-                                    text = contact.phone,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 1
-                                )
-                            }
-                        }
-                    }
-                }
+            } else {
+                StayInfo(apartment = apartment, currentStay = currentStay)
             }
         }
 
@@ -269,6 +142,155 @@ fun HomeSlide(
             errorMessage = state.contactsError,
             onRetry = { viewModel.loadEmergencyContacts(apartment?.emergencyContactGroupId) }
         )
+    }
+}
+
+/** Welcome, Wi‑Fi, checkout and contacts for the paired apartment and its current stay. */
+@Composable
+private fun StayInfo(
+    apartment: ApartmentModel?,
+    currentStay: Stay?,
+    modifier: Modifier = Modifier
+) {
+    val welcomeText = currentStay?.welcomeMessage?.takeIf { it.isNotBlank() }
+        ?: stringResource(R.string.home_welcome)
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.Start
+    ) {
+        Text(
+            text = welcomeText,
+            style = MaterialTheme.typography.headlineLarge.copy(fontSize = 34.sp),
+            color = MaterialTheme.colorScheme.onBackground
+        )
+
+        apartment?.welcomeMessage?.takeIf { it.isNotBlank() }?.let { msg ->
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = msg,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.secondary
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Wifi,
+                    contentDescription = stringResource(R.string.cd_wifi),
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    val wifiName = apartment?.wifiName?.takeIf { it.isNotBlank() }
+                        ?: stringResource(R.string.home_wifi_not_configured)
+                    Text(
+                        text = stringResource(R.string.home_wifi_label, wifiName),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    apartment?.wifiPassword?.takeIf { it.isNotBlank() }?.let { password ->
+                        Text(
+                            text = stringResource(R.string.home_wifi_password, password),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Logout,
+                    contentDescription = stringResource(R.string.cd_checkout),
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    val checkoutTime = apartment?.checkoutTime?.takeIf { it.isNotBlank() }
+                    val checkoutDate = currentStay?.checkOut?.let {
+                        SimpleDateFormat("d MMM", Locale.getDefault()).format(it.toDate())
+                    }
+                    val text = when {
+                        checkoutTime != null && checkoutDate != null ->
+                            stringResource(R.string.home_checkout_by_time_and_date, checkoutTime, checkoutDate)
+                        checkoutTime != null ->
+                            stringResource(R.string.home_checkout_by_time, checkoutTime)
+                        checkoutDate != null ->
+                            stringResource(R.string.home_checkout_on_date, checkoutDate)
+                        else -> stringResource(R.string.home_checkout_not_set)
+                    }
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+            }
+        }
+
+        val apartmentContacts = apartment?.contacts ?: emptyList()
+        if (apartmentContacts.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = stringResource(R.string.home_contacts),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                apartmentContacts.forEach { contact ->
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = contact.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onBackground,
+                                maxLines = 1
+                            )
+                            Text(
+                                text = contact.phone,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
