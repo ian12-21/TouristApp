@@ -149,8 +149,7 @@ Kiosk mode stays on after a restart.
 
 **Getting back out:** hold the home icon for 5 seconds, sign in and tap **Exit kiosk mode**.
 The tablet behaves normally again, and you can enable kiosk mode again the same way. To
-undo the setup completely, factory reset the tablet. (The Tablet setup page mentions a
-"Remove kiosk completely" option; this version of the app does not have it.)
+undo the setup completely, factory reset the tablet.
 
 ## 7. What to test
 

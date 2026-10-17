@@ -157,9 +157,7 @@ Kiosk način ostaje uključen i nakon ponovnog pokretanja.
 
 **Izlaz:** držite ikonu kućice 5 sekundi, prijavite se i dodirnite **Exit kiosk mode**.
 Tablet se opet ponaša uobičajeno, a kiosk način možete ponovno uključiti na isti način. Za
-potpuno poništavanje postavljanja vratite tablet na tvorničke postavke. (Stranica
-Postavljanje tableta spominje opciju „Remove kiosk completely”; ova verzija aplikacije je
-nema.)
+potpuno poništavanje postavljanja vratite tablet na tvorničke postavke.
 
 ## 7. Što testirati
 
