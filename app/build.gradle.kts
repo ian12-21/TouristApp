@@ -47,8 +47,33 @@ android {
         }
     }
 
+    // The release key also signs the APK that QR-code kiosk setup downloads, and the QR code
+    // carries its fingerprint: a tablet set up with one key only takes updates signed with it.
+    // Without these local.properties values the release build stays unsigned.
+    val releaseSigning = listOf(
+        "RELEASE_STORE_FILE",
+        "RELEASE_STORE_PASSWORD",
+        "RELEASE_KEY_ALIAS",
+        "RELEASE_KEY_PASSWORD"
+    ).associateWith { localProperties.getProperty(it) }
+    val hasReleaseSigning = releaseSigning.values.all { !it.isNullOrBlank() }
+
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(releaseSigning.getValue("RELEASE_STORE_FILE").orEmpty())
+                storePassword = releaseSigning.getValue("RELEASE_STORE_PASSWORD")
+                keyAlias = releaseSigning.getValue("RELEASE_KEY_ALIAS")
+                keyPassword = releaseSigning.getValue("RELEASE_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

@@ -104,6 +104,10 @@ na boravku kliknite **Odjava**.
    **Instaliraj**.
 3. Otvorite instaliranu aplikaciju.
 
+Ako je instalirana starija testna verzija, najprije je deinstalirajte: Android ovu neće
+instalirati preko nje. Koristit ćete kiosk način? Preskočite ovo poglavlje; tablet
+aplikaciju instalira tijekom postavljanja kiosk načina (6. poglavlje).
+
 ## 5. Uparivanje tableta s apartmanom
 
 1. Pri prvom pokretanju aplikacija prikazuje zaslon za prijavu. Prijavite se **istom
@@ -127,14 +131,27 @@ Kiosk način zaključava tablet na aplikaciju: gosti ne mogu otići na početni 
 prebaciti se u drugu aplikaciju ni otvoriti obavijesti. Tablet radi i bez toga; koristite
 ga ako tablet ostaje u apartmanu bez nadzora.
 
-Potrebno je računalo s **ADB-om** (Android platform tools) i **vraćanje na tvorničke
-postavke, koje briše sve s tableta.** Napravite to prije uparivanja.
+Postavljanje **briše sve s tableta**, stoga koristite tablet namijenjen samo gostima.
+Trebaju vam tablet, punjač i lozinka za Wi-Fi; računalo ne treba.
+
+1. Vratite tablet na tvorničke postavke (Postavke → Sustav → Opcije vraćanja → Izbriši sve
+   podatke).
+2. Na prvom zaslonu dobrodošlice **6 puta dodirnite isto mjesto na zaslonu**. Otvorit će se
+   čitač QR koda. Neki tableti prije toga traže da se spojite na Wi-Fi.
+3. Skenirajte QR kod sa stranice **Postavljanje tableta** u web administraciji i spojite se
+   na Wi-Fi kad se to zatraži. Tablet sam preuzme i instalira aplikaciju, što može
+   potrajati nekoliko minuta.
+4. Dovršite postavljanje. **Preskočite dodavanje Google računa** i **ne postavljajte
+   zaključavanje zaslona** (PIN, uzorak ili zaporku). Sa zaključavanjem se tablet nakon
+   svakog ponovnog pokretanja zaustavi na zaključanom zaslonu umjesto da otvori aplikaciju.
+5. Otvorite aplikaciju i uparite je s apartmanom (5. poglavlje).
+6. Držite ikonu kućice 5 sekundi, prijavite se i dodirnite **Enable kiosk mode**.
+
+**Ako 6 dodira ništa ne otvori,** postavljanje tableta nema čitač QR koda. Tada je potrebno
+računalo s **ADB-om** (Android platform tools):
 
 1. Vratite tablet na tvorničke postavke. Pri početnom postavljanju **preskočite dodavanje
-   Google računa** i **ne postavljajte zaključavanje zaslona** (PIN, uzorak ili zaporku).
-   Sa zaključavanjem se tablet nakon svakog ponovnog pokretanja zaustavi na zaključanom
-   zaslonu umjesto da otvori aplikaciju. Ako je već postavljeno, prije 6. koraka ga u
-   Postavkama promijenite u **Ništa**.
+   Google računa** i **ne postavljajte zaključavanje zaslona**.
 2. Uključite **Opcije za razvojne programere → USB otklanjanje pogrešaka** (Postavke →
    O tabletu → sedam puta dodirnite *Broj međuverzije* da se opcije pojave) i spojite tablet
    na računalo.
@@ -150,8 +167,7 @@ postavke, koje briše sve s tableta.** Napravite to prije uparivanja.
    adb shell dpm set-device-owner com.touristapp.staging/com.touristapp.admin.KioskAdminReceiver
    ```
 
-5. Otvorite aplikaciju i uparite je s apartmanom (5. poglavlje).
-6. Držite ikonu kućice 5 sekundi, prijavite se i dodirnite **Enable kiosk mode**.
+5. Otvorite aplikaciju, uparite je i uključite kiosk način kao u koracima 5–6 gore.
 
 Kiosk način ostaje uključen i nakon ponovnog pokretanja.
 

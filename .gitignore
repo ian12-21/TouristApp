@@ -19,3 +19,7 @@ google-services.json
 
 # Java heap dumps
 *.hprof
+
+# Release signing keys — back them up elsewhere, never commit them
+*.jks
+*.keystore

@@ -99,6 +99,10 @@ When they leave, click **Check out** on the stay.
    source (your browser or file manager) — allow it, then tap **Install**.
 3. Open the installed app.
 
+If an older test version is installed, uninstall it first: Android refuses to install this
+one over it. Going to use kiosk mode? Skip this section; the tablet installs the app during
+kiosk setup (section 6).
+
 ## 5. Pair the tablet with your apartment
 
 1. On first start the app shows a sign-in screen. Sign in with the **same email and
@@ -121,13 +125,26 @@ Kiosk mode locks the tablet to the app: guests cannot go to the home screen, swi
 or open the notification shade. The tablet works without it; use it if the tablet stays in
 the apartment unattended.
 
-It needs a computer with **ADB** (Android platform tools) and a **factory reset, which
-erases everything on the tablet.** Do it before pairing.
+Setting it up **erases everything on the tablet**, so use a tablet that is only for guests.
+You need the tablet, its charger and the Wi-Fi password; no computer.
+
+1. Factory reset the tablet (Settings → System → Reset options → Erase all data).
+2. On the first welcome screen, **tap the same spot on the screen 6 times**. A QR code
+   scanner opens. Some tablets first ask you to connect to Wi-Fi.
+3. Scan the QR code from the **Tablet setup** page of the web admin, and connect to Wi-Fi
+   when asked. The tablet downloads and installs the app by itself, which can take a few
+   minutes.
+4. Finish the setup. **Skip adding a Google account** and **don't set a screen lock** (PIN,
+   pattern or password). With a screen lock, the tablet stops at the lock screen after
+   every restart instead of opening the app.
+5. Open the app and pair it with your apartment (section 5).
+6. Hold the home icon for 5 seconds, sign in and tap **Enable kiosk mode**.
+
+**If tapping 6 times does nothing,** the tablet's setup has no QR scanner. Then it needs a
+computer with **ADB** (Android platform tools) instead:
 
 1. Factory reset the tablet. During the first-start setup, **skip adding a Google account**
-   and **don't set a screen lock** (PIN, pattern or password). With a screen lock, the
-   tablet stops at the lock screen after every restart instead of opening the app. If one
-   is already set, change it to **None** in Settings before step 6.
+   and **don't set a screen lock**.
 2. Turn on **Developer options → USB debugging** (Settings → About tablet → tap *Build
    number* seven times to show Developer options) and connect the tablet to the computer.
 3. Install the app from the computer:
@@ -142,8 +159,7 @@ erases everything on the tablet.** Do it before pairing.
    adb shell dpm set-device-owner com.touristapp.staging/com.touristapp.admin.KioskAdminReceiver
    ```
 
-5. Open the app and pair it with your apartment (section 5).
-6. Hold the home icon for 5 seconds, sign in and tap **Enable kiosk mode**.
+5. Open the app, pair it, and enable kiosk mode as in steps 5–6 above.
 
 Kiosk mode stays on after a restart.
 

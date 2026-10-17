@@ -59,8 +59,42 @@ Android Studio, or from the command line with the Gradle wrapper:
 `app/build/outputs/apk/staging/debug/app-staging-debug.apk`, and
 `./gradlew installStagingDebug` installs it on the connected device or emulator. The
 wrapper runs Gradle 8.11.1, which needs `JAVA_HOME` pointing at JDK 17 or 21 — it does not
-start on newer JDKs. Release builds have no signing config yet (#8), so only debug APKs
-are installable today.
+start on newer JDKs.
+
+### Release builds
+
+`./gradlew assembleStagingRelease` writes
+`app/build/outputs/apk/staging/release/app-staging-release.apk`, signed with the release key
+when `local.properties` names it, and unsigned (not installable) otherwise. That APK is the
+one owners download, and the one QR-code kiosk setup installs.
+
+1. Create the key once:
+   `keytool -genkeypair -v -keystore ~/keystores/tourist-app-release.jks -alias tourist-app -keyalg RSA -keysize 4096 -validity 10000`
+2. Add it to `local.properties`:
+
+   ```
+   RELEASE_STORE_FILE=/home/<you>/keystores/tourist-app-release.jks
+   RELEASE_STORE_PASSWORD=…
+   RELEASE_KEY_ALIAS=tourist-app
+   RELEASE_KEY_PASSWORD=…
+   ```
+
+3. **Back the keystore and its passwords up somewhere safe.** Android only installs an
+   update signed with the same key, and a device-owner app can't be uninstalled: without
+   the key, every kiosk tablet needs a factory reset to take a new version.
+4. Upload each new APK in the Firebase console (Storage) as `tablet/tourist-app.apk`,
+   replacing the old one. The admin's Download button and the kiosk-setup QR code both
+   point there, and `storage.rules` in `tourist-admin` makes only that file public.
+
+The QR code also carries the key's fingerprint, `appSettings.tabletSigningChecksum` in
+`tourist-admin`. It only changes with the key. To compute it:
+
+```
+apksigner verify --print-certs app/build/outputs/apk/staging/release/app-staging-release.apk \
+  | grep -m1 'SHA-256 digest' | awk '{print $NF}' | xxd -r -p | base64 | tr '+/' '-_' | tr -d '='
+```
+
+(`apksigner` is in `$ANDROID_HOME/build-tools/<version>/`.)
 
 ## Project Structure
 
@@ -112,10 +146,31 @@ tablet's anonymous identity — that identity is what lets the tablet edit the r
 ## Kiosk Mode Setup (one-time per tablet)
 
 The app uses Android **Lock Task Mode** as **device owner** to lock guests into the app (no
-home, recents, or notification shade). This requires a one-time ADB provisioning step:
+home, recents, or notification shade). Android only makes an app device owner while a
+tablet is being set up from a factory reset, so this erases the tablet.
+
+**With a QR code (no computer).** The owner follows the **Tablet setup** page of the web
+admin:
+
+1. Factory reset the tablet.
+2. On the first welcome screen, tap the same spot 6 times. A QR code scanner opens (some
+   tablets ask for Wi-Fi first).
+3. Scan the code on the Tablet setup page and connect to Wi-Fi. Android downloads the APK
+   from the code's link, checks its signing key against the code's checksum, installs it
+   and makes it device owner. On Android 12+ the setup wizard also asks the app for its
+   provisioning mode; `admin/ProvisioningActivity` answers that.
+4. Finish the setup **without a Google account and without a screen lock**.
+5. Open the app and complete apartment setup.
+6. Open the admin dialog (hold the home icon 5 seconds → sign in) → **Enable kiosk mode**.
+
+The QR code is built from `appSettings` in `tourist-admin` (the APK link, the receiver
+below and the signing checksum, see [Release builds](#release-builds)). It shows only
+once the checksum is filled in.
+
+**With ADB**, for development or a tablet whose setup wizard has no QR scanner:
 
 1. Factory reset the tablet and **skip Google account sign-in** during setup (device owner
-   can only be set when no account exists).
+   can only be set when no account exists). Don't set a screen lock either.
 2. Enable **Developer Options → USB Debugging**.
 3. Install the app: `adb install <the .apk>`
 4. Provision the app as device owner:
