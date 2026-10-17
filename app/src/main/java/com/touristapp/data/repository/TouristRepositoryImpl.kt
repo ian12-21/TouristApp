@@ -13,6 +13,7 @@ import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.Source
 import com.touristapp.core.i18n.localize
 import com.touristapp.core.i18n.localizeList
+import com.touristapp.core.util.normalizeClockTime
 import com.touristapp.core.util.Resource
 import com.touristapp.core.util.ErrorReason
 import com.touristapp.core.util.toErrorReason
@@ -23,15 +24,18 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
@@ -91,18 +95,22 @@ class TouristRepositoryImpl @Inject constructor(
 
     override fun currentUid(): String? = auth.currentUser?.uid
 
-    override suspend fun ensureAnonymousAuth(): Resource<Unit> {
+    /**
+     * The tablet starts several reads and listeners at once. Without the lock each of them
+     * finds no user yet and signs in on its own, leaving extra anonymous accounts behind.
+     */
+    private val authMutex = Mutex()
+
+    override suspend fun ensureAnonymousAuth(): Resource<Unit> = authMutex.withLock {
         dropDeletedSession()
-        if (auth.currentUser == null) {
-            return try {
-                auth.signInAnonymously().await()
-                Resource.Success(Unit)
-            } catch (e: Exception) {
-                Log.e(TAG, "Anonymous auth failed", e)
-                Resource.Error("Authentication failed", e)
-            }
+        if (auth.currentUser != null) return@withLock Resource.Success(Unit)
+        try {
+            auth.signInAnonymously().await()
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "Anonymous auth failed", e)
+            Resource.Error("Authentication failed", e)
         }
-        return Resource.Success(Unit)
     }
 
     /**
@@ -131,8 +139,8 @@ class TouristRepositoryImpl @Inject constructor(
     /**
      * Snapshot listener on the apartment document, reduced to [ApartmentStatus]. A missing
      * document counts as deleted only when the server says so: a cache miss (e.g. a first
-     * start offline) is not a deletion. A listener error (e.g. the rules start denying the
-     * read) ends the flow; the caller keeps whatever it already shows.
+     * start offline) is not a deletion. After a listener error (e.g. the rules start denying
+     * the read) it listens again after a back-off; the caller keeps whatever it shows.
      */
     override fun observeApartmentStatus(apartmentId: String): Flow<ApartmentStatus> = callbackFlow {
         ensureAnonymousAuth()
@@ -150,8 +158,12 @@ class TouristRepositoryImpl @Inject constructor(
             }
         awaitClose { registration.remove() }
     }
+        .retryWhen { cause, attempt ->
+            Log.e(TAG, "Watching apartment $apartmentId failed, retrying", cause)
+            delay(listenerRetryDelayMs(attempt))
+            true
+        }
         .distinctUntilChanged()
-        .catch { e -> Log.e(TAG, "Stopped watching apartment $apartmentId", e) }
 
     @Suppress("UNCHECKED_CAST")
     override suspend fun getApartment(apartmentId: String, forceServer: Boolean): Resource<Apartment> {
@@ -189,6 +201,7 @@ class TouristRepositoryImpl @Inject constructor(
                 apartment.copy(
                     description = localize(doc.get("description"), lang),
                     checkoutInstructions = localize(doc.get("checkoutInstructions"), lang),
+                    checkoutTime = normalizeClockTime(apartment.checkoutTime),
                     welcomeMessage = localize(doc.get("welcomeMessage"), lang),
                     houseRules = houseRules,
                     contacts = contacts,
@@ -247,45 +260,82 @@ class TouristRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getCurrentStay(stayId: String, forceServer: Boolean): Resource<Stay> {
-        return try {
-            val doc = fetchDoc(ownerDoc().collection("stays").document(stayId), forceServer)
-            val stay = doc.toObject(Stay::class.java)?.copy(
-                id = doc.id,
-                welcomeMessage = localize(doc.get("welcomeMessage"), lang),
-                notes = localize(doc.get("notes"), lang)
-            ) ?: return Resource.Error("Stay not found")
-            Resource.Success(stay)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error fetching stay $stayId", e)
-            Resource.Error("Failed to load stay", e)
-        }
+    /**
+     * Snapshot listener on the stay document. Emits null while the stay can't be read — it
+     * isn't in the cache, or the listener failed and waits to listen again — so the caller
+     * can drop its spinner and keep what it shows.
+     */
+    override fun observeStay(stayId: String): Flow<Stay?> = callbackFlow {
+        ensureAnonymousAuth()
+        val registration = ownerDoc().collection("stays").document(stayId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) trySend(snapshot.toStay())
+            }
+        awaitClose { registration.remove() }
     }
+        .retryWhen { cause, attempt ->
+            Log.e(TAG, "Watching stay $stayId failed, retrying", cause)
+            emit(null)
+            delay(listenerRetryDelayMs(attempt))
+            true
+        }
+
+    private fun DocumentSnapshot.toStay(): Stay? = toObject(Stay::class.java)?.copy(
+        id = id,
+        welcomeMessage = localize(get("welcomeMessage"), lang),
+        notes = localize(get("notes"), lang)
+    )
 
     override suspend fun getPlacesForApartment(apartmentId: String, forceServer: Boolean): Resource<List<Place>> {
         return try {
-            // Inactive places are filtered here rather than in the query: an apartment has
-            // only a handful of places, and a server-side filter would need a composite
-            // index deployed to every Firebase project (FAILED_PRECONDITION without it).
-            val query = ownerDoc().collection("places")
-                .whereArrayContains("apartmentIds", apartmentId)
-            val places = fetch(query, forceServer)
-                .documents
-                .mapNotNull { doc ->
-                    doc.toObject(Place::class.java)?.copy(
-                        id = doc.id,
-                        description = localize(doc.get("description"), lang),
-                        tips = localize(doc.get("tips"), lang),
-                        isActive = doc.getBoolean("isActive") ?: true
-                    )
-                }
-                .filter { it.isActive }
+            val places = fetch(placesQuery(apartmentId), forceServer).toActivePlaces()
             Resource.Success(places)
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching places for apartment $apartmentId", e)
             Resource.Error("Failed to load places", e)
         }
     }
+
+    /** Snapshot listener on [placesQuery]; listens again after a back-off if it fails. */
+    override fun observePlacesForApartment(apartmentId: String): Flow<List<Place>> = callbackFlow {
+        ensureAnonymousAuth()
+        val registration = placesQuery(apartmentId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) trySend(snapshot.toActivePlaces())
+            }
+        awaitClose { registration.remove() }
+    }
+        .retryWhen { cause, attempt ->
+            Log.e(TAG, "Watching places for apartment $apartmentId failed, retrying", cause)
+            delay(listenerRetryDelayMs(attempt))
+            true
+        }
+        .distinctUntilChanged()
+
+    private fun placesQuery(apartmentId: String): Query =
+        ownerDoc().collection("places").whereArrayContains("apartmentIds", apartmentId)
+
+    // Inactive places are filtered here rather than in the query: an apartment has
+    // only a handful of places, and a server-side filter would need a composite
+    // index deployed to every Firebase project (FAILED_PRECONDITION without it).
+    private fun QuerySnapshot.toActivePlaces(): List<Place> = documents
+        .mapNotNull { doc ->
+            doc.toObject(Place::class.java)?.copy(
+                id = doc.id,
+                description = localize(doc.get("description"), lang),
+                tips = localize(doc.get("tips"), lang),
+                isActive = doc.getBoolean("isActive") ?: true
+            )
+        }
+        .filter { it.isActive }
 
     @Suppress("UNCHECKED_CAST")
     override suspend fun getEmergencyContacts(groupId: String?, forceServer: Boolean): Resource<List<Contact>> {
@@ -324,7 +374,9 @@ class TouristRepositoryImpl @Inject constructor(
                 .await()
                 .documents
                 .mapNotNull { doc ->
-                    doc.toObject(Review::class.java)?.copy(id = doc.id)
+                    // A review saved offline has no server time yet; show the local estimate.
+                    doc.toObject(Review::class.java, DocumentSnapshot.ServerTimestampBehavior.ESTIMATE)
+                        ?.copy(id = doc.id)
                 }
             Resource.Success(reviews)
         } catch (e: Exception) {
@@ -343,7 +395,8 @@ class TouristRepositoryImpl @Inject constructor(
                 .await()
                 .documents
             val review = docs.firstOrNull()?.let { doc ->
-                doc.toObject(Review::class.java)?.copy(id = doc.id)
+                doc.toObject(Review::class.java, DocumentSnapshot.ServerTimestampBehavior.ESTIMATE)
+                    ?.copy(id = doc.id)
             }
             Resource.Success(review)
         } catch (e: Exception) {
@@ -469,6 +522,13 @@ class TouristRepositoryImpl @Inject constructor(
 
         /** Long enough for a normal online write, including a large doodle. */
         private const val SERVER_ACK_TIMEOUT_MS = 8_000L
+
+        private const val LISTENER_RETRY_BASE_MS = 5_000L
+        private const val LISTENER_RETRY_MAX_MS = 5L * 60 * 1000
+
+        /** 5 s, 10 s, 20 s … doubling up to 5 minutes, so a lasting denial costs little. */
+        private fun listenerRetryDelayMs(attempt: Long): Long =
+            (LISTENER_RETRY_BASE_MS shl attempt.coerceAtMost(6).toInt()).coerceAtMost(LISTENER_RETRY_MAX_MS)
 
         /** `{stayId}_{guestId}` — the only review ID security rules accept (SCHEMA.md §3.7). */
         private fun reviewDocId(stayId: String, guestId: String) = "${stayId}_$guestId"

@@ -54,7 +54,8 @@ data class MainUiState(
     /** Why the apartment couldn't be loaded; shown full screen while [apartment] is null. */
     val loadError: ErrorReason? = null,
     val overlayScreen: OverlayScreen = OverlayScreen.None,
-    val cachedPlaces: List<Place> = emptyList(),
+    /** The apartment's places, kept live; null until they have been read once. */
+    val cachedPlaces: List<Place>? = null,
     val cachedEmergencyContacts: List<Contact> = emptyList(),
     val transportationServices: List<TransportationService> = emptyList(),
     val isDarkTheme: Boolean = true,
@@ -78,6 +79,8 @@ class MainViewModel @Inject constructor(
     /** The latest [loadApartmentData]; a newer load (or a re-pair) cancels it. */
     private var loadJob: Job? = null
     private var apartmentWatchJob: Job? = null
+    private var stayWatchJob: Job? = null
+    private var placesWatchJob: Job? = null
 
     init {
         // Tablets paired before the multi-owner layout have an apartment id but no
@@ -110,6 +113,8 @@ class MainViewModel @Inject constructor(
      */
     fun selectApartment(pairing: Pairing) {
         prefs.clearApartmentCache()
+        // Before the reset below, so the previous apartment's stay and places can't come back.
+        stopContentWatches()
         touristRepository.setPairing(pairing)
         val id = pairing.apartmentId
         _uiState.value = deviceSettingsState().copy(
@@ -129,11 +134,13 @@ class MainViewModel @Inject constructor(
 
     /**
      * Silent background refresh from the server, called when the app returns to
-     * the foreground. Bounds how stale cache-first screen reads can be.
+     * the foreground. Bounds how stale cache-first screen reads can be, and restarts
+     * the listeners so one waiting out a retry back-off reconnects right away.
      */
     fun refresh() {
         val id = _uiState.value.apartmentId ?: return
         loadApartmentData(id, forceServer = true)
+        watchApartment(id)
     }
 
     /** A blank state that keeps only the owner's device-level settings. */
@@ -233,15 +240,17 @@ class MainViewModel @Inject constructor(
                             weekForecast = if (isLocationMissing) emptyList() else it.weekForecast,
                             isLoading = false,
                             // Set together with the apartment, so no frame shows it
-                            // without its stay before loadStayAndGuests starts.
+                            // without its stay before watchStay starts.
                             isStayLoading = apartment.currentStayId != null &&
                                 it.currentStay?.id != apartment.currentStayId,
                             isSwitchingLanguage = false,
                             loadError = null
                         )
                     }
-                    launch { loadStayAndGuests(apartment.currentStayId, forceServer) }
-                    prefetchSecondaryData(apartmentId, apartment, forceServer)
+                    // Restarted on every load, so a language change re-localizes them too.
+                    watchStay(apartment.currentStayId)
+                    watchPlaces(apartmentId)
+                    prefetchSecondaryData(apartment, forceServer)
                 }
                 is Resource.Error -> when {
                     result.reason == ErrorReason.NOT_FOUND -> showApartmentDeleted()
@@ -255,41 +264,57 @@ class MainViewModel @Inject constructor(
                         )
                     }
                     // A failed language-switch refresh must still drop the overlay.
-                    // A cancelled earlier load may have left the stay spinner on.
-                    else -> _uiState.update { it.copy(isSwitchingLanguage = false, isStayLoading = false) }
+                    else -> _uiState.update { it.copy(isSwitchingLanguage = false) }
                 }
                 is Resource.Loading -> {}
             }
         }
     }
 
-    private suspend fun loadStayAndGuests(stayId: String?, forceServer: Boolean) {
+    /**
+     * Follows the current stay document, so guests added or removed and a changed welcome
+     * or checkout show up while the app stays in the foreground.
+     */
+    private fun watchStay(stayId: String?) {
+        stayWatchJob?.cancel()
         if (stayId == null) {
             // Checked out: nothing of the previous guests may stay on screen.
             _uiState.update { it.copy(currentStay = null, guests = emptyList(), isStayLoading = false) }
             return
         }
-        // A resume refresh re-reads the stay already shown; only a new one is worth a spinner.
+        // A restart re-reads the stay already shown; only a new one is worth a spinner.
         if (_uiState.value.currentStay?.id != stayId) {
             _uiState.update { it.copy(isStayLoading = true) }
         }
-        try {
-            when (val stayResult = touristRepository.getCurrentStay(stayId, forceServer)) {
-                is Resource.Success -> {
-                    val stay = stayResult.data
-                    // Guest names are denormalized onto the stay, so the tablet no longer
-                    // reads the private `guests` collection. Preserve guestIds order.
-                    val guests = stay.guestIds.map { id ->
-                        Guest(id = id, name = stay.guestNames[id] ?: "")
+        stayWatchJob = viewModelScope.launch {
+            touristRepository.observeStay(stayId).collect { stay ->
+                // null: the stay can't be read right now. Keep what is shown, but stop
+                // the spinner so the home screen never spins for good.
+                _uiState.update {
+                    if (stay == null) {
+                        it.copy(isStayLoading = false)
+                    } else {
+                        it.copy(currentStay = stay, guests = stay.guests(), isStayLoading = false)
                     }
-                    _uiState.update { it.copy(currentStay = stay, guests = guests) }
                 }
-                else -> {}
             }
-        } finally {
-            // Also on failure or cancellation, so the home screen never spins for good.
-            _uiState.update { it.copy(isStayLoading = false) }
         }
+    }
+
+    /** Guest names are denormalized onto the stay, so the tablet doesn't read the private `guests` collection. */
+    private fun Stay.guests(): List<Guest> = guestIds.map { id -> Guest(id = id, name = guestNames[id] ?: "") }
+
+    /** Follows the apartment's places, so one hidden or edited in the admin updates on screen. */
+    private fun watchPlaces(apartmentId: String) {
+        placesWatchJob?.cancel()
+        placesWatchJob = viewModelScope.launch {
+            touristRepository.observePlacesForApartment(apartmentId).collect(::updateCachedPlaces)
+        }
+    }
+
+    private fun stopContentWatches() {
+        stayWatchJob?.cancel()
+        placesWatchJob?.cancel()
     }
 
     /**
@@ -312,7 +337,7 @@ class MainViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(apartment = apartment.copy(currentStayId = status.currentStayId))
                         }
-                        loadStayAndGuests(status.currentStayId, forceServer = false)
+                        watchStay(status.currentStayId)
                     }
                 }
             }
@@ -325,6 +350,7 @@ class MainViewModel @Inject constructor(
      * another apartment.
      */
     private fun showApartmentDeleted() {
+        stopContentWatches()
         prefs.clearApartmentCache()
         _uiState.update {
             deviceSettingsState().copy(
@@ -336,13 +362,7 @@ class MainViewModel @Inject constructor(
     }
 
     /** Warms the caches for screens the user is likely to open next. */
-    private fun CoroutineScope.prefetchSecondaryData(apartmentId: String, apartment: Apartment, forceServer: Boolean) {
-        launch {
-            when (val result = touristRepository.getPlacesForApartment(apartmentId, forceServer)) {
-                is Resource.Success -> updateCachedPlaces(result.data)
-                else -> {}
-            }
-        }
+    private fun CoroutineScope.prefetchSecondaryData(apartment: Apartment, forceServer: Boolean) {
         launch {
             when (val result = touristRepository.getEmergencyContacts(apartment.emergencyContactGroupId, forceServer)) {
                 is Resource.Success -> _uiState.update { it.copy(cachedEmergencyContacts = result.data) }

@@ -56,19 +56,23 @@ class PlacesViewModel @Inject constructor(
     }
 
     /**
-     * Seeds prefetched places so the screen renders instantly; loadPlaces still refreshes.
-     * Re-seeds whenever the incoming list differs — e.g. after a language change, when the
-     * caller hands down a freshly re-localized list — so the screen never shows stale content.
+     * Seeds the live places list so the screen renders instantly; null means it hasn't been
+     * read yet and loadPlaces reads it instead. Re-seeds whenever the incoming list differs —
+     * a place hidden or edited in the admin, or a language change — and an empty list is
+     * taken as is, since the last place may just have been hidden.
      */
-    fun seed(places: List<Place>) {
+    fun seed(places: List<Place>?) {
         dropPreviousPairing()
-        if (places.isEmpty() || places == _uiState.value.places) return
+        if (places == null) return
+        // The live list is newer than anything a running load could return.
+        loadJob?.cancel()
+        if (places == _uiState.value.places && !_uiState.value.isLoading) return
         _uiState.update { it.copy(places = places, isLoading = false, error = null) }
     }
 
     fun loadPlaces(apartmentId: String) {
         dropPreviousPairing()
-        if (_uiState.value.places.isNotEmpty()) return
+        if (!_uiState.value.isLoading && _uiState.value.error == null) return
         _uiState.update { it.copy(isLoading = true, error = null) }
         loadJob?.cancel()
         loadJob = viewModelScope.launch {

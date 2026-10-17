@@ -3,8 +3,10 @@ package com.touristapp.feature.home
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BeachAccess
 import androidx.compose.material.icons.filled.DirectionsBus
@@ -30,14 +32,16 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.touristapp.R
+import com.touristapp.core.i18n.rememberLocalizedDateFormat
 import com.touristapp.core.ui.components.ContactsDialog
 import com.touristapp.core.ui.components.appliancePalette
 import com.touristapp.data.model.Apartment as ApartmentModel
 import com.touristapp.data.model.Contact
 import com.touristapp.data.model.Stay
 import com.touristapp.feature.places.PlaceCategory
-import java.text.SimpleDateFormat
-import java.util.Locale
+
+/** Share of the free height for the stay info; the space under the buttons gets 1. */
+private const val STAY_INFO_WEIGHT = 3f
 
 @Composable
 fun HomeSlide(
@@ -64,21 +68,32 @@ fun HomeSlide(
             .fillMaxSize()
             .padding(horizontal = 20.dp, vertical = 24.dp)
     ) {
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Until the apartment and its current stay are in, these cards would read "Wi‑Fi: Not
-        // configured" and the generic welcome, which a guest could take for the real thing.
-        Crossfade(targetState = isLoading, label = "stayInfo") { loading ->
-            if (loading) {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+        // The info gets a fixed share of the height, so the buttons below stay put when the
+        // spinner is replaced by the (taller) content. It scrolls if a long welcome overflows.
+        Box(
+            modifier = Modifier
+                .weight(STAY_INFO_WEIGHT)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            // Until the apartment and its current stay are in, these cards would read "Wi‑Fi: Not
+            // configured" and the generic welcome, which a guest could take for the real thing.
+            Crossfade(
+                targetState = isLoading,
+                label = "stayInfo",
+                modifier = Modifier.verticalScroll(rememberScrollState())
+            ) { loading ->
+                if (loading) {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                } else {
+                    StayInfo(apartment = apartment, currentStay = currentStay)
                 }
-            } else {
-                StayInfo(apartment = apartment, currentStay = currentStay)
             }
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(24.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -231,9 +246,8 @@ private fun StayInfo(
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     val checkoutTime = apartment?.checkoutTime?.takeIf { it.isNotBlank() }
-                    val checkoutDate = currentStay?.checkOut?.let {
-                        SimpleDateFormat("d MMM", Locale.getDefault()).format(it.toDate())
-                    }
+                    val dateFormat = rememberLocalizedDateFormat("dMMM")
+                    val checkoutDate = currentStay?.checkOut?.let { dateFormat.format(it.toDate()) }
                     val text = when {
                         checkoutTime != null && checkoutDate != null ->
                             stringResource(R.string.home_checkout_by_time_and_date, checkoutTime, checkoutDate)

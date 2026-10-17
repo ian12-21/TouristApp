@@ -46,8 +46,10 @@
     <!-- Reviews Screen -->
     <string name="reviews_empty_title">Noch keine Bewertungen</string>
     <string name="reviews_empty_subtitle">Teilen Sie als Erster Ihre Erfahrung!</string>
-    <string name="reviews_count">%1$d Bewertung</string>
-    <string name="reviews_count_plural">%1$d Bewertungen</string>
+    <plurals name="reviews_count">
+        <item quantity="one">%1$d Bewertung</item>
+        <item quantity="other">%1$d Bewertungen</item>
+    </plurals>
     <string name="reviews_score_suffix">/ 10</string>
     <string name="reviews_edit">Bearbeiten</string>
 
@@ -133,6 +135,9 @@
     <string name="admin_password">Passwort</string>
     <string name="admin_sign_in">Anmelden</string>
     <string name="admin_select_apartment">Wohnung auswählen</string>
+    <string name="admin_title_sign_in">Anmeldung für Eigentümer</string>
+    <string name="admin_title_menu">Eigentümermenü</string>
+    <string name="admin_current_apartment">Aktuell</string>
     <string name="admin_invalid_credentials">Ungültige Anmeldedaten</string>
     <string name="admin_no_network">Keine Internetverbindung. Verbinden Sie das Tablet mit dem WLAN und versuchen Sie es erneut.</string>
     <string name="admin_load_apartments_failed">Apartments konnten nicht geladen werden</string>

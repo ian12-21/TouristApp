@@ -91,7 +91,8 @@ fun AppNavigation(
             onEnableKiosk = {
                 showAdminDialog = false
                 onEnableKiosk()
-            }
+            },
+            pairedApartmentId = uiState.apartmentId
         )
     }
 
@@ -145,7 +146,7 @@ fun AppNavigation(
         is OverlayScreen.CategoryListing -> {
             CategoryListingScreen(
                 category = overlay.category,
-                places = uiState.cachedPlaces,
+                places = uiState.cachedPlaces.orEmpty(),
                 apartmentId = uiState.apartmentId.orEmpty(),
                 onPlaceClick = onNavigateToPlace,
                 onBack = onNavigateBack

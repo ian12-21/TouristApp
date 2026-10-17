@@ -19,7 +19,8 @@ fun AdminDialog(
     onLockout: () -> Unit,
     isKioskEnabled: Boolean,
     onExitKiosk: () -> Unit,
-    onEnableKiosk: () -> Unit
+    onEnableKiosk: () -> Unit,
+    pairedApartmentId: String? = null
 ) {
     val viewModel: AdminViewModel = hiltViewModel()
     LaunchedEffect(Unit) { viewModel.lock() }
@@ -38,6 +39,7 @@ fun AdminDialog(
                 isKioskEnabled = isKioskEnabled,
                 onExitKiosk = onExitKiosk,
                 onEnableKiosk = onEnableKiosk,
+                pairedApartmentId = pairedApartmentId,
                 modifier = Modifier.padding(24.dp)
             )
         }

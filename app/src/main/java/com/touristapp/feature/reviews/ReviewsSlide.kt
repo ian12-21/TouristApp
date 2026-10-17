@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -31,14 +32,13 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.touristapp.R
+import com.touristapp.core.i18n.rememberLocalizedDateFormat
 import com.touristapp.core.ui.components.ErrorContent
 import com.touristapp.core.util.ErrorReason
 import com.touristapp.core.util.decodeDoodle
 import com.touristapp.data.model.Guest
 import com.touristapp.data.model.Review
 import com.touristapp.data.model.Stay
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 private fun scoreColor(score: Double): Color = when {
     score <= 3.0 -> Color(0xFFFF6B6B)
@@ -138,8 +138,7 @@ fun ReviewsSlide(
                     AggregateScoreCard(state.reviews)
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = if (state.reviews.size != 1) stringResource(R.string.reviews_count_plural, state.reviews.size)
-                               else stringResource(R.string.reviews_count, state.reviews.size),
+                        text = pluralStringResource(R.plurals.reviews_count, state.reviews.size, state.reviews.size),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onBackground
                     )
@@ -342,9 +341,10 @@ private fun ReviewCard(
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onBackground
                         )
+                        val dateFormat = rememberLocalizedDateFormat("dMMMyyyy")
                         review.createdAt?.let { ts ->
                             Text(
-                                text = SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(ts.toDate()),
+                                text = dateFormat.format(ts.toDate()),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

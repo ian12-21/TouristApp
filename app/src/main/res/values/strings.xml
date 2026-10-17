@@ -46,8 +46,10 @@
     <!-- Reviews Screen -->
     <string name="reviews_empty_title">No reviews yet</string>
     <string name="reviews_empty_subtitle">Be the first to share your experience!</string>
-    <string name="reviews_count">%1$d review</string>
-    <string name="reviews_count_plural">%1$d reviews</string>
+    <plurals name="reviews_count">
+        <item quantity="one">%1$d review</item>
+        <item quantity="other">%1$d reviews</item>
+    </plurals>
     <string name="reviews_score_suffix">/ 10</string>
     <string name="reviews_edit">Edit</string>
 
@@ -133,6 +135,9 @@
     <string name="admin_password">Password</string>
     <string name="admin_sign_in">Sign in</string>
     <string name="admin_select_apartment">Select apartment</string>
+    <string name="admin_title_sign_in">Owner sign-in</string>
+    <string name="admin_title_menu">Owner menu</string>
+    <string name="admin_current_apartment">Current</string>
     <string name="admin_invalid_credentials">Invalid credentials</string>
     <string name="admin_no_network">No internet connection. Connect the tablet to Wi‑Fi and try again.</string>
     <string name="admin_load_apartments_failed">Failed to load apartments</string>

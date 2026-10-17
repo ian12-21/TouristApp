@@ -19,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.touristapp.R
+import com.touristapp.core.i18n.rememberLocalizedDateFormat
 import com.touristapp.data.model.Apartment
 import com.touristapp.data.model.Stay
 import java.text.SimpleDateFormat
@@ -26,8 +27,8 @@ import java.util.Locale
 
 @Composable
 internal fun CheckoutContent(apartment: Apartment, currentStay: Stay?) {
-    val dateFormat = remember { SimpleDateFormat("EEEE, d MMM", Locale.getDefault()) }
-    val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+    val dateFormat = rememberLocalizedDateFormat("EEEEdMMM")
+    val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.ROOT) }
 
     Column(
         modifier = Modifier.fillMaxSize(),

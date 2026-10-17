@@ -82,7 +82,7 @@ fun formatDuration(minutes: Int): String {
 @Composable
 fun PlacesSlide(
     apartmentId: String,
-    cachedPlaces: List<Place> = emptyList(),
+    cachedPlaces: List<Place>? = null,
     onSeeAll: (PlaceCategory) -> Unit = {},
     onPlaceClick: (Place) -> Unit = {},
     onPlacesLoaded: (List<Place>) -> Unit = {},

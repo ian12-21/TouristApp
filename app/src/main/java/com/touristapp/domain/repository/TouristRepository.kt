@@ -20,8 +20,11 @@ interface TouristRepository {
     /** Live state of the apartment document: emits on check-in, check-out and deletion. */
     fun observeApartmentStatus(apartmentId: String): Flow<ApartmentStatus>
     suspend fun getTransportationServices(serviceIds: List<String>, forceServer: Boolean = false): Resource<List<TransportationService>>
-    suspend fun getCurrentStay(stayId: String, forceServer: Boolean = false): Resource<Stay>
+    /** Live stay document; null while it can't be read (not cached yet, or the listener is retrying). */
+    fun observeStay(stayId: String): Flow<Stay?>
     suspend fun getPlacesForApartment(apartmentId: String, forceServer: Boolean = false): Resource<List<Place>>
+    /** Live active places of the apartment: follows places hidden, shown or edited in the admin. */
+    fun observePlacesForApartment(apartmentId: String): Flow<List<Place>>
     suspend fun getEmergencyContacts(groupId: String?, forceServer: Boolean = false): Resource<List<Contact>>
     suspend fun getReviewsForApartment(apartmentId: String): Resource<List<Review>>
     suspend fun getReviewForGuestAndStay(guestId: String, stayId: String): Resource<Review?>

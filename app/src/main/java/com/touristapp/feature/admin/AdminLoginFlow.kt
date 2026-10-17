@@ -1,11 +1,13 @@
 package com.touristapp.feature.admin
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,6 +29,8 @@ fun AdminLoginFlow(
     isKioskEnabled: Boolean = false,
     onExitKiosk: () -> Unit = {},
     onEnableKiosk: () -> Unit = {},
+    /** The apartment the tablet shows now; the picker marks it. */
+    pairedApartmentId: String? = null,
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -36,16 +40,28 @@ fun AdminLoginFlow(
     var showApartmentPicker by remember { mutableStateOf(onDismiss == null) }
 
     Column(modifier = modifier) {
-        if (onDismiss != null) {
-            Box(modifier = Modifier.fillMaxWidth()) {
-                IconButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.align(Alignment.TopEnd)
-                ) {
+        val title = when {
+            !state.isAuthenticated -> R.string.admin_title_sign_in
+            showApartmentPicker -> R.string.admin_select_apartment
+            else -> R.string.admin_title_menu
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(title),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.weight(1f)
+            )
+            if (onDismiss != null) {
+                IconButton(onClick = onDismiss) {
                     Icon(Icons.Default.Close, contentDescription = stringResource(R.string.cd_close))
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         when {
             !state.isAuthenticated -> {
@@ -102,13 +118,6 @@ fun AdminLoginFlow(
             }
 
             showApartmentPicker -> {
-                Text(
-                    text = stringResource(R.string.admin_select_apartment),
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
                 val apartments = state.apartments.orEmpty()
                 if (apartments.isEmpty()) {
                     NoApartmentsMessage(
@@ -122,20 +131,11 @@ fun AdminLoginFlow(
 
                 LazyColumn {
                     items(apartments) { choice ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp)
-                                .clickable {
-                                    viewModel.selectApartment(choice.pairing, onApartmentSelected)
-                                }
-                        ) {
-                            Text(
-                                text = choice.label,
-                                modifier = Modifier.padding(16.dp),
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
+                        ApartmentChoiceCard(
+                            label = choice.label,
+                            isPaired = choice.pairing.apartmentId == pairedApartmentId,
+                            onClick = { viewModel.selectApartment(choice.pairing, onApartmentSelected) }
+                        )
                     }
                 }
             }
@@ -146,6 +146,54 @@ fun AdminLoginFlow(
                     onReconfigure = { showApartmentPicker = true },
                     onExitKiosk = onExitKiosk,
                     onEnableKiosk = onEnableKiosk
+                )
+            }
+        }
+    }
+}
+
+/** One apartment in the picker; the one the tablet shows now is highlighted and labelled. */
+@Composable
+private fun ApartmentChoiceCard(
+    label: String,
+    isPaired: Boolean,
+    onClick: () -> Unit
+) {
+    Card(
+        colors = if (isPaired) {
+            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+        } else {
+            CardDefaults.cardColors()
+        },
+        // The dialog is a card of the same colour, so the others need a border to read as cards.
+        border = if (isPaired) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clickable(onClick = onClick)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f)
+            )
+            if (isPaired) {
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = stringResource(R.string.admin_current_apartment),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
         }
