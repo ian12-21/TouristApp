@@ -15,6 +15,13 @@ val localProperties = Properties().apply {
     if (file.exists()) load(file.inputStream())
 }
 
+// Every commit raises the version, so a new APK installs over the old one as an update.
+// Build the APKs owners get from staging: a branch with more commits would take a higher
+// versionCode than the next staging build, and a tablet won't install a lower one.
+val commitCount = providers.exec {
+    commandLine("git", "rev-list", "--count", "HEAD")
+}.standardOutput.asText.get().trim().toInt()
+
 android {
     namespace = "com.touristapp"
     compileSdk = 35
@@ -23,8 +30,8 @@ android {
         applicationId = "com.touristapp"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = commitCount
+        versionName = "1.0.$commitCount"
 
         buildConfigField(
             "String",

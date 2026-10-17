@@ -68,6 +68,11 @@ start on newer JDKs.
 when `local.properties` names it, and unsigned (not installable) otherwise. That APK is the
 one owners download, and the one QR-code kiosk setup installs.
 
+The version comes from the number of commits on the checked-out branch: `versionCode` is
+that count and `versionName` is `1.0.<count>-staging`, shown at the bottom of the owner
+dialog. Commit before building, and build owners' APKs from `staging`, so each one has a
+higher `versionCode` than the last and installs as an update.
+
 1. Create the key once:
    `keytool -genkeypair -v -keystore ~/keystores/tourist-app-release.jks -alias tourist-app -keyalg RSA -keysize 4096 -validity 10000`
 2. Add it to `local.properties`:

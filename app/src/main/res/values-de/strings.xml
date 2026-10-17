@@ -153,6 +153,7 @@
     <string name="admin_not_activated">Dieses Konto ist nicht aktiviert. Es ist noch nicht als Wohnungseigentümer eingerichtet.</string>
     <string name="admin_no_apartments">Dieses Konto hat noch keine Wohnungen. Legen Sie zuerst eine in der Web-Verwaltung an und melden Sie sich dann erneut an.</string>
     <string name="admin_sign_out">Abmelden</string>
+    <string name="admin_version">Version %1$s</string>
     <string name="admin_menu_reconfigure">Wohnung neu konfigurieren</string>
     <string name="admin_menu_exit_kiosk">Kiosk-Modus beenden</string>
     <string name="admin_menu_enable_kiosk">Kiosk-Modus aktivieren</string>

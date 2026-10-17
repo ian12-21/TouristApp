@@ -17,6 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.touristapp.BuildConfig
 import com.touristapp.R
 import com.touristapp.data.model.Pairing
 
@@ -133,7 +134,8 @@ fun AdminLoginFlow(
                     )
                 }
 
-                LazyColumn {
+                // Measured last, so a long list scrolls instead of pushing the version off.
+                LazyColumn(modifier = Modifier.weight(1f, fill = false)) {
                     items(apartments) { choice ->
                         ApartmentChoiceCard(
                             label = choice.label,
@@ -155,6 +157,16 @@ fun AdminLoginFlow(
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Shown signed in or not, so a tester can report which build the tablet runs.
+        Text(
+            text = stringResource(R.string.admin_version, BuildConfig.VERSION_NAME),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
     }
 }
 

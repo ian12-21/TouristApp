@@ -153,6 +153,7 @@
     <string name="admin_not_activated">Questo account non è attivato. Non è ancora configurato come proprietario di appartamenti.</string>
     <string name="admin_no_apartments">Questo account non ha ancora appartamenti. Creane uno nel pannello web, poi accedi di nuovo.</string>
     <string name="admin_sign_out">Esci</string>
+    <string name="admin_version">Versione %1$s</string>
     <string name="admin_menu_reconfigure">Riconfigura appartamento</string>
     <string name="admin_menu_exit_kiosk">Esci dalla modalità kiosk</string>
     <string name="admin_menu_enable_kiosk">Abilita modalità kiosk</string>
