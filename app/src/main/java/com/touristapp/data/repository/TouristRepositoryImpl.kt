@@ -20,6 +20,11 @@ import com.touristapp.domain.repository.TouristRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -105,6 +110,28 @@ class TouristRepositoryImpl @Inject constructor(
             Log.w(TAG, "Could not verify the session", e)
         }
     }
+
+    /**
+     * Snapshot listener on the apartment document, reduced to its `currentStayId`. A listener
+     * error (e.g. the rules start denying the read) ends the flow; the caller keeps whatever
+     * stay it already shows.
+     */
+    override fun observeCurrentStayId(apartmentId: String): Flow<String?> = callbackFlow {
+        ensureAnonymousAuth()
+        val registration = ownerDoc().collection("apartments").document(apartmentId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                if (snapshot != null && snapshot.exists()) {
+                    trySend(snapshot.getString("currentStayId"))
+                }
+            }
+        awaitClose { registration.remove() }
+    }
+        .distinctUntilChanged()
+        .catch { e -> Log.e(TAG, "Stopped watching the stay of apartment $apartmentId", e) }
 
     @Suppress("UNCHECKED_CAST")
     override suspend fun getApartment(apartmentId: String, forceServer: Boolean): Resource<Apartment> {

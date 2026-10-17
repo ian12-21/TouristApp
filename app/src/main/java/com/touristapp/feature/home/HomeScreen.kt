@@ -54,7 +54,7 @@ fun HomeSlide(
     var showContactsDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(cachedEmergencyContacts) {
-        viewModel.seed(cachedEmergencyContacts)
+        viewModel.seed(apartment?.emergencyContactGroupId, cachedEmergencyContacts)
     }
 
     Column(

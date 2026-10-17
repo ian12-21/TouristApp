@@ -83,6 +83,18 @@ class AppPreferences @Inject constructor(
         return runCatching { json.decodeFromString(serializer, raw) }.getOrNull()
     }
 
+    /**
+     * Forgets what was cached for the previous apartment (its name and weather) when the
+     * tablet is paired to another one. Pairing, theme, kiosk and language are kept.
+     */
+    fun clearApartmentCache() {
+        prefs.edit()
+            .remove("apartment_name")
+            .remove(KEY_WEATHER)
+            .remove(KEY_FORECAST)
+            .apply()
+    }
+
     fun clear() {
         // Preserve device-level settings the owner controls; reconfiguring an apartment
         // must not silently flip them.

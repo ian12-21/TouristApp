@@ -2,10 +2,13 @@ package com.touristapp.domain.repository
 
 import com.touristapp.core.util.Resource
 import com.touristapp.data.model.*
+import kotlinx.coroutines.flow.Flow
 
 interface TouristRepository {
     suspend fun ensureAnonymousAuth(): Resource<Unit>
     suspend fun getApartment(apartmentId: String, forceServer: Boolean = false): Resource<Apartment>
+    /** Live `currentStayId` of the apartment: emits on check-in and check-out. */
+    fun observeCurrentStayId(apartmentId: String): Flow<String?>
     suspend fun getTransportationServices(serviceIds: List<String>, forceServer: Boolean = false): Resource<List<TransportationService>>
     suspend fun getCurrentStay(stayId: String, forceServer: Boolean = false): Resource<Stay>
     suspend fun getPlacesForApartment(apartmentId: String, forceServer: Boolean = false): Resource<List<Place>>

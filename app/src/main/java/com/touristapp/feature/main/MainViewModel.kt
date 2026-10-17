@@ -17,6 +17,8 @@ import com.touristapp.domain.repository.WeatherRepository
 import com.touristapp.feature.apartment.ApartmentSection
 import com.touristapp.feature.places.PlaceCategory
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -64,6 +66,10 @@ class MainViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
+    /** The latest [loadApartmentData]; a newer load (or a re-pair) cancels it. */
+    private var loadJob: Job? = null
+    private var stayWatchJob: Job? = null
+
     init {
         // Tablets paired before the multi-owner layout have an apartment id but no
         // owner id, and can't build any path. Treat them as unpaired so the owner
@@ -84,13 +90,21 @@ class MainViewModel @Inject constructor(
         }
         if (savedId != null) {
             loadApartmentData(savedId)
+            watchCurrentStay(savedId)
         }
     }
 
+    /**
+     * Pairs the tablet with [id], first or again. A re-pair starts from a blank state (only
+     * the device settings carry over), so the previous apartment's stay, guests, weather and
+     * open overlay can't stay on screen next to the new apartment.
+     */
     fun selectApartment(id: String) {
+        prefs.clearApartmentCache()
         prefs.setApartmentId(id)
-        _uiState.update { it.copy(apartmentId = id, isLoading = true, error = null, isOffline = false) }
+        _uiState.value = deviceSettingsState().copy(apartmentId = id, isLoading = true)
         loadApartmentData(id)
+        watchCurrentStay(id)
     }
 
     fun retryLoad() {
@@ -109,13 +123,18 @@ class MainViewModel @Inject constructor(
     }
 
     fun reconfigure() {
+        loadJob?.cancel()
+        stayWatchJob?.cancel()
         prefs.clear()
-        _uiState.value = MainUiState(
-            isDarkTheme = prefs.isDarkTheme(),
-            isKioskEnabled = prefs.isKioskEnabled(),
-            language = prefs.getLanguage()
-        )
+        _uiState.value = deviceSettingsState()
     }
+
+    /** A blank state that keeps only the owner's device-level settings. */
+    private fun deviceSettingsState() = MainUiState(
+        isDarkTheme = prefs.isDarkTheme(),
+        isKioskEnabled = prefs.isKioskEnabled(),
+        language = prefs.getLanguage()
+    )
 
     fun setKioskEnabled(enabled: Boolean) {
         prefs.setKioskEnabled(enabled)
@@ -188,7 +207,8 @@ class MainViewModel @Inject constructor(
     }
 
     private fun loadApartmentData(apartmentId: String, forceServer: Boolean = false) {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             when (val result = touristRepository.getApartment(apartmentId, forceServer)) {
                 is Resource.Success -> {
                     val apartment = result.data
@@ -203,7 +223,7 @@ class MainViewModel @Inject constructor(
                             isOffline = false
                         )
                     }
-                    loadStayAndGuests(apartment, forceServer)
+                    launch { loadStayAndGuests(apartment.currentStayId, forceServer) }
                     prefetchSecondaryData(apartmentId, apartment, forceServer)
                 }
                 is Resource.Error -> {
@@ -227,39 +247,58 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun loadStayAndGuests(apartment: Apartment, forceServer: Boolean) {
-        val stayId = apartment.currentStayId ?: return
-        viewModelScope.launch {
-            when (val stayResult = touristRepository.getCurrentStay(stayId, forceServer)) {
-                is Resource.Success -> {
-                    val stay = stayResult.data
-                    // Guest names are denormalized onto the stay, so the tablet no longer
-                    // reads the private `guests` collection. Preserve guestIds order.
-                    val guests = stay.guestIds.map { id ->
-                        Guest(id = id, name = stay.guestNames[id] ?: "")
-                    }
-                    _uiState.update { it.copy(currentStay = stay, guests = guests) }
+    private suspend fun loadStayAndGuests(stayId: String?, forceServer: Boolean) {
+        if (stayId == null) {
+            // Checked out: nothing of the previous guests may stay on screen.
+            _uiState.update { it.copy(currentStay = null, guests = emptyList()) }
+            return
+        }
+        when (val stayResult = touristRepository.getCurrentStay(stayId, forceServer)) {
+            is Resource.Success -> {
+                val stay = stayResult.data
+                // Guest names are denormalized onto the stay, so the tablet no longer
+                // reads the private `guests` collection. Preserve guestIds order.
+                val guests = stay.guestIds.map { id ->
+                    Guest(id = id, name = stay.guestNames[id] ?: "")
                 }
-                else -> {}
+                _uiState.update { it.copy(currentStay = stay, guests = guests) }
+            }
+            else -> {}
+        }
+    }
+
+    /**
+     * Follows check-out and check-in while the app stays in the foreground, which is the
+     * normal state of a kiosk; [refresh] alone only runs on resume. The first emission is
+     * left to [loadApartmentData], which reads the same field.
+     */
+    private fun watchCurrentStay(apartmentId: String) {
+        stayWatchJob?.cancel()
+        stayWatchJob = viewModelScope.launch {
+            touristRepository.observeCurrentStayId(apartmentId).collect { stayId ->
+                val apartment = _uiState.value.apartment ?: return@collect
+                if (stayId == apartment.currentStayId) return@collect
+                _uiState.update { it.copy(apartment = apartment.copy(currentStayId = stayId)) }
+                loadStayAndGuests(stayId, forceServer = false)
             }
         }
     }
 
     /** Warms the caches for screens the user is likely to open next. */
-    private fun prefetchSecondaryData(apartmentId: String, apartment: Apartment, forceServer: Boolean) {
-        viewModelScope.launch {
+    private fun CoroutineScope.prefetchSecondaryData(apartmentId: String, apartment: Apartment, forceServer: Boolean) {
+        launch {
             when (val result = touristRepository.getPlacesForApartment(apartmentId, forceServer)) {
                 is Resource.Success -> updateCachedPlaces(result.data)
                 else -> {}
             }
         }
-        viewModelScope.launch {
+        launch {
             when (val result = touristRepository.getEmergencyContacts(apartment.emergencyContactGroupId, forceServer)) {
                 is Resource.Success -> _uiState.update { it.copy(cachedEmergencyContacts = result.data) }
                 else -> {}
             }
         }
-        viewModelScope.launch {
+        launch {
             val privateIds = apartment.transportation
                 .filter { it.type == "private" && it.transportationId.isNotBlank() }
                 .map { it.transportationId }

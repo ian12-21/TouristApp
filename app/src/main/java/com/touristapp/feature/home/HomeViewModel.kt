@@ -14,6 +14,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class HomeUiState(
+    /** Group [emergencyContacts] belongs to; differs after the tablet is re-paired. */
+    val contactsGroupId: String? = null,
     val emergencyContacts: List<Contact> = emptyList(),
     val isLoadingContacts: Boolean = false,
     val contactsError: String? = null
@@ -32,14 +34,25 @@ class HomeViewModel @Inject constructor(
      * Re-seeds when the incoming list differs so a language change (which re-localizes the contact
      * names upstream) propagates instead of being blocked by the already-loaded guard.
      */
-    fun seed(contacts: List<Contact>) {
-        if (contacts.isEmpty() || contacts == _uiState.value.emergencyContacts) return
-        _uiState.update { it.copy(emergencyContacts = contacts, isLoadingContacts = false) }
+    fun seed(groupId: String?, contacts: List<Contact>) {
+        val state = _uiState.value
+        if (contacts.isEmpty() || (groupId == state.contactsGroupId && contacts == state.emergencyContacts)) return
+        _uiState.update {
+            it.copy(contactsGroupId = groupId, emergencyContacts = contacts, isLoadingContacts = false)
+        }
     }
 
     fun loadEmergencyContacts(groupId: String?) {
-        if (_uiState.value.emergencyContacts.isNotEmpty()) return
-        _uiState.update { it.copy(isLoadingContacts = true, contactsError = null) }
+        val state = _uiState.value
+        if (state.emergencyContacts.isNotEmpty() && state.contactsGroupId == groupId) return
+        _uiState.update {
+            it.copy(
+                contactsGroupId = groupId,
+                emergencyContacts = emptyList(),
+                isLoadingContacts = true,
+                contactsError = null
+            )
+        }
         viewModelScope.launch {
             when (val result = repository.getEmergencyContacts(groupId)) {
                 is Resource.Success -> _uiState.update {
