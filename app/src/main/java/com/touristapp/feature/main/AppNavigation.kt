@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -62,7 +63,18 @@ fun AppNavigation(
     onEnableKiosk: () -> Unit
 ) {
     if (uiState.apartment == null && uiState.error != null) {
-        ErrorContent(message = uiState.error, onRetry = onRetryLoad)
+        // Drawn outside the Scaffold, so it needs its own themed background.
+        Surface(modifier = Modifier.fillMaxSize()) {
+            if (uiState.isOffline) {
+                ErrorContent(
+                    message = stringResource(R.string.error_no_internet),
+                    icon = Icons.Default.WifiOff,
+                    onRetry = onRetryLoad
+                )
+            } else {
+                ErrorContent(message = uiState.error, onRetry = onRetryLoad)
+            }
+        }
         return
     }
 

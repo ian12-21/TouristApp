@@ -132,6 +132,7 @@
     <!-- Errors -->
     <string name="error_generic">Etwas ist schiefgelaufen</string>
     <string name="error_retry">Erneut versuchen</string>
+    <string name="error_no_internet">Keine Internetverbindung. Prüfen Sie das WLAN des Tablets und tippen Sie auf Erneut versuchen.</string>
 
     <!-- Emergency Contacts Dialog -->
     <string name="contacts_title">Notfallkontakte</string>

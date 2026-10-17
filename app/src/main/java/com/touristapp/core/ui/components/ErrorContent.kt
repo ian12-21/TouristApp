@@ -12,6 +12,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +26,7 @@ import com.touristapp.R
 fun ErrorContent(
     message: String?,
     modifier: Modifier = Modifier,
+    icon: ImageVector = Icons.Default.ErrorOutline,
     onRetry: (() -> Unit)? = null
 ) {
     Column(
@@ -34,7 +37,7 @@ fun ErrorContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
-            imageVector = Icons.Default.ErrorOutline,
+            imageVector = icon,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.error,
             modifier = Modifier.size(48.dp)
@@ -51,5 +54,13 @@ fun ErrorContent(
                 Text(stringResource(R.string.error_retry))
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewErrorContent() {
+    MaterialTheme {
+        ErrorContent(message = "Failed to load apartment", onRetry = {})
     }
 }

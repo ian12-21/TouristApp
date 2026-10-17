@@ -13,6 +13,7 @@ import com.google.firebase.firestore.Source
 import com.touristapp.core.i18n.localize
 import com.touristapp.core.i18n.localizeList
 import com.touristapp.core.util.Resource
+import com.touristapp.core.util.isOfflineError
 import com.touristapp.data.local.AppPreferences
 import com.touristapp.data.model.*
 import com.touristapp.domain.repository.TouristRepository
@@ -149,7 +150,7 @@ class TouristRepositoryImpl @Inject constructor(
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching apartment $apartmentId", e)
-            Resource.Error("Failed to load apartment", e)
+            Resource.Error("Failed to load apartment", e, isOffline = e.isOfflineError())
         }
     }
 

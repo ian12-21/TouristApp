@@ -42,6 +42,8 @@ data class MainUiState(
     val weekForecast: List<DailyForecast> = emptyList(),
     val isLoading: Boolean = true,
     val error: String? = null,
+    /** The last load failed because the tablet has no network. */
+    val isOffline: Boolean = false,
     val overlayScreen: OverlayScreen = OverlayScreen.None,
     val cachedPlaces: List<Place> = emptyList(),
     val cachedEmergencyContacts: List<Contact> = emptyList(),
@@ -87,13 +89,13 @@ class MainViewModel @Inject constructor(
 
     fun selectApartment(id: String) {
         prefs.setApartmentId(id)
-        _uiState.update { it.copy(apartmentId = id, isLoading = true, error = null) }
+        _uiState.update { it.copy(apartmentId = id, isLoading = true, error = null, isOffline = false) }
         loadApartmentData(id)
     }
 
     fun retryLoad() {
         val id = _uiState.value.apartmentId ?: return
-        _uiState.update { it.copy(isLoading = true, error = null) }
+        _uiState.update { it.copy(isLoading = true, error = null, isOffline = false) }
         loadApartmentData(id)
     }
 
@@ -197,7 +199,8 @@ class MainViewModel @Inject constructor(
                             apartmentName = apartment.name,
                             isLoading = false,
                             isSwitchingLanguage = false,
-                            error = null
+                            error = null,
+                            isOffline = false
                         )
                     }
                     loadStayAndGuests(apartment, forceServer)
@@ -207,7 +210,12 @@ class MainViewModel @Inject constructor(
                     // Keep any cached data already on screen during a silent refresh.
                     if (!forceServer) {
                         _uiState.update {
-                            it.copy(isLoading = false, isSwitchingLanguage = false, error = result.message)
+                            it.copy(
+                                isLoading = false,
+                                isSwitchingLanguage = false,
+                                error = result.message,
+                                isOffline = result.isOffline
+                            )
                         }
                     } else {
                         // A failed language-switch refresh must still drop the overlay.

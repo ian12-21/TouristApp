@@ -2,7 +2,12 @@ package com.touristapp.core.util
 
 sealed interface Resource<out T> {
     data class Success<T>(val data: T) : Resource<T>
-    data class Error(val message: String, val exception: Throwable? = null) : Resource<Nothing>
+    /** [isOffline] marks a failure caused by having no network, so the UI can say so. */
+    data class Error(
+        val message: String,
+        val exception: Throwable? = null,
+        val isOffline: Boolean = false
+    ) : Resource<Nothing>
     data object Loading : Resource<Nothing>
 }
 

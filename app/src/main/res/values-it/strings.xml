@@ -132,6 +132,7 @@
     <!-- Errors -->
     <string name="error_generic">Qualcosa è andato storto</string>
     <string name="error_retry">Riprova</string>
+    <string name="error_no_internet">Nessuna connessione a Internet. Controlla il Wi‑Fi del tablet e tocca Riprova.</string>
 
     <!-- Emergency Contacts Dialog -->
     <string name="contacts_title">Contatti di emergenza</string>
