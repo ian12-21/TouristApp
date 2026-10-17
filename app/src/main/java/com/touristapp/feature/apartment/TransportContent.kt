@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.touristapp.R
 import com.touristapp.data.model.Apartment
@@ -39,10 +40,11 @@ internal fun TransportContent(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
+        // Same heading as the Explore slide next to it.
         Text(
             text = stringResource(R.string.apartment_section_transport),
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface
+            style = MaterialTheme.typography.headlineLarge.copy(fontSize = 34.sp),
+            color = MaterialTheme.colorScheme.onBackground
         )
 
         Column(
