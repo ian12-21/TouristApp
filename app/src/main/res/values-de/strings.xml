@@ -75,6 +75,7 @@
     <string name="review_error_stay_closed">Für diesen Aufenthalt können keine Bewertungen mehr abgegeben werden. Bitte wenden Sie sich an Ihren Gastgeber.</string>
     <string name="review_error_edit_not_allowed">Diese Bewertung kann auf diesem Tablet nicht mehr bearbeitet werden.</string>
     <string name="review_error_save_failed">Die Bewertung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.</string>
+    <string name="review_queued_offline">Das Tablet ist offline. Ihre Bewertung ist hier gespeichert und wird automatisch gesendet, sobald die Verbindung wieder besteht.</string>
     <string name="reviews_load_failed">Bewertungen konnten nicht geladen werden.</string>
     <string name="review_quality_exceptional">Außergewöhnlich</string>
     <string name="review_quality_excellent">Ausgezeichnet</string>

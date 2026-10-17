@@ -154,3 +154,14 @@ data class Review(
     val createdAt: Timestamp? = null,
     val updatedAt: Timestamp? = null
 )
+
+/** How far a review write got before the guest is let go. */
+enum class ReviewWriteStatus {
+    /** The server accepted the write. */
+    SAVED,
+    /**
+     * No server answer in time (usually no network). Firestore keeps the write in its
+     * offline queue and sends it once the tablet is back online.
+     */
+    QUEUED
+}

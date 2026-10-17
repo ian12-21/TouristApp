@@ -75,6 +75,7 @@
     <string name="review_error_stay_closed">Non è più possibile inviare recensioni per questo soggiorno. Contatta il tuo host.</string>
     <string name="review_error_edit_not_allowed">Questa recensione non può più essere modificata su questo tablet.</string>
     <string name="review_error_save_failed">Impossibile salvare la recensione. Riprova.</string>
+    <string name="review_queued_offline">Il tablet è offline. La tua recensione è salvata qui e verrà inviata automaticamente non appena la connessione sarà ripristinata.</string>
     <string name="reviews_load_failed">Impossibile caricare le recensioni.</string>
     <string name="review_quality_exceptional">Eccezionale</string>
     <string name="review_quality_excellent">Eccellente</string>

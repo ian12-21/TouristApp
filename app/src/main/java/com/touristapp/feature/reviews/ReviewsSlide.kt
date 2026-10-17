@@ -74,6 +74,17 @@ fun ReviewsSlide(
         viewModel.loadReviews(apartmentId)
     }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val queuedMessage = stringResource(R.string.review_queued_offline)
+    LaunchedEffect(state.showQueuedNotice) {
+        if (state.showQueuedNotice) {
+            // Cleared only afterwards: clearing first would change this effect's key
+            // and cancel the snackbar as soon as it appears.
+            snackbarHostState.showSnackbar(queuedMessage, duration = SnackbarDuration.Long)
+            viewModel.onQueuedNoticeShown()
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         if (state.isLoading) {
             CircularProgressIndicator(
@@ -162,6 +173,11 @@ fun ReviewsSlide(
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.cd_add_review))
             }
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 
     if (state.showCreateSheet) {

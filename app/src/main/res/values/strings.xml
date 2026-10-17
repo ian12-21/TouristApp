@@ -75,6 +75,7 @@
     <string name="review_error_stay_closed">Reviews can no longer be submitted for this stay. Please contact your host.</string>
     <string name="review_error_edit_not_allowed">This review can no longer be edited on this tablet.</string>
     <string name="review_error_save_failed">Couldn\'t save your review. Please try again.</string>
+    <string name="review_queued_offline">The tablet is offline. Your review is saved here and will be sent automatically once the connection is back.</string>
     <string name="reviews_load_failed">Couldn\'t load reviews.</string>
     <string name="review_quality_exceptional">Exceptional</string>
     <string name="review_quality_excellent">Excellent</string>

@@ -1,6 +1,7 @@
 package com.touristapp.data.repository
 
 import android.util.Log
+import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.firestore.DocumentReference
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -338,7 +340,7 @@ class TouristRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun createReview(review: Review): Resource<Unit> {
+    override suspend fun createReview(review: Review): Resource<ReviewWriteStatus> {
         return try {
             ensureAnonymousAuth()
             // Security rules require authorUid == request.auth.uid, so a missing
@@ -369,18 +371,18 @@ class TouristRepositoryImpl @Inject constructor(
             )
             // One review per guest per stay: the rules only accept this exact ID,
             // so a second submission can never add a second document.
-            ownerDoc().collection("reviews")
+            val status = ownerDoc().collection("reviews")
                 .document(reviewDocId(review.stayId, review.guestId))
                 .set(data)
-                .await()
-            Resource.Success(Unit)
+                .awaitServerOrQueue()
+            Resource.Success(status)
         } catch (e: Exception) {
             Log.e(TAG, "Error creating review", e)
             Resource.Error("Failed to submit review", e, reason = e.toErrorReason())
         }
     }
 
-    override suspend fun updateReview(reviewId: String, review: Review): Resource<Unit> {
+    override suspend fun updateReview(reviewId: String, review: Review): Resource<ReviewWriteStatus> {
         return try {
             ensureAnonymousAuth()
             // authorUid is deliberately absent from this map: it is immutable per
@@ -398,8 +400,9 @@ class TouristRepositoryImpl @Inject constructor(
                 "doodleBase64" to review.doodleBase64,
                 "updatedAt" to FieldValue.serverTimestamp()
             )
-            ownerDoc().collection("reviews").document(reviewId).update(data).await()
-            Resource.Success(Unit)
+            val status = ownerDoc().collection("reviews").document(reviewId).update(data)
+                .awaitServerOrQueue()
+            Resource.Success(status)
         } catch (e: Exception) {
             Log.e(TAG, "Error updating review $reviewId", e)
             Resource.Error("Failed to update review", e, reason = e.toErrorReason())
@@ -438,8 +441,22 @@ class TouristRepositoryImpl @Inject constructor(
         }
     }
 
+    /**
+     * Waits for the server to confirm this write, but at most [SERVER_ACK_TIMEOUT_MS].
+     * Offline the confirmation never comes: Firestore queues the write and sends it once
+     * the tablet is back online, so waiting would leave the guest on a spinner. A rules
+     * rejection within the timeout still throws; one after it only rolls back the local copy.
+     */
+    private suspend fun Task<Void>.awaitServerOrQueue(): ReviewWriteStatus {
+        val confirmed = withTimeoutOrNull(SERVER_ACK_TIMEOUT_MS) { await(); true } ?: false
+        return if (confirmed) ReviewWriteStatus.SAVED else ReviewWriteStatus.QUEUED
+    }
+
     companion object {
         private const val TAG = "TouristRepo"
+
+        /** Long enough for a normal online write, including a large doodle. */
+        private const val SERVER_ACK_TIMEOUT_MS = 8_000L
 
         /**
          * Set to true only once the composite index exists in the Firebase console

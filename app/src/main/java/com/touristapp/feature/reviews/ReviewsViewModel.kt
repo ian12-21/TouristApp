@@ -11,6 +11,7 @@ import com.touristapp.core.util.dataOrNull
 import com.touristapp.core.util.encodeDoodle
 import com.touristapp.data.model.Guest
 import com.touristapp.data.model.Review
+import com.touristapp.data.model.ReviewWriteStatus
 import com.touristapp.domain.repository.TouristRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,7 +57,9 @@ data class ReviewsUiState(
     val doodleCanvasHeightPx: Int = 0,
     val existingDoodleBase64: String? = null,
     val isSaving: Boolean = false,
-    val saveError: ReviewSaveError? = null
+    val saveError: ReviewSaveError? = null,
+    /** The last save was queued offline; the slide tells the guest it will be sent later. */
+    val showQueuedNotice: Boolean = false
 ) {
     val overallScore: Double
         get() = listOf(cleanliness, location, comfort, valueForMoney, facilities, communication, wifi)
@@ -152,6 +155,10 @@ class ReviewsViewModel @Inject constructor(
                 saveError = null
             )
         }
+    }
+
+    fun onQueuedNoticeShown() {
+        _uiState.update { it.copy(showQueuedNotice = false) }
     }
 
     fun addDoodleStroke(stroke: DoodleStroke) {
@@ -281,6 +288,9 @@ class ReviewsViewModel @Inject constructor(
                 _uiState.update { it.copy(isSaving = false) }
                 if (result is Resource.Success) {
                     dismissCreateSheet()
+                    if (result.data == ReviewWriteStatus.QUEUED) {
+                        _uiState.update { it.copy(showQueuedNotice = true) }
+                    }
                     loadReviews(apartmentId)
                 } else if (result is Resource.Error) {
                     val error = when {

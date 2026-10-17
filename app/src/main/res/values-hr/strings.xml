@@ -75,6 +75,7 @@
     <string name="review_error_stay_closed">Za ovaj boravak više nije moguće poslati recenziju. Molimo kontaktirajte domaćina.</string>
     <string name="review_error_edit_not_allowed">Ovu recenziju više nije moguće uređivati na ovom tabletu.</string>
     <string name="review_error_save_failed">Recenziju nije moguće spremiti. Pokušajte ponovno.</string>
+    <string name="review_queued_offline">Tablet nije povezan s internetom. Vaša recenzija je spremljena i bit će automatski poslana čim se veza vrati.</string>
     <string name="reviews_load_failed">Recenzije nije moguće učitati.</string>
     <string name="review_quality_exceptional">Iznimno</string>
     <string name="review_quality_excellent">Izvrsno</string>

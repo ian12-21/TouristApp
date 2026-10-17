@@ -17,7 +17,7 @@ interface TouristRepository {
     suspend fun getEmergencyContacts(groupId: String?, forceServer: Boolean = false): Resource<List<Contact>>
     suspend fun getReviewsForApartment(apartmentId: String): Resource<List<Review>>
     suspend fun getReviewForGuestAndStay(guestId: String, stayId: String): Resource<Review?>
-    suspend fun createReview(review: Review): Resource<Unit>
-    suspend fun updateReview(reviewId: String, review: Review): Resource<Unit>
+    suspend fun createReview(review: Review): Resource<ReviewWriteStatus>
+    suspend fun updateReview(reviewId: String, review: Review): Resource<ReviewWriteStatus>
     suspend fun getRooms(apartmentId: String, forceServer: Boolean = false): Resource<List<Room>>
 }
