@@ -252,11 +252,11 @@ class TouristRepositoryImpl @Inject constructor(
 
     override suspend fun getPlacesForApartment(apartmentId: String, forceServer: Boolean): Resource<List<Place>> {
         return try {
-            var query: Query = ownerDoc().collection("places")
+            // Inactive places are filtered here rather than in the query: an apartment has
+            // only a handful of places, and a server-side filter would need a composite
+            // index deployed to every Firebase project (FAILED_PRECONDITION without it).
+            val query = ownerDoc().collection("places")
                 .whereArrayContains("apartmentIds", apartmentId)
-            if (USE_IS_ACTIVE_INDEX) {
-                query = query.whereEqualTo("isActive", true)
-            }
             val places = fetch(query, forceServer)
                 .documents
                 .mapNotNull { doc ->
@@ -267,7 +267,7 @@ class TouristRepositoryImpl @Inject constructor(
                         isActive = doc.getBoolean("isActive") ?: true
                     )
                 }
-                .filter { USE_IS_ACTIVE_INDEX || it.isActive }
+                .filter { it.isActive }
             Resource.Success(places)
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching places for apartment $apartmentId", e)
@@ -457,13 +457,6 @@ class TouristRepositoryImpl @Inject constructor(
 
         /** Long enough for a normal online write, including a large doodle. */
         private const val SERVER_ACK_TIMEOUT_MS = 8_000L
-
-        /**
-         * Set to true only once the composite index exists in the Firebase console
-         * (places: apartmentIds Array-contains + isActive Asc). Until then the
-         * client-side isActive filter is used to avoid a FAILED_PRECONDITION crash.
-         */
-        private const val USE_IS_ACTIVE_INDEX = false
 
         /** `{stayId}_{guestId}` — the only review ID security rules accept (SCHEMA.md §3.7). */
         private fun reviewDocId(stayId: String, guestId: String) = "${stayId}_$guestId"
