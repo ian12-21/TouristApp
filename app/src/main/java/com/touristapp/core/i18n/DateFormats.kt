@@ -15,8 +15,12 @@ import java.util.Locale
  */
 @Composable
 fun rememberLocalizedDateFormat(skeleton: String): SimpleDateFormat {
-    val locale = LocalConfiguration.current.locales[0] ?: Locale.getDefault()
+    val appLocale = LocalConfiguration.current.locales[0] ?: Locale.getDefault()
+    // Plain "en" formats dates the US way ("Oct 24"); the guests are in Europe.
+    val locale = if (appLocale.language == ENGLISH && appLocale.country.isEmpty()) Locale.UK else appLocale
     return remember(locale, skeleton) {
         SimpleDateFormat(DateFormat.getBestDateTimePattern(locale, skeleton), locale)
     }
 }
+
+private const val ENGLISH = "en"
