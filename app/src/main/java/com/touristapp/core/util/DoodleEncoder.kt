@@ -19,7 +19,9 @@ data class DoodleStroke(
 
 const val DOODLE_CANVAS_WIDTH_PX = 600
 const val DOODLE_CANVAS_HEIGHT_PX = 200
-private const val MAX_ENCODED_LENGTH = 500_000
+// Same cap as `doodleBase64` in the review security rules (tourist-admin firestore.rules):
+// anything longer would pass here and then be rejected by the server.
+private const val MAX_ENCODED_LENGTH = 200_000
 
 sealed interface DoodleEncodeResult {
     data class Success(val base64: String) : DoodleEncodeResult

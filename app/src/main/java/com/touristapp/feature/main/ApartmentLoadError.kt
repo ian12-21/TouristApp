@@ -46,7 +46,7 @@ fun ApartmentLoadError(
             onRetry = onRetry,
             footer = ownerSignIn
         )
-        ErrorReason.OTHER -> ErrorContent(
+        ErrorReason.PERMISSION_DENIED, ErrorReason.OTHER -> ErrorContent(
             message = stringResource(R.string.error_generic),
             modifier = modifier,
             onRetry = onRetry,

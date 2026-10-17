@@ -312,7 +312,7 @@ class TouristRepositoryImpl @Inject constructor(
             Resource.Success(reviews)
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching reviews for apartment $apartmentId", e)
-            Resource.Error("Failed to load reviews", e)
+            Resource.Error("Failed to load reviews", e, reason = e.toErrorReason())
         }
     }
 
@@ -373,7 +373,7 @@ class TouristRepositoryImpl @Inject constructor(
             Resource.Success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "Error creating review", e)
-            Resource.Error("Failed to submit review", e)
+            Resource.Error("Failed to submit review", e, reason = e.toErrorReason())
         }
     }
 
@@ -399,7 +399,7 @@ class TouristRepositoryImpl @Inject constructor(
             Resource.Success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "Error updating review $reviewId", e)
-            Resource.Error("Failed to update review", e)
+            Resource.Error("Failed to update review", e, reason = e.toErrorReason())
         }
     }
 

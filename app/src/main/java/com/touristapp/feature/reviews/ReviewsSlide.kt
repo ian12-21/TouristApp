@@ -32,6 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.touristapp.R
 import com.touristapp.core.ui.components.ErrorContent
+import com.touristapp.core.util.ErrorReason
 import com.touristapp.core.util.decodeDoodle
 import com.touristapp.data.model.Guest
 import com.touristapp.data.model.Review
@@ -79,9 +80,12 @@ fun ReviewsSlide(
                 modifier = Modifier.align(Alignment.Center),
                 color = MaterialTheme.colorScheme.primary
             )
-        } else if (state.error != null) {
+        } else if (state.loadError != null) {
             ErrorContent(
-                message = state.error,
+                message = stringResource(
+                    if (state.loadError == ErrorReason.OFFLINE) R.string.error_no_internet
+                    else R.string.reviews_load_failed
+                ),
                 onRetry = { viewModel.loadReviews(apartmentId) }
             )
         } else if (state.reviews.isEmpty()) {

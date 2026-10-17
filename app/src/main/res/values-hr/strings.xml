@@ -70,6 +70,12 @@
     <string name="review_doodle_cd">Gostov crtež</string>
     <string name="review_doodle_replace">Dodirnite Obriši za ponovno crtanje</string>
     <string name="review_privacy_notice">Vaša recenzija, ime i crtež pohranjuju se i prikazuju vlasniku apartmana te kasnijim gostima na ovom tabletu.</string>
+    <string name="review_error_doodle_too_large">Crtež je previše detaljan za spremanje. Dodirnite Obriši i pokušajte s jednostavnijim.</string>
+    <string name="review_error_doodle_failed">Crtež nije moguće spremiti. Pokušajte ponovno.</string>
+    <string name="review_error_stay_closed">Za ovaj boravak više nije moguće poslati recenziju. Molimo kontaktirajte domaćina.</string>
+    <string name="review_error_edit_not_allowed">Ovu recenziju više nije moguće uređivati na ovom tabletu.</string>
+    <string name="review_error_save_failed">Recenziju nije moguće spremiti. Pokušajte ponovno.</string>
+    <string name="reviews_load_failed">Recenzije nije moguće učitati.</string>
     <string name="review_quality_exceptional">Iznimno</string>
     <string name="review_quality_excellent">Izvrsno</string>
     <string name="review_quality_very_good">Vrlo dobro</string>

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.touristapp.core.util.DoodleEncodeResult
 import com.touristapp.core.util.DoodleStroke
+import com.touristapp.core.util.ErrorReason
 import com.touristapp.core.util.Resource
 import com.touristapp.core.util.dataOrEmpty
 import com.touristapp.core.util.dataOrNull
@@ -19,10 +20,21 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/** Why saving a review failed; the sheet shows the matching string resource. */
+enum class ReviewSaveError {
+    DOODLE_TOO_LARGE,
+    DOODLE_FAILED,
+    /** A new review was rejected: the stay is no longer the apartment's active stay. */
+    STAY_CLOSED,
+    /** An edit was rejected: the stay ended, or the review was written by another session. */
+    EDIT_NOT_ALLOWED,
+    FAILED
+}
+
 data class ReviewsUiState(
     val reviews: List<Review> = emptyList(),
     val isLoading: Boolean = true,
-    val error: String? = null,
+    val loadError: ErrorReason? = null,
     val showCreateSheet: Boolean = false,
     val editingReview: Review? = null,
     val selectedGuest: Guest? = null,
@@ -42,7 +54,7 @@ data class ReviewsUiState(
     val doodleCanvasHeightPx: Int = 0,
     val existingDoodleBase64: String? = null,
     val isSaving: Boolean = false,
-    val saveError: String? = null
+    val saveError: ReviewSaveError? = null
 ) {
     val overallScore: Double
         get() = listOf(cleanliness, location, comfort, valueForMoney, facilities, communication, wifi)
@@ -61,14 +73,14 @@ class ReviewsViewModel @Inject constructor(
     val uiState: StateFlow<ReviewsUiState> = _uiState.asStateFlow()
 
     fun loadReviews(apartmentId: String) {
-        _uiState.update { it.copy(isLoading = true, error = null) }
+        _uiState.update { it.copy(isLoading = true, loadError = null) }
         viewModelScope.launch {
             when (val result = repository.getReviewsForApartment(apartmentId)) {
                 is Resource.Success -> _uiState.update {
                     it.copy(reviews = result.data, isLoading = false)
                 }
                 is Resource.Error -> _uiState.update {
-                    it.copy(isLoading = false, error = result.message)
+                    it.copy(isLoading = false, loadError = result.reason)
                 }
                 is Resource.Loading -> {}
             }
@@ -219,11 +231,11 @@ class ReviewsViewModel @Inject constructor(
                         is DoodleEncodeResult.Success -> encoded.base64
                         DoodleEncodeResult.Empty -> state.existingDoodleBase64
                         DoodleEncodeResult.TooLarge -> {
-                            _uiState.update { it.copy(isSaving = false, saveError = "Doodle is too large — try a simpler drawing.") }
+                            _uiState.update { it.copy(isSaving = false, saveError = ReviewSaveError.DOODLE_TOO_LARGE) }
                             return@launch
                         }
                         is DoodleEncodeResult.Failure -> {
-                            _uiState.update { it.copy(isSaving = false, saveError = "Couldn't save doodle.") }
+                            _uiState.update { it.copy(isSaving = false, saveError = ReviewSaveError.DOODLE_FAILED) }
                             return@launch
                         }
                     }
@@ -260,10 +272,15 @@ class ReviewsViewModel @Inject constructor(
                     dismissCreateSheet()
                     loadReviews(apartmentId)
                 } else if (result is Resource.Error) {
-                    _uiState.update { it.copy(saveError = result.message) }
+                    val error = when {
+                        result.reason != ErrorReason.PERMISSION_DENIED -> ReviewSaveError.FAILED
+                        existingId != null -> ReviewSaveError.EDIT_NOT_ALLOWED
+                        else -> ReviewSaveError.STAY_CLOSED
+                    }
+                    _uiState.update { it.copy(saveError = error) }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isSaving = false, saveError = e.message) }
+                _uiState.update { it.copy(isSaving = false, saveError = ReviewSaveError.FAILED) }
             }
         }
     }

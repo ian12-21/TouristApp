@@ -70,6 +70,12 @@
     <string name="review_doodle_cd">Guest doodle</string>
     <string name="review_doodle_replace">Tap Clear to redraw</string>
     <string name="review_privacy_notice">Your review, name and drawing are stored and shown to the apartment owner and to later guests on this tablet.</string>
+    <string name="review_error_doodle_too_large">Your drawing is too detailed to save. Tap Clear and try a simpler one.</string>
+    <string name="review_error_doodle_failed">Couldn\'t save your drawing. Please try again.</string>
+    <string name="review_error_stay_closed">Reviews can no longer be submitted for this stay. Please contact your host.</string>
+    <string name="review_error_edit_not_allowed">This review can no longer be edited on this tablet.</string>
+    <string name="review_error_save_failed">Couldn\'t save your review. Please try again.</string>
+    <string name="reviews_load_failed">Couldn\'t load reviews.</string>
     <string name="review_quality_exceptional">Exceptional</string>
     <string name="review_quality_excellent">Excellent</string>
     <string name="review_quality_very_good">Very Good</string>

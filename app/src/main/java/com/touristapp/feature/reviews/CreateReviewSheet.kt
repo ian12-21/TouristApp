@@ -1,5 +1,6 @@
 package com.touristapp.feature.reviews
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
@@ -337,14 +338,6 @@ fun CreateReviewSheet(
                             )
                         }
 
-                        state.saveError?.let { err ->
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = err,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        }
                     } else if (state.selectedGuest == null) {
                         Box(
                             modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
@@ -372,6 +365,18 @@ fun CreateReviewSheet(
                 // Submit button
                 if (state.selectedGuest != null && !state.isCheckingExisting) {
                     Spacer(modifier = Modifier.height(16.dp))
+                    // Like the privacy notice, outside the scrolling column: a failed save
+                    // must be visible without scrolling down past the doodle.
+                    state.saveError?.let { error ->
+                        Text(
+                            text = stringResource(error.messageRes()),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                     // Outside the scrolling column, so it is always visible next to the button.
                     Text(
                         text = stringResource(R.string.review_privacy_notice),
@@ -457,4 +462,13 @@ private fun RatingSlider(
             )
         )
     }
+}
+
+@StringRes
+private fun ReviewSaveError.messageRes(): Int = when (this) {
+    ReviewSaveError.DOODLE_TOO_LARGE -> R.string.review_error_doodle_too_large
+    ReviewSaveError.DOODLE_FAILED -> R.string.review_error_doodle_failed
+    ReviewSaveError.STAY_CLOSED -> R.string.review_error_stay_closed
+    ReviewSaveError.EDIT_NOT_ALLOWED -> R.string.review_error_edit_not_allowed
+    ReviewSaveError.FAILED -> R.string.review_error_save_failed
 }

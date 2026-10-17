@@ -15,5 +15,9 @@ fun Throwable.isOfflineError(): Boolean = when (this) {
 }
 
 /** [ErrorReason] for an exception caught at a repository boundary. */
-fun Throwable.toErrorReason(): ErrorReason =
-    if (isOfflineError()) ErrorReason.OFFLINE else ErrorReason.OTHER
+fun Throwable.toErrorReason(): ErrorReason = when {
+    isOfflineError() -> ErrorReason.OFFLINE
+    this is FirebaseFirestoreException && code == FirebaseFirestoreException.Code.PERMISSION_DENIED ->
+        ErrorReason.PERMISSION_DENIED
+    else -> ErrorReason.OTHER
+}

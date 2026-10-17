@@ -16,6 +16,8 @@ enum class ErrorReason {
     OFFLINE,
     /** The server confirmed the document doesn't exist. */
     NOT_FOUND,
+    /** The security rules rejected the request. */
+    PERMISSION_DENIED,
     OTHER
 }
 
