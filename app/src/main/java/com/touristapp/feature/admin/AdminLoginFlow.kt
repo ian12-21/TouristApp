@@ -29,6 +29,8 @@ fun AdminLoginFlow(
     isKioskEnabled: Boolean = false,
     /** Whether the app is device owner, without which kiosk mode can't lock anything. */
     canUseKiosk: Boolean = false,
+    /** Whether a PIN, pattern or password would stop the tablet at the lock screen after a restart. */
+    hasScreenLock: Boolean = false,
     onExitKiosk: () -> Unit = {},
     onEnableKiosk: () -> Unit = {},
     /** The apartment the tablet shows now; the picker marks it. */
@@ -146,6 +148,7 @@ fun AdminLoginFlow(
                 AdminActionMenu(
                     isKioskEnabled = isKioskEnabled,
                     canUseKiosk = canUseKiosk,
+                    hasScreenLock = hasScreenLock,
                     onReconfigure = { showApartmentPicker = true },
                     onExitKiosk = onExitKiosk,
                     onEnableKiosk = onEnableKiosk
@@ -207,6 +210,7 @@ private fun ApartmentChoiceCard(
 private fun AdminActionMenu(
     isKioskEnabled: Boolean,
     canUseKiosk: Boolean,
+    hasScreenLock: Boolean,
     onReconfigure: () -> Unit,
     onExitKiosk: () -> Unit,
     onEnableKiosk: () -> Unit
@@ -240,6 +244,14 @@ private fun AdminActionMenu(
                 text = stringResource(R.string.admin_menu_kiosk_unavailable),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        if (canUseKiosk && hasScreenLock) {
+            Text(
+                text = stringResource(R.string.admin_menu_kiosk_screen_lock),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
             )
         }
     }

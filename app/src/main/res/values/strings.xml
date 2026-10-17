@@ -157,6 +157,7 @@
     <string name="admin_menu_exit_kiosk">Exit kiosk mode</string>
     <string name="admin_menu_enable_kiosk">Enable kiosk mode</string>
     <string name="admin_menu_kiosk_unavailable">Kiosk mode isn\'t available: this tablet hasn\'t been set up as device owner (see the README).</string>
+    <string name="admin_menu_kiosk_screen_lock">This tablet has a screen lock, so after a restart it will wait at the lock screen instead of opening the app. To have the app open by itself, set the screen lock to None in Settings.</string>
 
     <!-- Errors -->
     <string name="error_generic">Something went wrong</string>

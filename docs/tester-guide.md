@@ -124,7 +124,10 @@ the apartment unattended.
 It needs a computer with **ADB** (Android platform tools) and a **factory reset, which
 erases everything on the tablet.** Do it before pairing.
 
-1. Factory reset the tablet. During the first-start setup, **skip adding a Google account**.
+1. Factory reset the tablet. During the first-start setup, **skip adding a Google account**
+   and **don't set a screen lock** (PIN, pattern or password). With a screen lock, the
+   tablet stops at the lock screen after every restart instead of opening the app. If one
+   is already set, change it to **None** in Settings before step 6.
 2. Turn on **Developer options → USB debugging** (Settings → About tablet → tap *Build
    number* seven times to show Developer options) and connect the tablet to the computer.
 3. Install the app from the computer:

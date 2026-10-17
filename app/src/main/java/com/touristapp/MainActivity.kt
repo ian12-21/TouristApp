@@ -113,6 +113,7 @@ class MainActivity : ComponentActivity() {
                                 isKioskEnabled = uiState.isKioskEnabled,
                                 // Provisioned over adb only, so it can't change while the app runs.
                                 canUseKiosk = remember { kioskManager.isDeviceOwner() },
+                                hasScreenLock = kioskManager::hasScreenLock,
                                 onExitKiosk = {
                                     viewModel.setKioskEnabled(false)
                                     kioskManager.exitKioskMode()

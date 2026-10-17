@@ -62,6 +62,8 @@ fun AppNavigation(
     onToggleTheme: () -> Unit,
     isKioskEnabled: Boolean,
     canUseKiosk: Boolean,
+    /** Asked each time the owner dialog opens: the owner can change it in Settings meanwhile. */
+    hasScreenLock: () -> Boolean,
     onExitKiosk: () -> Unit,
     onEnableKiosk: () -> Unit
 ) {
@@ -87,6 +89,7 @@ fun AppNavigation(
             },
             isKioskEnabled = isKioskEnabled,
             canUseKiosk = canUseKiosk,
+            hasScreenLock = remember { hasScreenLock() },
             onExitKiosk = {
                 showAdminDialog = false
                 onExitKiosk()

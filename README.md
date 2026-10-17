@@ -131,6 +131,21 @@ stays off until the owner enables it from the admin dialog, then stays on across
 (the app becomes the home screen and re-engages on every boot) until the owner chooses
 **Exit kiosk mode** in the same dialog. After exiting, the tablet behaves normally again.
 
+While kiosk mode is on, the app also:
+- hides the power menu, so a guest can't choose Restart or Power off, or long-press
+  Power off to reach safe mode;
+- blocks safe mode completely, which would start the tablet with the app turned off;
+- blocks factory reset from Settings;
+- removes the swipe lock screen, so the tablet goes straight into the app after a restart;
+- keeps the screen on while the tablet is charging.
+
+Exiting kiosk mode undoes all of this. Two things are outside the app's control:
+- **A PIN, pattern or password** can't be removed by the app. A tablet that has one waits
+  at the lock screen after every restart, and the owner menu warns about it. Set the
+  screen lock to **None** before you enable kiosk mode.
+- **Recovery mode** (the hardware-button factory reset) can't be blocked. It only wipes
+  the tablet; it doesn't open it.
+
 Exiting kiosk mode leaves the app provisioned as device owner. There is no in-app way to
 give that up; a factory reset clears it.
 

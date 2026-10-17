@@ -157,6 +157,7 @@
     <string name="admin_menu_exit_kiosk">Kiosk-Modus beenden</string>
     <string name="admin_menu_enable_kiosk">Kiosk-Modus aktivieren</string>
     <string name="admin_menu_kiosk_unavailable">Der Kiosk-Modus ist nicht verfügbar: Dieses Tablet ist nicht als Geräteeigentümer eingerichtet (siehe README).</string>
+    <string name="admin_menu_kiosk_screen_lock">Dieses Tablet hat eine Displaysperre und bleibt daher nach einem Neustart auf dem Sperrbildschirm, statt die App zu öffnen. Damit sich die App von selbst öffnet, stellen Sie die Displaysperre in den Einstellungen auf Keine.</string>
 
     <!-- Errors -->
     <string name="error_generic">Etwas ist schiefgelaufen</string>

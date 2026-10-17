@@ -157,6 +157,7 @@
     <string name="admin_menu_exit_kiosk">Esci dalla modalità kiosk</string>
     <string name="admin_menu_enable_kiosk">Abilita modalità kiosk</string>
     <string name="admin_menu_kiosk_unavailable">La modalità kiosk non è disponibile: questo tablet non è configurato come proprietario del dispositivo (vedi il README).</string>
+    <string name="admin_menu_kiosk_screen_lock">Questo tablet ha un blocco schermo, quindi dopo un riavvio resterà sulla schermata di blocco invece di aprire l\'app. Per far aprire l\'app da sola, imposta il blocco schermo su Nessuno nelle Impostazioni.</string>
 
     <!-- Errors -->
     <string name="error_generic">Qualcosa è andato storto</string>

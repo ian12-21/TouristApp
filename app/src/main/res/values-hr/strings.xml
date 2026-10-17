@@ -158,6 +158,7 @@
     <string name="admin_menu_exit_kiosk">Izađi iz kiosk načina</string>
     <string name="admin_menu_enable_kiosk">Omogući kiosk način</string>
     <string name="admin_menu_kiosk_unavailable">Kiosk način nije dostupan: ovaj tablet nije postavljen kao vlasnik uređaja (vidi README).</string>
+    <string name="admin_menu_kiosk_screen_lock">Ovaj tablet ima zaključavanje zaslona, pa će nakon ponovnog pokretanja čekati na zaključanom zaslonu umjesto da otvori aplikaciju. Da bi se aplikacija sama otvorila, u Postavkama postavite zaključavanje zaslona na Ništa.</string>
 
     <!-- Errors -->
     <string name="error_generic">Nešto je pošlo po krivu</string>

@@ -131,7 +131,10 @@ Potrebno je računalo s **ADB-om** (Android platform tools) i **vraćanje na tvo
 postavke, koje briše sve s tableta.** Napravite to prije uparivanja.
 
 1. Vratite tablet na tvorničke postavke. Pri početnom postavljanju **preskočite dodavanje
-   Google računa**.
+   Google računa** i **ne postavljajte zaključavanje zaslona** (PIN, uzorak ili zaporku).
+   Sa zaključavanjem se tablet nakon svakog ponovnog pokretanja zaustavi na zaključanom
+   zaslonu umjesto da otvori aplikaciju. Ako je već postavljeno, prije 6. koraka ga u
+   Postavkama promijenite u **Ništa**.
 2. Uključite **Opcije za razvojne programere → USB otklanjanje pogrešaka** (Postavke →
    O tabletu → sedam puta dodirnite *Broj međuverzije* da se opcije pojave) i spojite tablet
    na računalo.
