@@ -177,6 +177,7 @@
     <string name="cd_add_review">Aggiungi recensione</string>
     <string name="cd_wifi">WiFi</string>
     <string name="cd_checkout">Check-out</string>
+    <string name="cd_stay_notes">Note dell\'host</string>
     <string name="cd_view_details">Vedi dettagli</string>
     <string name="cd_expand">Espandi</string>
     <string name="cd_collapse">Comprimi</string>
