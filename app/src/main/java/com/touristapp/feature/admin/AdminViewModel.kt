@@ -13,11 +13,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/** Why the last sign-in step failed; the UI shows the matching string resource. */
+enum class AdminError { INVALID_CREDENTIALS, NO_NETWORK, LOAD_APARTMENTS_FAILED }
+
 data class AdminUiState(
     val email: String = "",
     val password: String = "",
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
+    val error: AdminError? = null,
     val failedAttempts: Int = 0,
     val apartments: List<Pair<String, String>>? = null,
     val isLockedOut: Boolean = false,
@@ -50,14 +53,19 @@ class AdminViewModel @Inject constructor(
     }
 
     fun signIn(onLockout: () -> Unit) {
-        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        _uiState.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
             val signInResult = adminRepository.signIn(
                 email = _uiState.value.email,
                 password = _uiState.value.password
             )
             if (signInResult is Resource.Error) {
-                registerFailedAttempt(onLockout)
+                if (signInResult.isOffline) {
+                    // Not a wrong password, so it must not count toward the lockout.
+                    _uiState.update { it.copy(error = AdminError.NO_NETWORK, isLoading = false) }
+                } else {
+                    registerFailedAttempt(onLockout)
+                }
                 return@launch
             }
 
@@ -75,9 +83,12 @@ class AdminViewModel @Inject constructor(
                 // for being offline.
                 is Resource.Error -> {
                     adminRepository.signOut()
-                    _uiState.update {
-                        it.copy(errorMessage = apartments.message, isLoading = false)
+                    val error = if (apartments.isOffline) {
+                        AdminError.NO_NETWORK
+                    } else {
+                        AdminError.LOAD_APARTMENTS_FAILED
                     }
+                    _uiState.update { it.copy(error = error, isLoading = false) }
                 }
                 is Resource.Loading -> Unit
             }
@@ -94,7 +105,7 @@ class AdminViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     failedAttempts = attempts,
-                    errorMessage = "Invalid credentials",
+                    error = AdminError.INVALID_CREDENTIALS,
                     isLoading = false
                 )
             }
@@ -129,7 +140,7 @@ class AdminViewModel @Inject constructor(
                 isAuthenticated = false,
                 email = "",
                 password = "",
-                errorMessage = null,
+                error = null,
                 isLoading = false
             )
         }

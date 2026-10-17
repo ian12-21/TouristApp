@@ -1,5 +1,6 @@
 package com.touristapp.feature.admin
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -89,10 +90,10 @@ fun AdminLoginFlow(
                     }
                 }
 
-                if (state.errorMessage != null) {
+                state.error?.let { error ->
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = state.errorMessage!!,
+                        text = stringResource(error.messageRes()),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -170,4 +171,11 @@ private fun AdminActionMenu(
             }
         }
     }
+}
+
+@StringRes
+private fun AdminError.messageRes(): Int = when (this) {
+    AdminError.INVALID_CREDENTIALS -> R.string.admin_invalid_credentials
+    AdminError.NO_NETWORK -> R.string.admin_no_network
+    AdminError.LOAD_APARTMENTS_FAILED -> R.string.admin_load_apartments_failed
 }

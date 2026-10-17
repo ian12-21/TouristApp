@@ -125,6 +125,8 @@
     <string name="admin_sign_in">Accedi</string>
     <string name="admin_select_apartment">Seleziona appartamento</string>
     <string name="admin_invalid_credentials">Credenziali non valide</string>
+    <string name="admin_no_network">Nessuna connessione a Internet. Collega il tablet al Wi‑Fi e riprova.</string>
+    <string name="admin_load_apartments_failed">Impossibile caricare gli appartamenti</string>
     <string name="admin_menu_reconfigure">Riconfigura appartamento</string>
     <string name="admin_menu_exit_kiosk">Esci dalla modalità kiosk</string>
     <string name="admin_menu_enable_kiosk">Abilita modalità kiosk</string>
