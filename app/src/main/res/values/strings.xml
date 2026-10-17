@@ -87,6 +87,8 @@
     <string name="weather_feels_like">Feels like</string>
     <string name="weather_humidity">Humidity</string>
     <string name="weather_today">Today</string>
+    <string name="weather_location_not_set_title">Location not set</string>
+    <string name="weather_location_not_set">The location isn\'t set for this apartment, so the weather can\'t be shown.</string>
 
     <!-- Rating Categories -->
     <string name="rating_cleanliness">Cleanliness</string>

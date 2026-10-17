@@ -20,6 +20,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.touristapp.core.i18n.ProvideLocalizedContext
 import com.touristapp.core.ui.components.LanguageSwitchOverlay
 import com.touristapp.core.ui.theme.TouristAppTheme
+import com.touristapp.data.model.location
 import com.touristapp.feature.main.AppNavigation
 import com.touristapp.feature.main.MainViewModel
 import com.touristapp.feature.setup.SetupScreen
@@ -70,15 +71,13 @@ class MainActivity : ComponentActivity() {
             // Weather polling is driven from here rather than from viewModelScope, so it
             // only runs while the app is actually visible. repeatOnLifecycle(STARTED)
             // cancels the loop on ON_STOP and starts a fresh one on ON_START; keying the
-            // LaunchedEffect on the coordinates means it also (re)starts when the
+            // LaunchedEffect on the location means it also (re)starts when the
             // apartment finishes loading or the owner reconfigures the tablet.
-            val coordinates = uiState.apartment?.coordinates
-            val latitude = coordinates?.get("lat")
-            val longitude = coordinates?.get("lng")
-            LaunchedEffect(lifecycleOwner, latitude, longitude) {
-                if (latitude == null || longitude == null) return@LaunchedEffect
+            val location = uiState.apartment?.location()
+            LaunchedEffect(lifecycleOwner, location) {
+                if (location == null) return@LaunchedEffect
                 lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    viewModel.runWeatherRefresh(latitude, longitude)
+                    viewModel.runWeatherRefresh(location.lat, location.lng)
                 }
             }
             // Apply the chosen language reactively (no Activity recreate, so the switch can be

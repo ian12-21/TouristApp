@@ -87,6 +87,8 @@
     <string name="weather_feels_like">Osjećaj</string>
     <string name="weather_humidity">Vlažnost</string>
     <string name="weather_today">Danas</string>
+    <string name="weather_location_not_set_title">Lokacija nije postavljena</string>
+    <string name="weather_location_not_set">Lokacija ovog apartmana nije postavljena pa se vremenska prognoza ne može prikazati.</string>
 
     <!-- Rating Categories -->
     <string name="rating_cleanliness">Čistoća</string>

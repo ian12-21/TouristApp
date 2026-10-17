@@ -130,7 +130,7 @@ The central document. Read by both apps; written only by the owner.
 | `name` | `string` | Display name. |
 | `address` | `string` | |
 | `description` | **Localized** | |
-| `coordinates` | `{ lat: number, lng: number }` | Used for the weather lookup. Missing ⇒ tablet skips weather entirely. |
+| `coordinates` | `{ lat: number, lng: number }` | Optional, used only for the weather lookup. The admin omits the field when the owner leaves the location empty. Missing, or `(0, 0)` (a placeholder older admin builds saved), means no location: the tablet shows no weather and tells the guest the location isn't set. |
 | `photos` | `string[]` | Storage download URLs. |
 | `size` | `number` (int64) | Floor area in m², e.g. `65`. Must be a whole number — the tablet reads it as a `Long`. `0` means unknown and is not shown. |
 | `capacity` | `number` | Defaults to `4` on create. |

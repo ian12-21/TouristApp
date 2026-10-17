@@ -66,6 +66,19 @@ data class Apartment(
     val updatedAt: Timestamp? = null
 )
 
+data class LatLng(val lat: Double, val lng: Double)
+
+/**
+ * Where the weather is looked up, or null when the owner hasn't set a location. (0, 0) counts
+ * as unset: older admin builds saved it as a placeholder for "no location" (SCHEMA.md §3.1).
+ */
+fun Apartment.location(): LatLng? {
+    val lat = coordinates["lat"] ?: return null
+    val lng = coordinates["lng"] ?: return null
+    if (lat == 0.0 && lng == 0.0) return null
+    return LatLng(lat, lng)
+}
+
 /** What the tablet follows live on its apartment document. */
 sealed interface ApartmentStatus {
     data class Present(val currentStayId: String?) : ApartmentStatus

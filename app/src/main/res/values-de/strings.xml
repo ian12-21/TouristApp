@@ -87,6 +87,8 @@
     <string name="weather_feels_like">Gefühlt</string>
     <string name="weather_humidity">Luftfeuchtigkeit</string>
     <string name="weather_today">Heute</string>
+    <string name="weather_location_not_set_title">Standort nicht festgelegt</string>
+    <string name="weather_location_not_set">Für diese Unterkunft ist kein Standort festgelegt, daher kann das Wetter nicht angezeigt werden.</string>
 
     <!-- Rating Categories -->
     <string name="rating_cleanliness">Sauberkeit</string>

@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.touristapp.R
 import com.touristapp.core.i18n.AppLanguage
+import com.touristapp.core.ui.components.LocationNotSetDialog
 import com.touristapp.core.ui.components.WeatherDialog
 import com.touristapp.core.ui.components.weatherIconFor
 import com.touristapp.data.model.Place
@@ -229,14 +231,20 @@ fun AppNavigation(
                                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                                 .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.small)
                                 .then(
-                                    if (weatherInfo != null)
+                                    if (weatherInfo != null || uiState.isLocationMissing)
                                         Modifier.clickable { showWeatherDialog = true }
                                     else Modifier
                                 )
                                 .padding(horizontal = 10.dp)
                         ) {
                             Text(text = tempText, style = MaterialTheme.typography.labelLarge)
-                            if (weatherInfo != null) {
+                            if (uiState.isLocationMissing) {
+                                Icon(
+                                    imageVector = Icons.Default.LocationOff,
+                                    contentDescription = stringResource(R.string.weather_location_not_set_title),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            } else if (weatherInfo != null) {
                                 Icon(
                                     imageVector = weatherIconFor(weatherInfo.iconCode),
                                     contentDescription = weatherInfo.condition,
@@ -348,7 +356,9 @@ fun AppNavigation(
         }
     }
 
-    if (showWeatherDialog && uiState.weatherInfo != null) {
+    if (showWeatherDialog && uiState.isLocationMissing) {
+        LocationNotSetDialog(onDismiss = { showWeatherDialog = false })
+    } else if (showWeatherDialog && uiState.weatherInfo != null) {
         WeatherDialog(
             weatherInfo = uiState.weatherInfo,
             weekForecast = uiState.weekForecast,

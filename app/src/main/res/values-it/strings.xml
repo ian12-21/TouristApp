@@ -87,6 +87,8 @@
     <string name="weather_feels_like">Percepita</string>
     <string name="weather_humidity">Umidità</string>
     <string name="weather_today">Oggi</string>
+    <string name="weather_location_not_set_title">Posizione non impostata</string>
+    <string name="weather_location_not_set">La posizione di questo appartamento non è impostata, quindi il meteo non può essere mostrato.</string>
 
     <!-- Rating Categories -->
     <string name="rating_cleanliness">Pulizia</string>

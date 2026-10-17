@@ -14,6 +14,7 @@ import com.touristapp.data.model.Stay
 import com.touristapp.data.model.DailyForecast
 import com.touristapp.data.model.TransportationService
 import com.touristapp.data.model.WeatherInfo
+import com.touristapp.data.model.location
 import com.touristapp.domain.repository.TouristRepository
 import com.touristapp.domain.repository.WeatherRepository
 import com.touristapp.feature.apartment.ApartmentSection
@@ -44,6 +45,8 @@ data class MainUiState(
     val guests: List<Guest> = emptyList(),
     val weatherInfo: WeatherInfo? = null,
     val weekForecast: List<DailyForecast> = emptyList(),
+    /** The apartment has no location, so there's no weather to show (SCHEMA.md §3.1). */
+    val isLocationMissing: Boolean = false,
     val isLoading: Boolean = true,
     /** Why the apartment couldn't be loaded; shown full screen while [apartment] is null. */
     val loadError: ErrorReason? = null,
@@ -214,10 +217,17 @@ class MainViewModel @Inject constructor(
                 is Resource.Success -> {
                     val apartment = result.data
                     prefs.setApartmentName(apartment.name)
+                    // Without a location nothing refreshes the weather, so the cached
+                    // one would stay on screen for good.
+                    val isLocationMissing = apartment.location() == null
+                    if (isLocationMissing) prefs.clearWeather()
                     _uiState.update {
                         it.copy(
                             apartment = apartment,
                             apartmentName = apartment.name,
+                            isLocationMissing = isLocationMissing,
+                            weatherInfo = if (isLocationMissing) null else it.weatherInfo,
+                            weekForecast = if (isLocationMissing) emptyList() else it.weekForecast,
                             isLoading = false,
                             isSwitchingLanguage = false,
                             loadError = null

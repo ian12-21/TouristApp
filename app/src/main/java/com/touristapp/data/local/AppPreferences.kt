@@ -83,6 +83,14 @@ class AppPreferences @Inject constructor(
         return runCatching { json.decodeFromString(serializer, raw) }.getOrNull()
     }
 
+    /** Forgets the cached weather, e.g. once the apartment no longer has a location. */
+    fun clearWeather() {
+        prefs.edit()
+            .remove(KEY_WEATHER)
+            .remove(KEY_FORECAST)
+            .apply()
+    }
+
     /**
      * Forgets what was cached for the previous apartment (its name and weather) when the
      * tablet is paired to another one. Pairing, theme, kiosk and language are kept.
