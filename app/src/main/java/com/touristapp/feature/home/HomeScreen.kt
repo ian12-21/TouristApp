@@ -25,6 +25,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -40,6 +42,12 @@ import com.touristapp.data.model.Apartment as ApartmentModel
 import com.touristapp.data.model.Contact
 import com.touristapp.data.model.Stay
 import com.touristapp.feature.places.PlaceCategory
+
+/** Above this the surface is light, i.e. the light theme is on. */
+private const val LIGHT_SURFACE_LUMINANCE = 0.5f
+
+/** How far the quick-action icons move toward onSurface in the light theme. */
+private const val LIGHT_THEME_ICON_DARKENING = 0.35f
 
 @Composable
 fun HomeSlide(
@@ -346,6 +354,13 @@ private fun QuickActionCard(
     val ambientColor = remember(primary) { primary.copy(alpha = 0.08f) }
     val spotColor = remember(primary) { primary.copy(alpha = 0.12f) }
 
+    // The palette is pastel, tuned for the dark theme; on the light cards the icons wash out.
+    val isLightTheme = MaterialTheme.colorScheme.surface.luminance() > LIGHT_SURFACE_LUMINANCE
+    val onSurface = MaterialTheme.colorScheme.onSurface
+    val iconTint = remember(accentColor, isLightTheme, onSurface) {
+        if (isLightTheme) lerp(accentColor, onSurface, LIGHT_THEME_ICON_DARKENING) else accentColor
+    }
+
     val secondaryContainer = MaterialTheme.colorScheme.secondaryContainer
     val cardGradient = remember(secondaryContainer) {
         Brush.verticalGradient(
@@ -388,7 +403,7 @@ private fun QuickActionCard(
                 Icon(
                     imageVector = icon,
                     contentDescription = label,
-                    tint = accentColor,
+                    tint = iconTint,
                     modifier = Modifier.size(32.dp)
                 )
             }
