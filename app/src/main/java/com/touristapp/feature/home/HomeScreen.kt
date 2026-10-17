@@ -1,6 +1,7 @@
 package com.touristapp.feature.home
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -69,40 +70,41 @@ fun HomeSlide(
         viewModel.seed(apartment?.emergencyContactGroupId, cachedEmergencyContacts)
     }
 
+    // Equal gaps above the info, between it and the buttons, and below the buttons, so the
+    // buttons sit centred between the contacts and the page dots. The info scrolls if a long
+    // welcome would push the buttons off the screen.
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 24.dp)
+            .padding(start = 20.dp, end = 20.dp, top = 24.dp),
+        verticalArrangement = Arrangement.SpaceEvenly
     ) {
-        // The info takes all the height the buttons leave, so the buttons stay at the bottom when
-        // the spinner is replaced by the (taller) content. It scrolls if a long welcome overflows.
-        Box(
+        // Until the apartment and its current stay are in, these cards would read "Wi‑Fi: Not
+        // configured" and the generic welcome, which a guest could take for the real thing.
+        // The buttons glide to their place when the spinner is replaced by the (taller) content.
+        Crossfade(
+            targetState = isLoading,
+            label = "stayInfo",
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
-            // Until the apartment and its current stay are in, these cards would read "Wi‑Fi: Not
-            // configured" and the generic welcome, which a guest could take for the real thing.
-            Crossfade(
-                targetState = isLoading,
-                label = "stayInfo",
-                modifier = Modifier.verticalScroll(rememberScrollState())
-            ) { loading ->
-                if (loading) {
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
-                } else {
-                    StayInfo(apartment = apartment, currentStay = currentStay)
+                .weight(1f, fill = false)
+                .animateContentSize()
+                .verticalScroll(rememberScrollState())
+        ) { loading ->
+            if (loading) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
+            } else {
+                StayInfo(apartment = apartment, currentStay = currentStay)
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
+        // The dots row in AppNavigation pads itself by 16dp, so 4dp below plus that matches the
+        // 20dp above: the row stays centred, with a gap from the info when it fills the page.
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 20.dp, bottom = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             QuickActionCard(
