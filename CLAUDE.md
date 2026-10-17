@@ -9,7 +9,8 @@ entered in the companion Angular app, `tourist-admin`.
 
 - `README.md` — setup, the `staging` build flavor, kiosk mode.
 - `SCHEMA.md` — the Firestore contract shared with `tourist-admin`. **Change it first, then
-  both repos**, and keep the file identical in both.
+  both repos**, and keep the file identical in both: `schema-sync.yml` in `tourist-admin`
+  fails when they differ, so push this repo's copy first.
 
 Follow the conventions below for all code generation, refactoring, and reviews.
 

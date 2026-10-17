@@ -5,7 +5,9 @@ Guest-facing tablet app for apartment tourist rentals. It shows one apartment's 
 contacts, weather and guest reviews — all pulled from Firebase Firestore.
 
 The content is entered by the apartment owner in the companion web app, `tourist-admin`.
-The document shapes both apps agree on are in [SCHEMA.md](SCHEMA.md).
+The document shapes both apps agree on are in [SCHEMA.md](SCHEMA.md), which must stay
+identical in both repos — a CI check in `tourist-admin` (`schema-sync.yml`) fails when
+they differ.
 
 **Handing a tablet to a tester?** Give them the [tester guide](docs/tester-guide.md)
 ([hrvatski](docs/tester-guide.hr.md)). Before sending it, check that what it promises is
