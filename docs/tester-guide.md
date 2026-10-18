@@ -150,7 +150,7 @@ computer with **ADB** (Android platform tools) instead:
 3. Install the app from the computer:
 
    ```
-   adb install tourist-app.apk
+   adb install app-staging.apk
    ```
 
 4. Make the app the device owner:

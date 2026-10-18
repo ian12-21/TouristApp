@@ -88,7 +88,7 @@ higher `versionCode` than the last and installs as an update.
 3. **Back the keystore and its passwords up somewhere safe.** Android only installs an
    update signed with the same key, and a device-owner app can't be uninstalled: without
    the key, every kiosk tablet needs a factory reset to take a new version.
-4. Upload each new APK in the Firebase console (Storage) as `tablet/tourist-app.apk`,
+4. Upload each new APK in the Firebase console (Storage) as `tablet/app-staging.apk`,
    replacing the old one. The admin's Download button and the kiosk-setup QR code both
    point there, and `storage.rules` in `tourist-admin` makes only that file public.
 

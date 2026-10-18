@@ -158,7 +158,7 @@ računalo s **ADB-om** (Android platform tools):
 3. Instalirajte aplikaciju s računala:
 
    ```
-   adb install tourist-app.apk
+   adb install app-staging.apk
    ```
 
 4. Postavite aplikaciju kao vlasnika uređaja:
