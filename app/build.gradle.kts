@@ -90,6 +90,18 @@ android {
         }
     }
 
+    // The APK owners get is app-staging.apk, without "-release" in the name. An unsigned
+    // build keeps "-unsigned", so it can't be mistaken for one that installs.
+    applicationVariants.all {
+        if (buildType.name == "release") {
+            val suffix = if (hasReleaseSigning) "" else "-unsigned"
+            outputs.all {
+                (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl)
+                    .outputFileName = "app-$flavorName$suffix.apk"
+            }
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

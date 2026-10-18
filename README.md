@@ -64,8 +64,9 @@ start on newer JDKs.
 ### Release builds
 
 `./gradlew assembleStagingRelease` writes
-`app/build/outputs/apk/staging/release/app-staging-release.apk`, signed with the release key
-when `local.properties` names it, and unsigned (not installable) otherwise. That APK is the
+`app/build/outputs/apk/staging/release/app-staging.apk`, signed with the release key
+when `local.properties` names it, and `app-staging-unsigned.apk` (not installable)
+otherwise. That APK is the
 one owners download, and the one QR-code kiosk setup installs.
 
 The version comes from the number of commits on the checked-out branch: `versionCode` is
@@ -95,7 +96,7 @@ The QR code also carries the key's fingerprint, `appSettings.tabletSigningChecks
 `tourist-admin`. It only changes with the key. To compute it:
 
 ```
-apksigner verify --print-certs app/build/outputs/apk/staging/release/app-staging-release.apk \
+apksigner verify --print-certs app/build/outputs/apk/staging/release/app-staging.apk \
   | grep -m1 'SHA-256 digest' | awk '{print $NF}' | xxd -r -p | base64 | tr '+/' '-_' | tr -d '='
 ```
 
