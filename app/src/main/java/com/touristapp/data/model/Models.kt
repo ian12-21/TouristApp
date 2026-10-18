@@ -90,7 +90,11 @@ fun Apartment.location(): LatLng? {
 
 /** What the tablet follows live on its apartment document. */
 sealed interface ApartmentStatus {
-    data class Present(val currentStayId: String?) : ApartmentStatus
+    /**
+     * [contentVersion] changes whenever any field other than `currentStayId` does (Wi-Fi,
+     * house rules, contacts…), so the caller can tell an edit from a check-in or check-out.
+     */
+    data class Present(val currentStayId: String?, val contentVersion: Int) : ApartmentStatus
     /** Deleted in the admin while the tablet was paired to it. */
     data object Deleted : ApartmentStatus
 }

@@ -320,13 +320,15 @@ class MainViewModel @Inject constructor(
     }
 
     /**
-     * Follows check-out, check-in and deletion while the app stays in the foreground, which
-     * is the normal state of a kiosk; [refresh] alone only runs on resume. The first stay id
-     * is left to [loadApartmentData], which reads the same field.
+     * Follows edits, check-out, check-in and deletion while the app stays in the foreground,
+     * which is the normal state of a kiosk; [refresh] alone only runs on resume, and a kiosk
+     * tablet on its charger never turns its screen off. The first stay id and content are
+     * left to [loadApartmentData], which reads the same document.
      */
     private fun watchApartment(apartmentId: String) {
         apartmentWatchJob?.cancel()
         apartmentWatchJob = viewModelScope.launch {
+            var contentVersion: Int? = null
             touristRepository.observeApartmentStatus(apartmentId).collect { status ->
                 when (status) {
                     ApartmentStatus.Deleted -> {
@@ -334,7 +336,11 @@ class MainViewModel @Inject constructor(
                         showApartmentDeleted()
                     }
                     is ApartmentStatus.Present -> {
+                        val isEdited = contentVersion != null && status.contentVersion != contentVersion
+                        contentVersion = status.contentVersion
                         val apartment = _uiState.value.apartment ?: return@collect
+                        // Silent, like a resume: a failed reload keeps what is on screen.
+                        if (isEdited) loadApartmentData(apartmentId, forceServer = true)
                         if (status.currentStayId == apartment.currentStayId) return@collect
                         _uiState.update {
                             it.copy(apartment = apartment.copy(currentStayId = status.currentStayId))

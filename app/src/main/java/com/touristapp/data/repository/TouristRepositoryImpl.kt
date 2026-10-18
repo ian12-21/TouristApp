@@ -152,7 +152,12 @@ class TouristRepositoryImpl @Inject constructor(
                 }
                 when {
                     snapshot == null -> Unit
-                    snapshot.exists() -> trySend(ApartmentStatus.Present(snapshot.getString("currentStayId")))
+                    snapshot.exists() -> trySend(
+                        ApartmentStatus.Present(
+                            currentStayId = snapshot.getString("currentStayId"),
+                            contentVersion = snapshot.data.orEmpty().minus("currentStayId").hashCode()
+                        )
+                    )
                     !snapshot.metadata.isFromCache -> trySend(ApartmentStatus.Deleted)
                 }
             }
