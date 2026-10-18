@@ -101,6 +101,25 @@ apksigner verify --print-certs app/build/outputs/apk/staging/release/app-staging
 
 (`apksigner` is in `$ANDROID_HOME/build-tools/<version>/`.)
 
+### App Check
+
+Both Firebase sessions (guest and owner) attach an App Check token to their requests
+(`core/appcheck`). Release builds attest with **Play Integrity**; the app is registered in
+App Check with the release key's SHA-256. Debug builds use the **debug provider**, which
+only `src/debug` depends on, so it never reaches a release APK.
+
+A debug build logs a debug secret per Firebase app on first start — two in all, one for
+the default app and one for `admin`:
+
+```
+adb logcat | grep -i "debug secret"
+```
+
+Add both under Firebase Console → App Check → Apps → the Android app → **Manage debug
+tokens**. Until enforcement is on, unregistered builds still work and only show up as
+unverified requests in the App Check metrics. A secret changes when the app's data is
+cleared or it is reinstalled.
+
 ## Project Structure
 
 ```

@@ -8,11 +8,19 @@ import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
 import coil3.network.ktor3.KtorNetworkFetcherFactory
 import coil3.request.crossfade
+import com.google.firebase.FirebaseApp
+import com.touristapp.core.appcheck.installAppCheck
 import dagger.hilt.android.HiltAndroidApp
 import okio.Path.Companion.toOkioPath
 
 @HiltAndroidApp
 class TouristApp : Application(), SingletonImageLoader.Factory {
+
+    override fun onCreate() {
+        super.onCreate()
+        // Before anything touches Firestore: requests sent earlier go out without a token.
+        FirebaseApp.getInstance().installAppCheck()
+    }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader =
         ImageLoader.Builder(context)

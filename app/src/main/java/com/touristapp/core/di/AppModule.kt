@@ -2,6 +2,7 @@ package com.touristapp.core.di
 
 import android.content.Context
 import com.google.firebase.FirebaseApp
+import com.touristapp.core.appcheck.installAppCheck
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestoreSettings
@@ -45,6 +46,7 @@ object AppModule {
     fun provideAdminApp(@ApplicationContext context: Context): FirebaseApp =
         runCatching { FirebaseApp.getInstance(ADMIN_APP_NAME) }.getOrElse {
             FirebaseApp.initializeApp(context, FirebaseApp.getInstance().options, ADMIN_APP_NAME)
+                .apply { installAppCheck() }
         }
 
     /**

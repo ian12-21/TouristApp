@@ -130,6 +130,9 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-appcheck-playintegrity")
+    // Debug builds only — see core/appcheck in src/debug.
+    debugImplementation("com.google.firebase:firebase-appcheck-debug")
 
     // Ktor (HTTP client for weather API)
     implementation("io.ktor:ktor-client-android:3.0.3")
