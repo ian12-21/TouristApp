@@ -47,6 +47,14 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name=".kiosk.PackageReplacedReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
         <activity
             android:name=".admin.ProvisioningActivity"
             android:exported="true"
