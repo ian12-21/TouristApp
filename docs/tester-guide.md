@@ -89,6 +89,12 @@ All three are on the apartment's **Contacts & Rules** tab.
 The tablet greets the guests of the current stay by name, and they can leave a review.
 When they leave, click **Check out** on the stay.
 
+**Bookings in advance.** A stay that starts on a later day is saved as **upcoming** (the
+button says **Add upcoming stay**), and the tablet keeps showing the guests who are there
+now. When the new guests arrive, click **Check in** on their stay. If the previous guests
+are still checked in, check them out first. To drop a booking that falls through, click
+**Cancel stay**.
+
 ## 4. Install the tablet app
 
 **You need:** an Android tablet with **Android 8 or newer** and an internet connection.
@@ -115,9 +121,11 @@ The tablet now shows that apartment. Your sign-in is not kept on the tablet.
 corner for 5 seconds**, let go, sign in and tap **Reconfigure apartment**. After three
 wrong passwords the dialog closes and will not open again for one minute.
 
-**When you change something in the web admin,** the tablet picks it up the next time the
-app comes back to the screen — turn the tablet's screen off and on, or close and reopen the
-app. It does not update while you watch.
+**When you change something in the web admin,** the tablet shows it within a few seconds
+while it is online: the apartment's texts, Wi-Fi, house rules and contacts, places, and the
+guests checking in and out. Rooms update the next time a guest opens them. A change to a
+transport service on the **Transportation** page shows the next time the tablet's screen
+turns off and on.
 
 ## 6. Kiosk mode (optional)
 
@@ -127,6 +135,14 @@ the apartment unattended.
 
 Setting it up **erases everything on the tablet**, so use a tablet that is only for guests.
 You need the tablet, its charger and the Wi-Fi password; no computer.
+
+**Set it up in the apartment, on the apartment's Wi-Fi.** In kiosk mode the tablet's
+settings are locked, so it can't join a different Wi-Fi network. Turning kiosk mode off
+needs your sign-in, and signing in needs internet. A kiosk tablet that loses its Wi-Fi —
+taken somewhere else, a new router, a changed Wi-Fi password — can then only be unlocked by
+a factory reset from the tablet's recovery menu (with its hardware buttons), after which
+you set it up again. Before you change the apartment's Wi-Fi,
+exit kiosk mode, connect the tablet to the new network, then enable kiosk mode again.
 
 1. Factory reset the tablet (Settings → System → Reset options → Erase all data).
 2. On the first welcome screen, **tap the same spot on the screen 6 times**. A QR code
@@ -178,6 +194,8 @@ On the web admin:
 - [ ] Add public and private transport
 - [ ] Pick an emergency contact group, add your own contacts and house rules
 - [ ] Add guests, check in a stay, later check it out
+- [ ] Add a stay that starts in a few days, then check it in once the earlier stay is
+      checked out
 - [ ] Switch the admin to another language
 
 On the tablet:

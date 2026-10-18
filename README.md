@@ -200,7 +200,12 @@ While kiosk mode is on, the app also:
 - removes the swipe lock screen, so the tablet goes straight into the app after a restart;
 - keeps the screen on while the tablet is charging.
 
-Exiting kiosk mode undoes all of this. Two things are outside the app's control:
+Exiting kiosk mode undoes all of this. Three things are outside the app's control:
+- **Wi-Fi.** Settings are out of reach in kiosk mode, so the tablet can't join another
+  network, and **Exit kiosk mode** needs an online owner sign-in. A kiosk tablet that loses
+  its Wi-Fi (moved, new router, changed password) can only be recovered with a factory
+  reset from recovery mode. Set kiosk mode up on the apartment's own Wi-Fi, and exit it
+  before that network changes — the tester guide tells owners the same.
 - **A PIN, pattern or password** can't be removed by the app. A tablet that has one waits
   at the lock screen after every restart, and the owner menu warns about it. Set the
   screen lock to **None** before you enable kiosk mode.

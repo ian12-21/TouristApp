@@ -92,6 +92,12 @@ Sve troje nalazi se na kartici **Kontakti i pravila** u apartmanu.
 Tablet goste trenutnog boravka pozdravlja imenom i oni mogu ostaviti recenziju. Kada odu,
 na boravku kliknite **Odjava**.
 
+**Rezervacije unaprijed.** Boravak koji počinje kasnije sprema se kao **nadolazeći** (gumb
+glasi **Dodaj nadolazeći boravak**), a tablet i dalje prikazuje goste koji su trenutno u
+apartmanu. Kad novi gosti stignu, na njihovom boravku kliknite **Prijava**. Ako su
+prethodni gosti još prijavljeni, najprije ih odjavite. Rezervaciju koja otpadne uklonite
+gumbom **Otkaži boravak**.
+
 ## 4. Instalacija aplikacije na tablet
 
 **Treba vam:** Android tablet s **Androidom 8 ili novijim** i internetskom vezom.
@@ -121,9 +127,10 @@ Tablet sada prikazuje taj apartman. Vaša prijava ne ostaje spremljena na tablet
 uvijek na engleskom). Nakon tri pogrešne lozinke dijalog se zatvara i minutu se ne može
 ponovno otvoriti.
 
-**Kada nešto promijenite u web administraciji,** tablet to preuzima sljedeći put kad se
-aplikacija vrati na zaslon — ugasite i upalite zaslon tableta ili zatvorite pa ponovno
-otvorite aplikaciju. Ne osvježava se dok gledate.
+**Kada nešto promijenite u web administraciji,** tablet to prikaže za nekoliko sekundi dok
+je spojen na internet: tekstove apartmana, Wi-Fi, kućni red i kontakte, mjesta te prijave
+i odjave gostiju. Sobe se osvježe sljedeći put kad ih gost otvori. Promjena prijevoznika na
+stranici **Prijevoz** prikaže se sljedeći put kad se zaslon tableta ugasi i upali.
 
 ## 6. Kiosk način (neobavezno)
 
@@ -133,6 +140,14 @@ ga ako tablet ostaje u apartmanu bez nadzora.
 
 Postavljanje **briše sve s tableta**, stoga koristite tablet namijenjen samo gostima.
 Trebaju vam tablet, punjač i lozinka za Wi-Fi; računalo ne treba.
+
+**Postavite ga u apartmanu, na Wi-Fi mreži apartmana.** U kiosk načinu postavke tableta su
+zaključane, pa se ne može spojiti na drugu Wi-Fi mrežu. Za isključivanje kiosk načina
+potrebna je vaša prijava, a za prijavu internet. Kiosk tablet koji izgubi Wi-Fi — odnesen
+negdje drugdje, novi usmjerivač, promijenjena lozinka za Wi-Fi — tada se može otključati
+samo vraćanjem na tvorničke postavke iz izbornika za oporavak (tipkama na tabletu), nakon
+čega ga ponovno postavljate. Prije promjene Wi-Fi mreže apartmana izađite iz kiosk načina,
+spojite tablet na novu mrežu, zatim ponovno uključite kiosk način.
 
 1. Vratite tablet na tvorničke postavke (Postavke → Sustav → Opcije vraćanja → Izbriši sve
    podatke).
@@ -186,6 +201,8 @@ U web administraciji:
 - [ ] Dodajte javni i privatni prijevoz
 - [ ] Odaberite grupu hitnih kontakata, dodajte svoje kontakte i kućni red
 - [ ] Dodajte goste, prijavite boravak, kasnije ga odjavite
+- [ ] Dodajte boravak koji počinje za nekoliko dana, zatim ga prijavite nakon što
+      odjavite prethodni
 - [ ] Prebacite administraciju na drugi jezik
 
 Na tabletu:

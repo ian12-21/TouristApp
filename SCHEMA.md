@@ -238,8 +238,22 @@ A group of guests occupying an apartment for a date range.
 > update. **Skip that and the tablet shows a stale name forever.**
 
 **Invariant:** `apartments/{apartmentId}.currentStayId` and `stays/{stayId}.apartmentId`
-point at each other. Both `checkIn()` (transaction) and `checkOut()` (batch) in
-`StayService` update the pair atomically. Never set one without the other.
+point at each other. `StayService` updates the pair atomically in transactions. Never
+set one without the other.
+
+**Lifecycle** (all in `StayService`):
+
+| Step | `status` | `currentStayId` |
+|---|---|---|
+| `checkIn()`, check-in today or earlier | `active` | set to the stay |
+| `checkIn()`, check-in on a later day | `upcoming` | untouched |
+| `startStay()` — the owner clicks Check in on an upcoming stay | `upcoming` → `active` | set to the stay |
+| `checkOut()` | → `completed` | cleared **only if it points at this stay** |
+| Cancelling an upcoming stay | document deleted | untouched |
+
+Making a stay current is refused while `currentStayId` points at another stay that is
+still `active`: the owner checks those guests out first. A pointer to a completed or
+missing stay counts as vacant.
 
 **Overlap rule:** two stays for the same apartment with status `active` or `upcoming`
 may not overlap in date range. Enforced client-side inside `StayService.checkIn()`'s
