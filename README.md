@@ -187,6 +187,13 @@ once the checksum is filled in.
 5. Launch the app and complete apartment setup.
 6. Open the admin dialog (hold the home icon 5 seconds → sign in) → **Enable kiosk mode**.
 
+**Either way, wait about 10 minutes on Wi-Fi before step 5.** Right after a factory reset
+the Play Store auto-updates Google Play services in the background. Each step of that
+update force-stops it, and Android kills every app bound to it — including this one, since
+Firebase is. It looks like the app throwing the owner out right after signing in; logcat
+shows `Killing …com.touristapp.staging (adj 0): stop com.google.android.gms`. Once the
+update has installed, the app stays up.
+
 Kiosk mode is **off by default** — provisioning device owner only makes it *possible*. It
 stays off until the owner enables it from the admin dialog, then stays on across reboots
 (the app becomes the home screen and re-engages on every boot) until the owner chooses
